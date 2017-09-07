@@ -1,0 +1,138 @@
+#include "resource.h"
+
+MYMENU MENU DISCARDABLE
+BEGIN
+	POPUP "&Файл"
+	BEGIN
+		MENUITEM "&Создать...",		IDM_NEW
+		MENUITEM "&Открыть...",		IDM_OPEN
+		MENUITEM "С&охранить",		IDM_SAVE
+		MENUITEM "Со&хранить как...",	IDM_SAVEAS
+		MENUITEM  SEPARATOR
+		MENUITEM "&Выход", 		IDM_EXIT
+	END
+//----------------------------------------------------------
+	POPUP "&Правка"
+	BEGIN
+		MENUITEM "&Назад",		IDM_UNDO
+		MENUITEM "&Вперед",		IDM_REDO
+		MENUITEM  SEPARATOR
+		MENUITEM "&Вырезать",		IDM_CUT
+		MENUITEM "&Копировать",		IDM_COPY
+		MENUITEM "&Вставить",		IDM_PASTE
+		MENUITEM  SEPARATOR
+		MENUITEM "&Выбрать все",	IDM_SELECTALL
+		MENUITEM "&Удалить",		IDM_DELETE
+	END
+
+//----------------------------------------------------------
+	POPUP "&Вид"
+	BEGIN
+		MENUITEM "Регенерировать",		IDM_REGEN
+		MENUITEM "Обновить",			IDM_REDRAW
+		MENUITEM  SEPARATOR
+
+		MENUITEM "Инструменты рисования",		IDM_TBDRAW
+		MENUITEM "Инструменты трансформации",		IDM_TBTRANSFORM
+		MENUITEM "Строка состояния",			IDM_STATUSBAR
+		MENUITEM "Панель свойств",			IDM_WNDPROPERTIES
+		MENUITEM "Командная строка",			IDM_WNDCOMMAND
+		MENUITEM  SEPARATOR
+
+		POPUP "Масштаб"
+		BEGIN
+			MENUITEM "Больше",			IDM_SCALEINC
+			MENUITEM "Меньше",			IDM_SCALEDEC
+			MENUITEM "Указать на экране",		IDM_SCALEMOUSE
+			MENUITEM "Показать все",		IDM_ZOOMALL
+		END
+
+		MENUITEM "Панорама",				IDM_PAN
+		MENUITEM "Оси координат",			IDM_UCSONOFF
+	END
+//----------------------------------------------------------
+
+	POPUP "&Формат"
+	BEGIN
+		MENUITEM "Слой...",			IDM_LAYER
+		MENUITEM "Цвет...",			IDM_LINECOLOR
+		MENUITEM "Толщина линии...",		IDM_LINEWEIGHT
+		MENUITEM "Тип линии...",		IDM_LINETYPE
+
+	END
+
+
+//----------------------------------------------------------
+	POPUP "&Примитив"
+	BEGIN
+		MENUITEM "Отрезок",					IDM_LINE
+		MENUITEM  SEPARATOR
+		POPUP "Дуга"
+		BEGIN
+                	MENUITEM "по 3 точкам",				IDM_ARC3POINTS
+			MENUITEM  SEPARATOR
+			MENUITEM "начало, конец, радиус",		IDM_ARCSTARTENDRADIUS
+			MENUITEM "центр, нач угол, конечн угол",	IDM_ARCCENTREANG1ANG2
+		END
+		POPUP "Окружность"
+		BEGIN
+			MENUITEM "Центр, радиус",			IDM_CIRCCENTRRAD
+			MENUITEM "Центр, диаметр",			IDM_CIRCCENTRDIAM
+			MENUITEM "Три точки",				IDM_CIRC3POINTS
+		END
+		MENUITEM  SEPARATOR
+                MENUITEM "Контур",					IDM_CONTUR
+                MENUITEM "Прямоугольник",				IDM_RECTANGLE
+                MENUITEM "Полигон",					IDM_POLYGON
+                MENUITEM "Текст",					IDM_TEXT
+
+	END
+//----------------------------------------------------------
+	POPUP "&Вставить"
+	BEGIN
+		MENUITEM "BMP файл",		IDM_INSERTBMP
+	END
+
+//----------------------------------------------------------
+	POPUP "&Преобразовать"
+	BEGIN
+		MENUITEM "Очистить",		IDM_ERASE
+		MENUITEM "Копировать",		IDM_PCOPY
+		MENUITEM "Отзеркалить",		IDM_MIRROR
+		MENUITEM "Эквидистант",		IDM_OFFSET
+		MENUITEM "Массив...",		IDM_ARRAY
+		MENUITEM  SEPARATOR
+		MENUITEM "Переместить",		IDM_MOVE
+		MENUITEM "Повернуть",		IDM_ROTATE
+		MENUITEM "Масштабировать",	IDM_SCALE
+		MENUITEM  SEPARATOR
+		MENUITEM "Обрезать",		IDM_TRIM
+		MENUITEM "Продлить",		IDM_LENGTH
+		MENUITEM  SEPARATOR
+		MENUITEM "Фаска",		IDM_CHAMFER
+		MENUITEM "Скруглить",		IDM_FILLET
+
+	END
+
+//----------------------------------------------------------
+	POPUP "&Настройки"
+	BEGIN
+		MENUITEM "Фон",				IDM_BACKGROUND
+		MENUITEM "Система координат...",	IDM_UCS
+	END
+
+	MENUITEM "&Помощь",			IDM_TEST
+
+END
+
+STRINGTABLE
+BEGIN
+	IDS_NEW "~Линия~Дуга2тR~Дуга3т~ДугаЦR~Окруж.ЦR~\
+Окруж.ЦD~Окруж.3т~Контур~Прямоуг.~Полигон~Текст~Ё"
+	IDS_NEW2 "~Очистить~Копия~Зеркало~Эквидист.~Массив~\
+Переместить~Поворот~Масштаб~Обрезать~Продолжить~Фаска~Скруглить~E"
+END
+
+IDR_TOOLBAR1            BITMAP  DISCARDABLE     "toolbar1.bmp"
+
+IDR_TOOLBAR2            BITMAP  DISCARDABLE     "toolbar2.bmp"
