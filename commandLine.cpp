@@ -6,7 +6,7 @@
 UINT CHANGEWINDOWPROC=NULL;
 extern BaseWindow mainWindow;
 
-extern Model myModel;
+extern Model myModel; //внешн€€ переменна€
 
 CommandLine::CommandLine():BaseWindow()
 {
