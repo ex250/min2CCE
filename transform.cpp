@@ -5,7 +5,7 @@
 extern BaseWindow modelWindow;
 extern Model myModel;
 
-const enum {SCALE,TRANSLATE,ROTATE,SHEAR,REFLECT,NORMAL};
+enum {SCALE,TRANSLATE,ROTATE,SHEAR,REFLECT,NORMAL};
 void TransformAndDraw(int iTransform, HWND hWnd, int width,LPPOINT lpPoint) 
 { 
 

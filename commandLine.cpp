@@ -120,20 +120,21 @@ bool CommandLine::addCommand()
 	bool result;
 	result=GetWindowText(hwndC,buffer,50);
 	switch(state){
-          case 0:
-		if (!strcmp(buffer,"отрезок")){
+          case STATE_WAIT_COMMAND:
+		if (!strcmp(buffer,"line")){
 		segLine(0,0);
         	}
 		else if(!strcmp(buffer,"arc")){
 		       segArc(0,0);
 		     }
 		else {
+		  strcat(buffer,"-unknown command");
 		  SendMessage(hwndH,(UINT) LB_ADDSTRING,(WPARAM) 0,(LPARAM) &buffer);
         	  SendMessage(hwndH,WM_VSCROLL,SB_BOTTOM,NULL);
 	          InvalidateRect(hWnd,&aRect,TRUE);
 	        }
 	  break;
-	  case 1:
+	  case STATE_LINE_POINT1:
 	        //анализ buffer для получения координат
 		//вызов метода parse();
 		//вызов метода segLine(x,y)
@@ -163,25 +164,25 @@ bool CommandLine::segLine(float x,float y){
         char str[30];
 
 	switch (state){
-	  case 0:
+		case STATE_WAIT_COMMAND:
            pStrCmd="координаты x,y: ";
 	   InvalidateRect(hWnd,&aRect,TRUE);
 	   SendMessage(hwndH,(UINT) LB_ADDSTRING,(WPARAM) 0,(LPARAM) "Отрезок");
            SendMessage(hwndH,WM_VSCROLL,SB_BOTTOM,NULL);
-	   state=1;
+	   state=STATE_LINE_POINT1;
 	  break;
 
-	  case 1:
-	    state=2;
+		case STATE_LINE_POINT1:
+	    state=STATE_LINE_POINT2;
 	    x1=x;
 	    y1=y;
 	  break;
 
-	  case 2:
+		case STATE_LINE_POINT2:
 	    Point start(x1,y1);
 	    Point end(x,y);
 	    myModel.appendLine(&start,&end);
-	    state=0;
+	    state=STATE_WAIT_COMMAND;
             pStrCmd="команда: ";
 	    InvalidateRect(hWnd,&aRect,TRUE);	
             //sprintf(str,"x1=%d y1=%d x2=%d y2=%d",x1,y1,x2,y2);
@@ -198,34 +199,34 @@ bool CommandLine::segArc(float x,float y){
         char str[30];
 	float Radius;
 	switch (state){
-	  case 0:
+		case STATE_WAIT_COMMAND:
            pStrCmd="координаты x,y: ";
 	   InvalidateRect(hWnd,&aRect,TRUE);
 	   SendMessage(hwndH,(UINT) LB_ADDSTRING,(WPARAM) 0,(LPARAM) "Дуга 2 точки, радиус");
            SendMessage(hwndH,WM_VSCROLL,SB_BOTTOM,NULL);
-	   state=3;
+	   state=STATE_ARC_POINT1;
 	  break;
 
-	  case 3:
+		case STATE_ARC_POINT1:
 	    x1=x;
 	    y1=y;
-	    state=4;
+	    state=STATE_ARC_POINT2;
 	  break;
 
-	  case 4:
+		case STATE_ARC_POINT2:
 	   //Point p1(x1,y1);
 	   //Point p2(x,y);
            pStrCmd="радиус R: ";
 	   InvalidateRect(hWnd,&aRect,TRUE);
-	   state=5;
+	   state=STATE_ARC_POINT3;
 	  break;
 
-	  case 5:
+		case STATE_ARC_POINT3:
 	    Radius=4;//вычислить радиус
 	    //myModel.appendArc(&start,&end,&pt3, Radius);
             pStrCmd="команда: ";
 	    InvalidateRect(hWnd,&aRect,TRUE);	
-	    state=0;
+	    state=STATE_WAIT_COMMAND;
 	  break;
 	}
 	result = true; //myModel.appendLine();

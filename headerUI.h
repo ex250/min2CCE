@@ -1,7 +1,17 @@
 #include <windows.h>
+#define _WIN32_IE	0x0300
 #include <commctrl.h>
 #include "resource.h"
 
+const int STATE_WAIT_COMMAND=0;
+const int STATE_LINE_POINT1=1;
+const int STATE_LINE_POINT2=2;
+const int STATE_ARC_POINT1=3;
+const int STATE_ARC_POINT2=4;
+const int STATE_ARC_POINT3=5;
+const int STATE_ARC3P_POINT1=6;
+const int STATE_ARC3P_POINT2=7;
+const int STATE_ARC3P_POINT3=8;
 #if !defined(HEADERUI)
 #define HEADERUI
 
@@ -167,6 +177,8 @@ class ModelWindow:public BaseWindow
     bool setScale(float);
     
     bool line(int ,int, int, int );
+
+    bool _arc(int ,int, int, int, float );
 
 };
 

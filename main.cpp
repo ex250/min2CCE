@@ -347,10 +347,14 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		   strcat(buffer,buf);
 		   aRect=statusBar.getRect();
 		   InvalidateRect(statusBar.getHWND(),&aRect,TRUE);
-		   if (comStr.getState()==2){
+		   switch (comStr.getState()){
+			   case STATE_LINE_POINT2:
 			modelWindow.line(comStr.getStartPOINT().x,comStr.getStartPOINT().y,prevCursPos.x,prevCursPos.y);
 			modelWindow.line(comStr.getStartPOINT().x,comStr.getStartPOINT().y,lpPoint->x,lpPoint->y);
 		        prevCursPos=*lpPoint;
+			break;
+			   case STATE_ARC_POINT3:
+			;
 		   }
 		   }
 		}
@@ -370,20 +374,20 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		  ScreenToClient(hWnd,lpPoint);
 		  DPtoLP(modelWindow.getHDC(),lpPoint,1);
 		  switch (comStr.getState()){
-			case 1:
+			case STATE_LINE_POINT1:
 				comStr.segLine(lpPoint->x,lpPoint->y);
 			        prevCursPos=*lpPoint;
 				break;
-			case 2:
+			case STATE_LINE_POINT2:
 				comStr.segLine(lpPoint->x,lpPoint->y);
 				break;
-			case 3:
+			case STATE_ARC_POINT1:
 				comStr.segArc(lpPoint->x,lpPoint->y);
 				break;
-			case 4:
+			case STATE_ARC_POINT2:
 				comStr.segArc(lpPoint->x,lpPoint->y);
 				break;
-			case 5:
+			case STATE_ARC_POINT3:
 				comStr.segArc(lpPoint->x,lpPoint->y);
 				break;
 
