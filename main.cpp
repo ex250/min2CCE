@@ -9,6 +9,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 void TransformAndDraw(int iTransform, HWND hWnd,int scale,LPPOINT lpPoint);
 
+BOOL APIENTRY dlgprc(HWND, UINT, WPARAM, LPARAM);
 HINSTANCE g_hInst;
 
 BaseWindow mainWindow;
@@ -267,24 +268,23 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
    HPEN hPen;
    int ItemIndex;
 
+// Переменные для стандартных диалогов "Open", "Save as"
+   BOOL success;
+   static OPENFILENAME ofn;
+   static char szFile[MAX_PATH];
+
    switch(message)                // Process selected messages
    {  
       case WM_CREATE:
-            if (hWnd==modelWindow.getHWND()){
-		hDC=GetDC(hWnd);
-
-		/* SetGraphicsMode(hDC,GM_ADVANCED);
-		SetMapMode(hDC,	MM_ISOTROPIC);
-
-		SetViewportExtEx(hDC, modelWindow.getWidth(),
-					modelWindow.getHeight(),
-					NULL);
-                aspect=modelWindow.getWidth()/modelWindow.getHeight();
-		SetWindowExtEx(hDC, 3000, 3000/aspect, NULL);
-		
-		ReleaseDC(hWnd,hDC);
-		*/
+	    if (mode++==0){
+	    //MessageBox(hWnd, "вызов WM_CREATE", "Меню File", MB_OK);
+	    // Инициализация структуры ofn
+	    ofn.lStructSize = sizeof(OPENFILENAME);
+	    ofn.hwndOwner = hWnd;
+	    ofn.lpstrFile = szFile;
+	    ofn.nMaxFile = sizeof(szFile);
 	    }
+
       break;
 
       case WM_SIZE:
@@ -353,8 +353,39 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			modelWindow.line(comStr.getStartPOINT().x,comStr.getStartPOINT().y,lpPoint->x,lpPoint->y);
 		        prevCursPos=*lpPoint;
 			break;
+			   case STATE_ARC_POINT2:
+
+			modelWindow.line(comStr.getX1(),comStr.getY1(),prevCursPos.x,prevCursPos.y);
+			modelWindow.line(comStr.getX1(),comStr.getY1(),lpPoint->x,lpPoint->y);
+		        prevCursPos=*lpPoint;
+
+		        break;
+
 			   case STATE_ARC_POINT3:
-			;
+			comStr.getRC(prevCursPos.x,prevCursPos.y);
+
+			modelWindow._arc(comStr.getX1(),
+					 comStr.getY1(),
+					 comStr.getX3(),
+					 comStr.getY3(),
+                                         comStr.getXc(),
+                                         comStr.getYc(),
+					 comStr.getR()
+			);
+
+			comStr.getRC(lpPoint->x,lpPoint->y);
+
+			modelWindow._arc(comStr.getX1(),
+					 comStr.getY1(),
+					 comStr.getX3(),
+					 comStr.getY3(),
+                                         comStr.getXc(),
+                                         comStr.getYc(),
+					 comStr.getR()
+			);
+
+		        prevCursPos=*lpPoint;
+			break;
 		   }
 		   }
 		}
@@ -469,16 +500,37 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 	 {
 //----------------- STANTARD-------------------------------------------------
 		case IDM_OPEN:
-			MessageBox(hWnd, "Выбран пункт 'Open'", "Меню File", MB_OK);
+			   strcpy(szFile, "");
+			   success = GetOpenFileName(&ofn);
+			   if (success)
+				MessageBox(hWnd, ofn.lpstrFile, "Открывается файл:", MB_OK);
+			   else
+				MessageBox(hWnd, "GetOpenFileName",
+				"Отказ от выбора или ошибка", MB_ICONWARNING);
 			break;
+		
 
 		case IDM_NEW:
-			MessageBox(hWnd, "Выбран пункт 'New'", "Меню File", MB_OK);
+			DialogBox(NULL,MAKEINTRESOURCE(EXAMPLEDIALOG),mainWindow.getHWND(),dlgprc);
+			//MessageBox(hWnd, "Выбран пункт 'New'", "Меню File", MB_OK);
 			break;
 
  		case IDM_SAVE:
 			MessageBox(hWnd, "Выбран пункт 'Save'", "Меню File", MB_OK);
 			break;
+
+ 		case IDM_SAVEAS:
+			strcpy(szFile, "");
+			success = GetSaveFileName(&ofn);
+			if (success)
+				MessageBox(hWnd, ofn.lpstrFile,
+				"Файл сохраняется с именем:", MB_OK);
+			else
+				MessageBox(hWnd, "GetSaveFileName",
+				"Отказ от выбора или ошибка", MB_ICONWARNING);
+			break;
+
+
 		case IDM_EXIT:
 			SendMessage(hWnd, WM_DESTROY, 0, 0);
 			break;
@@ -571,8 +623,12 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			break;
 
 		case IDM_FILLET:
-			//MessageBox(hWnd, "Выбран пункт 'СОПРЯЖЕНИЕ'", "Меню Преобразовать", MB_OK);
-			modelWindow.printText(10,10,"Окно модели. Выбрано сопряжение");
+			MessageBox(hWnd, "Выбран пункт 'СОПРЯЖЕНИЕ'", "Меню Преобразовать", MB_OK);
+			//modelWindow.printText(10,10,"Окно модели. Выбрано сопряжение");
+			break;
+//-----------------menu VIEW------------------------------------------
+		case  IDM_REDRAW:
+			 myModel.showModel();
 			break;
 		case IDC_TBCOMBO_LAYER:
 			if (HIWORD(wParam)==CBN_SELCHANGE){
@@ -581,6 +637,17 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			   if (ItemIndex<Layer::getCount()){
 			       currentLayer=&layer[ItemIndex];
 			       hPen=CreatePen(currentLayer->getType(), currentLayer->getWidth(), RGB((currentLayer->getColor()&0xff0000)>>16, (currentLayer->getColor()&0xff00)>>8,currentLayer->getColor()&0xff));
+			       /*LOGBRUSH LBrush;
+			       LBrush.lbStyle=BS_SOLID;
+			       LBrush.lbColor=RGB(0,0,0);
+			       LBrush.lbHatch=HS_CROSS;
+			       hPen=ExtCreatePen(currentLayer->getType()|PS_GEOMETRIC,
+			       currentLayer->getWidth(),
+			       &LBrush,
+			       NULL,
+			       NULL
+			       );
+			       */
                		       modelWindow.setPen(&hPen);
 			   }
 			}
@@ -603,3 +670,19 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 }
 
 //************************************************************************
+BOOL APIENTRY dlgprc(HWND hDlg, UINT uMsg,WPARAM wParam, LPARAM lParam){
+	switch(uMsg){
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			break;
+	case WM_COMMAND:
+		switch (LOWORD(wParam)) {
+		case IDCANCEL:
+			EndDialog(hDlg, 0);
+			return TRUE;
+		}
+		break;
+
+	}
+	return false;
+}

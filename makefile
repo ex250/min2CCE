@@ -8,7 +8,7 @@ CXXFLAGS      = -pipe -fno-keep-inline-dllexport -g -frtti -fexceptions -mthread
 INCPATH       = -I'../../../qt-4.8.7/include/QtCore' -I'../../../qt-4.8.7/include/QtGui' -I'../../../qt-4.8.7/include' -I'../../../qt-4.8.7/include/ActiveQt' -I'debug' -I'../../../qt-4.8.7/mkspecs/win32-g++-4.6'
 LINK        =        g++
 LFLAGS        =        -mthreads -Wl,-subsystem,windows
-LIBS        = -lglu32 -lopengl32 -lwinmm -lfreeglut.dll -lfreeglut_static -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -lcomctl32
+LIBS        = -lglu32 -lopengl32 -lwinmm -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -lcomctl32
 
 
 srcs=baseWindow.cpp main.cpp toolbardraw.cpp commandLine.cpp transform.cpp model.cpp modelWindow.cpp
@@ -16,10 +16,10 @@ srcs=baseWindow.cpp main.cpp toolbardraw.cpp commandLine.cpp transform.cpp model
 objs=$(srcs:.cpp=.o)
 
 all:$(objs) resource.res.o
-	g++ $(LFLAGS) -o $(name) $(objs) resource.res.o $(LIBS) 
+	g++ -g $(LFLAGS) -o $(name) $(objs) resource.res.o $(LIBS) 
 
 .cpp.o:
-	g++ -c $(srcs)
+	g++ -c -g $(srcs)
 
 resource.res.o:resource.res
 	windres -J res -O coff -i resource.res -o resource.res.o 

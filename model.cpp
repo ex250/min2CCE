@@ -207,7 +207,7 @@ void Line::show()
   HPEN hPen=CreatePen(type, width, RGB(R,G,B));
   modelWindow.setPen(&hPen);
   modelWindow.line(start.getX(),start.getY(),end.getX(),end.getY());
-  printInfo();
+  //printInfo();
 }
 
 void Line::getLine()
@@ -231,64 +231,41 @@ bool Line::printInfo(){
   modelWindow.printText(10,10,buff);
   return true;
 }
-/**************class Arc  *********************************************
-Arc::Arc():centre(0.0,0.0),r(10.0),startAngle(0.0),endAngle(360.0),
-		type(DEFAULTTYPE),width(DEFAULTWIDTH),color(DEFAULTCOLOR)
+
+//--------------ARC SECTION------------------------------------------
+
+ArcSegment::ArcSegment(float x1, float y1 ,float x2,float y2, float x, float y,
+ float R)
 {
-  //cout<<"Arc конструктор без параметров"<<endl;
-  layerID=currentLayer->getID();
+  width=5;
+  type=PS_SOLID;
+  xs=x1;
+  ys=y1;
+  xe=x2;
+  ye=y2;
+  xc=x;
+  yc=y;
+  radius=R;
 }
 
-Arc::Arc(Layer* layer):centre(0.0,0.0,layer),r(10.0),startAngle(0.0),endAngle(360.0),
-		type(layer->getType()),width(layer->getWidth()),color(layer->getColor())
-{ layerID=layer->getID();    }
-
-Arc::Arc(Point xy,float radius,Layer* layer):centre(xy),r(radius),startAngle(0.0),
-	endAngle(360.0),type(layer->getType()),width(layer->getWidth()),
-	color(layer->getColor())
-{  layerID=layer->getID();    }
-
-void Arc::show()
+void ArcSegment::show()
 {
-  //cout<<"------------ARC------------"<<endl;;
-  //ptrToLayer->show();
-  //centre.show();
-  //cout<<"R="<<r<<endl;
-  //cout<<"--------END OF ARC---------"<<endl;
-
+  unsigned char R,G,B;
+  R=(color&0xff0000)>>16;
+  G=(color&0xff00)>>8;
+  B=(color&0xff);
+  HPEN hPen=CreatePen(type, width, RGB(R,G,B));
+  modelWindow.setPen(&hPen);
+  modelWindow._arc(xs,ys,xe,ye,xc,yc,radius);
+  printInfo();
 }
 
-void Arc::getArc()
-{
-  //cout<<"введите координаты центра дуги"<<endl;
-  centre.getPoint();
+bool ArcSegment::printInfo()
+{ }
 
-  //cout<<"введите радиус дуги: ";
-  //cin>>r;
-  
-  //cout<<"введите начальный угол дуги: ";
-  //cin>>startAngle;
+bool ArcSegment::getDataFromUser()
+{ }
 
-  //cout<<"введите конечный угол дуги: ";
-  cin>>endAngle;
-}	
-
-bool Arc::getDataFromUser()
-{
-  //cout<<"введите координаты центра дуги"<<endl;
-  centre.getPoint();
-
-  //cout<<"введите радиус дуги: ";
-  cin>>r;
-  
-  //cout<<"введите начальный угол дуги: ";
-  cin>>startAngle;
-
-  //cout<<"введите конечный угол дуги: ";
-  cin>>endAngle;
-  return TRUE;
-}
-*/
 //**************class Model*********************************************
 Model::Model()
 {
@@ -304,37 +281,27 @@ bool Model::addEntity(Entity* entity)
 }
 
 bool Model::appendLine(Point *start,Point *end){
-	//cout<<"создаем указатель на новую линию"<<endl;
 	Line *ptrToLine;
 	ptrToLine=new Line(start,end);
-	//cout<<"вызываем метод getDataFromUser"<<endl;
-	//ptrToLine->getDataFromUser();
-	//cout<<"помещаем данные в вектор"<<endl;
 	entities.push_back(ptrToLine);
 	return TRUE;
 }
 
 
 bool Model::appendPoint(){
-	//cout<<"создаем указатель на новую точку"<<endl;
 	Point *ptrToPoint;
 	ptrToPoint=new Point();
-	//cout<<"вызываем метод getDataFromUser"<<endl;
 	ptrToPoint->getDataFromUser();
-	//cout<<"помещаем данные в вектор"<<endl;
 	entities.push_back(ptrToPoint);
 	return TRUE;
 }
 
-bool Model::appendArc(){
-/*	cout<<"создаем указатель на новую дугу"<<endl;
-	Arc *ptrToArc;
-	ptrToArc=new Arc();
-	cout<<"вызываем метод getDataFromUser"<<endl;
-	ptrToArc->getDataFromUser();
-	cout<<"помещаем данные в вектор"<<endl;
+bool Model::appendArc(float x1, float y1, float x2, float y2, 
+			float xc, float yc, float R)
+{
+	ArcSegment *ptrToArc;
+	ptrToArc=new ArcSegment(x1,y1,x2,y2,xc,yc,R);
 	entities.push_back(ptrToArc);
-*/
 	return TRUE;
 }
 
@@ -358,20 +325,12 @@ int  Model::writeModel()
 
 void Model::showModel()
 {
- //   std::vector<Entity*>::iterator it;
- //   it=entities.begin();
- //   for (it; it != entities.end(); it++)
- //        it->show();
- //Entity* ptr;
- //ptr=entities.begin();
- //for (ptr;ptr<entities.end();ptr++)
- //	ptr->show();
    for (int j=0;j<entities.size();j++)
 	entities[j]->show();
-
-    
 }
+
 int  Model::printModelInfo()const
 {
 	return 0;
 }
+

@@ -110,6 +110,24 @@ class Line:public Entity
 };
 
 
+class ArcSegment:public Entity
+{
+  private:
+	int type,width,color;
+	float xc,yc;
+	float radius;
+	float xs,ys, xe,ye;
+	int direction;
+
+  public:
+	ArcSegment(float,float,float,float,float,float,float);
+	void show();
+
+	bool printInfo();
+
+	bool getDataFromUser();
+
+};
 
 class Model{
   private:
@@ -121,7 +139,7 @@ class Model{
 	
 	bool	appendLine(Point*,Point*);
 	bool	appendPoint();
-	bool	appendArc();
+	bool	appendArc(float, float, float, float, float, float, float);
 
 	bool 	addEntity(Entity*);
 	int	deleteEntity(int[]);
@@ -133,39 +151,4 @@ class Model{
 	int printModelInfo()const;
 };
 
-/*
-class Arc:public Entity
-{
-  private:
-	Point centre;
-	int type,width,color;
-	float r;
-	float startAngle,endAngle;
-  public:
-	Arc();
 
-	Arc(Layer*);
-
-	Arc(Point,float);
-
-	Arc(Point,float,Layer*);
-
-	void show();
-
-	void getArc();
-
-	bool getDataFromUser();
-
-	unsigned char setLayer();
-
-	bool rotate();
-	bool move();
-	bool scale();
-	bool mirror();
-	bool offset();
-	bool trim();
-	bool lenghten();
-
-
-};
-*/

@@ -1,5 +1,5 @@
 #include <windows.h>
-#define _WIN32_IE	0x0300
+//#define _WIN32_IE	0x0300
 #include <commctrl.h>
 #include "resource.h"
 
@@ -120,7 +120,8 @@ class CommandLine:public BaseWindow
     char buffer[128];   //буффер команды
     char *pStrCmd;      //указатель на строку запрос 
     int state;		//индикатор текущего состояния системы
-    float x1,y1,x2,y2;
+    float x1,y1,x2,y2,x3,y3;// переменные для хранения координат точек
+    float xc,yc,R; // координаты центра и радиус окружности
  public:
 
     CommandLine();
@@ -147,6 +148,17 @@ class CommandLine:public BaseWindow
 
     POINT getStartPOINT();
 
+    int getRC(float x, float y);
+
+    float getX1();
+    float getY1();
+    float getX2();
+    float getY2();
+    float getX3();
+    float getY3();
+    float getXc();
+    float getYc();
+    float getR();
 
 };
 
@@ -178,7 +190,9 @@ class ModelWindow:public BaseWindow
     
     bool line(int ,int, int, int );
 
-    bool _arc(int ,int, int, int, float );
+    bool _arc(float, float, float, float, float, float, float );
+
+    //bool _arc(float, float, float, float, float, float);
 
 };
 

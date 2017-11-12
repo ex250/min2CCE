@@ -6,7 +6,7 @@
 UINT CHANGEWINDOWPROC=NULL;
 extern BaseWindow mainWindow;
 
-extern Model myModel; //внешн€€ переменна€
+extern Model myModel; 
 
 CommandLine::CommandLine():BaseWindow()
 {
@@ -197,7 +197,6 @@ bool CommandLine::segArc(float x,float y){
 	bool result;
 	RECT aRect={0,40,180,80}; 	
         char str[30];
-	float Radius;
 	switch (state){
 		case STATE_WAIT_COMMAND:
            pStrCmd="координаты x,y: ";
@@ -214,34 +213,52 @@ bool CommandLine::segArc(float x,float y){
 	  break;
 
 		case STATE_ARC_POINT2:
-	   //Point p1(x1,y1);
-	   //Point p2(x,y);
-           pStrCmd="радиус R: ";
+	   x2=x;
+	   y2=y;
+           pStrCmd="3th point: ";
 	   InvalidateRect(hWnd,&aRect,TRUE);
 	   state=STATE_ARC_POINT3;
 	  break;
 
 		case STATE_ARC_POINT3:
-	    Radius=4;//вычислить радиус
-	    //myModel.appendArc(&start,&end,&pt3, Radius);
+	    x3=x;
+	    y3=y;	
+	    if (!getRC(x,y))
+		    myModel.appendArc(x1,y1,x3,y3,xc,yc,R);
+
             pStrCmd="команда: ";
 	    InvalidateRect(hWnd,&aRect,TRUE);	
 	    state=STATE_WAIT_COMMAND;
 	  break;
 	}
-	result = true; //myModel.appendLine();
+	result = true; 
 	return result;
 }
 
 
 POINT CommandLine::getStartPOINT(){
-	//char str[30];
-	//sprintf(str,"state=%d",state);
-	//MessageBox(hWnd,str,"counter",MB_OK);
 	POINT start={x1,y1};
 	return start;
 }
 
+float CommandLine::getX1()
+{ return x1;}
+float CommandLine::getY1()
+{ return y1;}
+float CommandLine::getX2()
+{ return x2;}
+float CommandLine::getY2()
+{ return y2;}
+float CommandLine::getX3()
+{ return x3;}
+float CommandLine::getY3()
+{ return y3;}
+float CommandLine::getXc()
+{ return xc;}
+float CommandLine::getYc()
+{ return yc;}
+float CommandLine::getR()
+{ return R;}
 //**********************************************************************
 
 LRESULT CALLBACK CommandLine::cmdProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -418,4 +435,83 @@ LRESULT CALLBACK CommandLine::subProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
     }
 
     return result;
+}
+
+int CommandLine::getRC(float xd, float yd)
+{
+
+//            
+//            xxx
+//          x     B             A(xa,ya)
+//         x       x            B(xb,yb)
+//         A_______D            D(xd,yd) 
+//          x     x             R - radius
+//            xxx               C(xc,yc) - center
+//
+//
+        float xa=x1, ya=y1;
+ 	float xb=x2, yb=y2;
+
+	float e,Kab;
+	if (xa==xb && ya==yb)   // A = B
+	{
+		//cout<<"A = B"<<endl;
+		return -1;
+	}
+
+	if (xa==xd && ya==yd)   // A = D
+	{
+		//cout<<"D = A)"<<endl;
+		return -2;
+	}
+
+	if (xb==xd && yb==yd)   // B = D
+	{
+		//cout<<"D = B"<<endl;
+		return -3;
+	}
+
+	if (ya==yd) // AD || OX
+	{
+		xc=(xa+xd)/2;
+		yc=((xa-xc)*(xa-xc)-(xb-xc)*(xb-xc)+yd*yd-yb*yb)/(2*(yd-yb));
+		R=sqrt((xd-xc)*(xd-xc)+(yd-yc)*(yd-yc));
+		return 0;
+	}
+	else if (xa==xd) // AD || OY
+		if (xb!=xd)
+		{
+			yc=(ya+yd)/2;
+			xc=(3*xa*xa-4*xb*xb-2*xa*xd+xd*xd+ya*ya-2*ya*yd+yd*yd-(ya-yd-2*yb)*(ya+yd-2*yb))/(8*(xa-xb));
+			R=sqrt((xc-xa)*(xc-xa)+(ya-yb)*(ya-yb));
+			return 0;
+		}
+		else 
+		{
+			//cout<<"B na AD"<<endl;
+			return -1;
+		}
+	else 
+	{
+		Kab=(ya-yb)/(xa-xb);
+		e=ya-Kab*xa;
+		if ((yd-Kab*xd-e)==0)
+			return -1;
+		else 
+		{
+			yc=((xb-xd)*(xb*xb+yb*yb-xa*xa-ya*ya)-(xb-xa)*(xb*xb+yb*yb-xd*xd-yd*yd))/(2*((yd-yb)*(xb-xa)-(ya-yb)*(xb-xd)));
+			if (xb==xa)
+			{
+				//cout<<"xb=xa"<<endl;
+				xc=(xb*xb+yb*yb-yd*yd-xd*xd+2*yc*(yd-yb))/(2*(xb-xd));
+			}
+			else 
+			{       if (xb==xd)
+				   //cout<<"xb=xd"<<endl;
+				xc=(xb*xb+yb*yb-ya*ya-xa*xa+2*yc*(ya-yb))/(2*(xb-xa));
+			}
+			}
+	R=sqrt((xa-xc)*(xa-xc)+(ya-yc)*(ya-yc));
+		}
+return 0;	
 }

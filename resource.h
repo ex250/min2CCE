@@ -1,5 +1,11 @@
 #if !defined(RESOURCE)
 #define RESOURCE
+#define EXAMPLEDIALOG		11000
+#define IDC_CHECKBOX		11100
+#define IDC_RADIO1		11200
+#define IDC_RADIO2		11300
+
+
 #define ID_SEP			 100
 #define IDC_TBCOMBO_LAYER    	 200
 #define IDC_TBCOMBO_COLOR    	 201

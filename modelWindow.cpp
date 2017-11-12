@@ -16,6 +16,21 @@ bool ModelWindow::line(int xPrev,int yPrev,int x, int y)
   return result;
 }
 
+bool ModelWindow::_arc(float x1, float y1, float x2, float y2,
+			 float x, float y, float R)
+{
+  bool result;
+
+  hDC=GetDC(hWnd);
+
+  SelectObject(hDC, hBrush); 
+  SelectObject(hDC, hPen);
+  SetROP2(hDC, R2_NOTXORPEN);
+  result=Arc(hDC,x-R,y+R,x+R,y-R, x1,y1, x2,y2);
+  return result;
+
+}
+
 HDC ModelWindow::getHDC(){
   return hDC;
 }
