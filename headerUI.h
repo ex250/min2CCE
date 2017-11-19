@@ -12,6 +12,8 @@ const int STATE_ARC_POINT3=5;
 const int STATE_ARC3P_POINT1=6;
 const int STATE_ARC3P_POINT2=7;
 const int STATE_ARC3P_POINT3=8;
+const float PI=3.14159265;
+
 #if !defined(HEADERUI)
 #define HEADERUI
 
@@ -121,7 +123,10 @@ class CommandLine:public BaseWindow
     char *pStrCmd;      //указатель на строку запрос 
     int state;		//индикатор текущего состояния системы
     float x1,y1,x2,y2,x3,y3;// переменные для хранения координат точек
+    float x4,y4,x5,y5,x6,y6;// переменные для хранения координат точек
     float xc,yc,R; // координаты центра и радиус окружности
+    float fia,fib,fid;//angle 3 arc points
+    int ArcDirection;
  public:
 
     CommandLine();
@@ -159,7 +164,7 @@ class CommandLine:public BaseWindow
     float getXc();
     float getYc();
     float getR();
-
+    int getDirection();
 };
 
 
@@ -190,7 +195,7 @@ class ModelWindow:public BaseWindow
     
     bool line(int ,int, int, int );
 
-    bool _arc(float, float, float, float, float, float, float );
+    bool _arc(float, float, float, float, float, float, float, int );
 
     //bool _arc(float, float, float, float, float, float);
 

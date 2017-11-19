@@ -347,10 +347,14 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		   strcat(buffer,buf);
 		   aRect=statusBar.getRect();
 		   InvalidateRect(statusBar.getHWND(),&aRect,TRUE);
+
 		   switch (comStr.getState()){
 			   case STATE_LINE_POINT2:
 			modelWindow.line(comStr.getStartPOINT().x,comStr.getStartPOINT().y,prevCursPos.x,prevCursPos.y);
 			modelWindow.line(comStr.getStartPOINT().x,comStr.getStartPOINT().y,lpPoint->x,lpPoint->y);
+		        prevCursPos=*lpPoint;
+			break;
+			   case STATE_ARC_POINT1:
 		        prevCursPos=*lpPoint;
 			break;
 			   case STATE_ARC_POINT2:
@@ -370,7 +374,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 					 comStr.getY3(),
                                          comStr.getXc(),
                                          comStr.getYc(),
-					 comStr.getR()
+					 comStr.getR(),
+					 comStr.getDirection()
 			);
 
 			comStr.getRC(lpPoint->x,lpPoint->y);
@@ -381,7 +386,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 					 comStr.getY3(),
                                          comStr.getXc(),
                                          comStr.getYc(),
-					 comStr.getR()
+					 comStr.getR(),
+					 comStr.getDirection()
 			);
 
 		        prevCursPos=*lpPoint;
@@ -417,6 +423,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				break;
 			case STATE_ARC_POINT2:
 				comStr.segArc(lpPoint->x,lpPoint->y);
+			modelWindow.line(comStr.getX1(),comStr.getY1(),prevCursPos.x,prevCursPos.y);
 				break;
 			case STATE_ARC_POINT3:
 				comStr.segArc(lpPoint->x,lpPoint->y);
@@ -473,7 +480,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
       modelWindow.setScale(scaleFactor); 
 
-      sprintf(buffer,"x=%3d y=%3d     Scale:%f",lpPoint->x,lpPoint->y,scaleFactor);
+      sprintf(buffer,"x=%4d y=%4d     Scale:%f",lpPoint->x,lpPoint->y,scaleFactor);
 
       sprintf(buf,"     Scale:%3d",scaleFactor);
 
@@ -578,8 +585,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 //-----------------MODIFY-------------------------------------------------
 		case IDM_ERASE:
-			statusBar.printText(10,10,"Строка состояния. Выбрана команда очистить.");
-			//MessageBox(hWnd, "Выбран пункт 'Erase'", "Меню Преобразовать", MB_OK);
+			myModel.deleteAll();	
 			break;
 
 		case IDM_PCOPY:

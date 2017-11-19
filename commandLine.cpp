@@ -2,6 +2,7 @@
 #include <objbase.h>
 #include "model.h"
 #include "math.h"
+#include <stdio.h>
 
 UINT CHANGEWINDOWPROC=NULL;
 extern BaseWindow mainWindow;
@@ -196,7 +197,7 @@ bool CommandLine::segLine(float x,float y){
 bool CommandLine::segArc(float x,float y){
 	bool result;
 	RECT aRect={0,40,180,80}; 	
-        char str[30];
+        char str[256];
 	switch (state){
 		case STATE_WAIT_COMMAND:
            pStrCmd="координаты x,y: ";
@@ -224,7 +225,16 @@ bool CommandLine::segArc(float x,float y){
 	    x3=x;
 	    y3=y;	
 	    if (!getRC(x,y))
-		    myModel.appendArc(x1,y1,x3,y3,xc,yc,R);
+		    myModel.appendArc(x1,y1,x3,y3,xc,yc,R,ArcDirection);
+
+            sprintf(str,"x1=%f\ty1=%f\nx2=%f\ty2=%f\nx3=%f\ty3=%f\nR=%f\tXc=%f\tYc=%f\nfia=%f\tfib=%f\tfid=%f\nxap=%f\tyap=%f\txbp=%f\tybp=%f\txdp=%f\tydp=%f\n",x1,y1,x2,y2,x3,y3,R,xc,yc,fia,fib,fid,x4,y4,x5,y5,x6,y6);
+	    
+	    if (ArcDirection==AD_COUNTERCLOCKWISE)
+		    strcat(str,"CCW");
+	    else
+		    strcat(str,"CW");
+
+	    MessageBox(hWnd,str,"Arc parameters",MB_OK);
 
             pStrCmd="команда: ";
 	    InvalidateRect(hWnd,&aRect,TRUE);	
@@ -259,6 +269,8 @@ float CommandLine::getYc()
 { return yc;}
 float CommandLine::getR()
 { return R;}
+int CommandLine::getDirection()
+{ return ArcDirection;}
 //**********************************************************************
 
 LRESULT CALLBACK CommandLine::cmdProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -441,12 +453,12 @@ int CommandLine::getRC(float xd, float yd)
 {
 
 //            
-//            xxx
-//          x     B             A(xa,ya)
-//         x       x            B(xb,yb)
-//         A_______D            D(xd,yd) 
-//          x     x             R - radius
-//            xxx               C(xc,yc) - center
+//            ...
+//          .     b             A(xa,ya)
+//         .       .            B(xb,yb)
+//         a_______d            D(xd,yd) 
+//          .     .             R - radius
+//            ...               C(xc,yc) - center
 //
 //
         float xa=x1, ya=y1;
@@ -482,7 +494,10 @@ int CommandLine::getRC(float xd, float yd)
 		if (xb!=xd)
 		{
 			yc=(ya+yd)/2;
+			if (xb>xa)
 			xc=(3*xa*xa-4*xb*xb-2*xa*xd+xd*xd+ya*ya-2*ya*yd+yd*yd-(ya-yd-2*yb)*(ya+yd-2*yb))/(8*(xa-xb));
+			else
+				xc=(xd*xd-xb*xb+(yc-yd)*(yc-yd)-(yc-yb)*(yc-yb))/(2*(xd-xb));
 			R=sqrt((xc-xa)*(xc-xa)+(ya-yb)*(ya-yb));
 			return 0;
 		}
@@ -500,18 +515,77 @@ int CommandLine::getRC(float xd, float yd)
 		else 
 		{
 			yc=((xb-xd)*(xb*xb+yb*yb-xa*xa-ya*ya)-(xb-xa)*(xb*xb+yb*yb-xd*xd-yd*yd))/(2*((yd-yb)*(xb-xa)-(ya-yb)*(xb-xd)));
-			if (xb==xa)
+			if (xb!=xd)
 			{
-				//cout<<"xb=xa"<<endl;
 				xc=(xb*xb+yb*yb-yd*yd-xd*xd+2*yc*(yd-yb))/(2*(xb-xd));
 			}
 			else 
-			{       if (xb==xd)
-				   //cout<<"xb=xd"<<endl;
+			{       if (xb!=xa)
 				xc=(xb*xb+yb*yb-ya*ya-xa*xa+2*yc*(ya-yb))/(2*(xb-xa));
 			}
-			}
-	R=sqrt((xa-xc)*(xa-xc)+(ya-yc)*(ya-yc));
 		}
+	R=sqrt((xa-xc)*(xa-xc)+(ya-yc)*(ya-yc));
+	}
+
+	// transfer to polar SC 
+	// test CW or CCW
+	float xap=xa-xc;
+	float yap=ya-yc;
+	float xbp=xb-xc;
+	float ybp=yb-yc;
+	float xdp=xd-xc;
+	float ydp=yd-yc;
+
+
+	if (xap==0){
+		if (yap>0)
+			fia=PI/2;
+		else 
+			fia=-PI/2;
+	}
+	else
+	{
+		fia=atan(yap/xap);
+		if (yap<0)
+			fia+=PI;
+	}
+
+	if (xbp==0){
+		if (ybp>0)
+			fib=PI/2;
+		else 
+			fib=-PI/2;
+	}
+	else
+	{
+		fib=atan(ybp/xbp);
+		if (ybp<0)
+			fib+=PI;
+	}
+
+	if (xdp==0){
+		if (ydp>0)
+			fid=PI/2;
+		else 
+			fid=-PI/2;
+	}
+	else
+	{
+		fid=atan(ydp/xdp);
+		if (ydp<0)
+			fid+=PI;
+	}
+
+	if (fia>fid)
+		ArcDirection=AD_CLOCKWISE;
+	else
+		ArcDirection=AD_COUNTERCLOCKWISE;
+	x4=xdp;
+	y4=ydp;
+	x5=xap;
+	y5=yap;
+	x6=xbp;
+	y6=ybp;
+
 return 0;	
 }

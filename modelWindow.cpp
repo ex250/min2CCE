@@ -17,10 +17,10 @@ bool ModelWindow::line(int xPrev,int yPrev,int x, int y)
 }
 
 bool ModelWindow::_arc(float x1, float y1, float x2, float y2,
-			 float x, float y, float R)
+			 float x, float y, float R, int ArcDir)
 {
   bool result;
-
+  SetArcDirection(hDC,ArcDir);
   hDC=GetDC(hWnd);
 
   SelectObject(hDC, hBrush); 
@@ -83,7 +83,8 @@ bool ModelWindow::setGM(){
   SetViewportExtEx(hDC, width, height, NULL);
   float aspect=width/height;
   SetWindowExtEx(hDC, width, height, NULL);
-  SetWindowOrgEx(hDC, windowOrg.x,windowOrg.y,NULL);
+  //SetWindowOrgEx(hDC, windowOrg.x,windowOrg.y,NULL);
+  SetWindowOrgEx(hDC,-width/2,-height/2,NULL);
 
             xForm.eM11 = (FLOAT) scaleFactor; 
             xForm.eM12 = (FLOAT) 0.0; 

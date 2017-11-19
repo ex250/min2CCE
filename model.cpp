@@ -235,7 +235,7 @@ bool Line::printInfo(){
 //--------------ARC SECTION------------------------------------------
 
 ArcSegment::ArcSegment(float x1, float y1 ,float x2,float y2, float x, float y,
- float R)
+ float R, int ArcDir)
 {
   width=5;
   type=PS_SOLID;
@@ -246,6 +246,7 @@ ArcSegment::ArcSegment(float x1, float y1 ,float x2,float y2, float x, float y,
   xc=x;
   yc=y;
   radius=R;
+  direction=ArcDir;
 }
 
 void ArcSegment::show()
@@ -256,7 +257,7 @@ void ArcSegment::show()
   B=(color&0xff);
   HPEN hPen=CreatePen(type, width, RGB(R,G,B));
   modelWindow.setPen(&hPen);
-  modelWindow._arc(xs,ys,xe,ye,xc,yc,radius);
+  modelWindow._arc(xs,ys,xe,ye,xc,yc,radius,direction);
   printInfo();
 }
 
@@ -297,10 +298,10 @@ bool Model::appendPoint(){
 }
 
 bool Model::appendArc(float x1, float y1, float x2, float y2, 
-			float xc, float yc, float R)
+			float xc, float yc, float R, int ArcDir)
 {
 	ArcSegment *ptrToArc;
-	ptrToArc=new ArcSegment(x1,y1,x2,y2,xc,yc,R);
+	ptrToArc=new ArcSegment(x1,y1,x2,y2,xc,yc,R,ArcDir);
 	entities.push_back(ptrToArc);
 	return TRUE;
 }
@@ -334,3 +335,12 @@ int  Model::printModelInfo()const
 	return 0;
 }
 
+int Model::deleteAll()
+{
+	int result=0;
+	while(!entities.empty()){
+		result++;
+		entities.pop_back();
+	}
+	return result;
+}

@@ -120,7 +120,7 @@ class ArcSegment:public Entity
 	int direction;
 
   public:
-	ArcSegment(float,float,float,float,float,float,float);
+	ArcSegment(float,float,float,float,float,float,float,int);
 	void show();
 
 	bool printInfo();
@@ -139,7 +139,7 @@ class Model{
 	
 	bool	appendLine(Point*,Point*);
 	bool	appendPoint();
-	bool	appendArc(float, float, float, float, float, float, float);
+	bool	appendArc(float, float, float, float, float, float, float, int);
 
 	bool 	addEntity(Entity*);
 	int	deleteEntity(int[]);
@@ -149,6 +149,7 @@ class Model{
 	int writeModel();
 	void showModel();
 	int printModelInfo()const;
+	int deleteAll();
 };
 
 
