@@ -130,9 +130,7 @@ bool CommandLine::addCommand()
 		     }
 		else {
 		  strcat(buffer,"-unknown command");
-		  SendMessage(hwndH,(UINT) LB_ADDSTRING,(WPARAM) 0,(LPARAM) &buffer);
-        	  SendMessage(hwndH,WM_VSCROLL,SB_BOTTOM,NULL);
-	          InvalidateRect(hWnd,&aRect,TRUE);
+		  addTextToHistory(buffer);
 	        }
 	  break;
 	  case STATE_LINE_POINT1:
@@ -150,6 +148,21 @@ bool CommandLine::addCommand()
  	return result;
 }
 
+int  CommandLine::addCoordToHistory(float x,float y, int index)
+{
+	   char str[256];
+	   sprintf(str,"x%d=%3.2f,y%d=%3.2f",index,x,index,y);
+	   SendMessage(hwndH,(UINT) LB_ADDSTRING,(WPARAM) 0,(LPARAM) str);
+           SendMessage(hwndH,WM_VSCROLL,SB_BOTTOM,NULL);
+	   return strlen(str);
+}
+int  CommandLine::addTextToHistory(char * pStr){
+	SendMessage(hwndH,(UINT) LB_ADDSTRING,(WPARAM) 0,(LPARAM) pStr);
+        SendMessage(hwndH,WM_VSCROLL,SB_BOTTOM,NULL);
+	return strlen(pStr);
+}
+
+
 int CommandLine::getState(){
 	return state;
 }
@@ -162,32 +175,30 @@ int CommandLine::setState(int st){
 bool CommandLine::segLine(float x,float y){
 	bool result;
 	RECT aRect={0,40,180,80}; 	
-        char str[30];
 
 	switch (state){
 		case STATE_WAIT_COMMAND:
            pStrCmd="координаты x,y: ";
 	   InvalidateRect(hWnd,&aRect,TRUE);
-	   SendMessage(hwndH,(UINT) LB_ADDSTRING,(WPARAM) 0,(LPARAM) "Отрезок");
-           SendMessage(hwndH,WM_VSCROLL,SB_BOTTOM,NULL);
+	   addTextToHistory("Line");
 	   state=STATE_LINE_POINT1;
 	  break;
 
 		case STATE_LINE_POINT1:
-	    state=STATE_LINE_POINT2;
 	    x1=x;
 	    y1=y;
+	    addCoordToHistory(x,y,1);
+	    state=STATE_LINE_POINT2;
 	  break;
 
 		case STATE_LINE_POINT2:
 	    Point start(x1,y1);
 	    Point end(x,y);
 	    myModel.appendLine(&start,&end);
-	    state=STATE_WAIT_COMMAND;
+	    addCoordToHistory(x,y,2);
             pStrCmd="команда: ";
 	    InvalidateRect(hWnd,&aRect,TRUE);	
-            //sprintf(str,"x1=%d y1=%d x2=%d y2=%d",x1,y1,x2,y2);
-	    //MessageBox(hWnd,str,"Координаты линии",MB_OK);
+	    state=STATE_WAIT_COMMAND;
 	  break;
 	}
 	result = true; //myModel.appendLine();
@@ -202,44 +213,50 @@ bool CommandLine::segArc(float x,float y){
 		case STATE_WAIT_COMMAND:
            pStrCmd="координаты x,y: ";
 	   InvalidateRect(hWnd,&aRect,TRUE);
-	   SendMessage(hwndH,(UINT) LB_ADDSTRING,(WPARAM) 0,(LPARAM) "Дуга 2 точки, радиус");
-           SendMessage(hwndH,WM_VSCROLL,SB_BOTTOM,NULL);
+	   addTextToHistory("Arc 3 points");
 	   state=STATE_ARC_POINT1;
 	  break;
 
 		case STATE_ARC_POINT1:
 	    x1=x;
 	    y1=y;
+	    addCoordToHistory(x,y,1);
 	    state=STATE_ARC_POINT2;
 	  break;
 
 		case STATE_ARC_POINT2:
 	   x2=x;
 	   y2=y;
-           pStrCmd="3th point: ";
-	   InvalidateRect(hWnd,&aRect,TRUE);
+	   addCoordToHistory(x,y,2);
 	   state=STATE_ARC_POINT3;
 	  break;
 
 		case STATE_ARC_POINT3:
-	    x3=x;
-	    y3=y;	
+	   x3=x;
+	   y3=y;	
+	   addCoordToHistory(x,y,3);
 	    if (!getRC(x,y))
 		    myModel.appendArc(x1,y1,x3,y3,xc,yc,R,ArcDirection);
 
-            sprintf(str,"x1=%f\ty1=%f\nx2=%f\ty2=%f\nx3=%f\ty3=%f\nR=%f\tXc=%f\tYc=%f\nfia=%f\tfib=%f\tfid=%f\nxap=%f\tyap=%f\txbp=%f\tybp=%f\txdp=%f\tydp=%f\n",x1,y1,x2,y2,x3,y3,R,xc,yc,fia,fib,fid,x4,y4,x5,y5,x6,y6);
+            sprintf(str,"R=%4.2f, Xc=%4.2f, Yc=%4.2f",R,xc,yc);
 	    
 	    if (ArcDirection==AD_COUNTERCLOCKWISE)
-		    strcat(str,"CCW");
+		    strcat(str," rotation: CCW");
 	    else
-		    strcat(str,"CW");
+		    strcat(str," rotation: CW");
 
-	    MessageBox(hWnd,str,"Arc parameters",MB_OK);
+	    //MessageBox(hWnd,str,"Arc parameters",MB_OK);
+	    addTextToHistory(str);
 
             pStrCmd="команда: ";
 	    InvalidateRect(hWnd,&aRect,TRUE);	
 	    state=STATE_WAIT_COMMAND;
 	  break;
+		default:
+            pStrCmd="Do not known STATE: ";
+	    InvalidateRect(hWnd,&aRect,TRUE);	
+	    state=STATE_WAIT_COMMAND;
+
 	}
 	result = true; 
 	return result;

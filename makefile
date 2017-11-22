@@ -19,7 +19,7 @@ all:$(objs) resource.res.o
 	g++ -g $(LFLAGS) -o $(name) $(objs) resource.res.o $(LIBS) 
 
 .cpp.o:
-	g++ -c -g $(srcs)
+	g++ -c -g  $(srcs)
 
 resource.res.o:resource.res
 	windres -J res -O coff -i resource.res -o resource.res.o 

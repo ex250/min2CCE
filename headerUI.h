@@ -147,6 +147,10 @@ class CommandLine:public BaseWindow
 
     bool addCommand();
 
+    inline int  addCoordToHistory(float,float,int);
+
+    inline int  addTextToHistory(char *);
+
     bool segLine(float,float);
 
     bool segArc(float,float);
