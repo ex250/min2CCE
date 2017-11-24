@@ -6,7 +6,7 @@
 
 UINT CHANGEWINDOWPROC=NULL;
 extern BaseWindow mainWindow;
-
+extern ModelWindow modelWindow;
 extern Model myModel; 
 
 CommandLine::CommandLine():BaseWindow()
@@ -181,6 +181,7 @@ bool CommandLine::segLine(float x,float y){
            pStrCmd="координаты x,y: ";
 	   InvalidateRect(hWnd,&aRect,TRUE);
 	   addTextToHistory("Line");
+	   modelWindow.setROP2(R2_NOTXORPEN);
 	   state=STATE_LINE_POINT1;
 	  break;
 
@@ -198,6 +199,7 @@ bool CommandLine::segLine(float x,float y){
 	    addCoordToHistory(x,y,2);
             pStrCmd="команда: ";
 	    InvalidateRect(hWnd,&aRect,TRUE);	
+	    modelWindow.setROP2(R2_COPYPEN);
 	    state=STATE_WAIT_COMMAND;
 	  break;
 	}
@@ -214,6 +216,7 @@ bool CommandLine::segArc(float x,float y){
            pStrCmd="координаты x,y: ";
 	   InvalidateRect(hWnd,&aRect,TRUE);
 	   addTextToHistory("Arc 3 points");
+	   modelWindow.setROP2(R2_NOTXORPEN);
 	   state=STATE_ARC_POINT1;
 	  break;
 
@@ -247,7 +250,7 @@ bool CommandLine::segArc(float x,float y){
 
 	    //MessageBox(hWnd,str,"Arc parameters",MB_OK);
 	    addTextToHistory(str);
-
+	    modelWindow.setROP2(R2_COPYPEN);
             pStrCmd="команда: ";
 	    InvalidateRect(hWnd,&aRect,TRUE);	
 	    state=STATE_WAIT_COMMAND;

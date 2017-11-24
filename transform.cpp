@@ -167,7 +167,7 @@ void TransformAndDraw(int iTransform, HWND hWnd, int width,LPPOINT lpPoint)
 
     ReleaseDC(hWnd, hDC); 
 */
-    myModel.showModel();
+//    myModel.showModel();
  
 
 } 

@@ -8,8 +8,7 @@ bool ModelWindow::line(int xPrev,int yPrev,int x, int y)
 
   SelectObject(hDC, hBrush); 
   SelectObject(hDC, hPen);
-  SetROP2(hDC, R2_NOTXORPEN);
-
+  SetROP2(hDC, ROP2); 
   //SetBkMode(hDC, TRANSPARENT);      // Set text background mode
   MoveToEx(hDC,xPrev,yPrev,NULL);
   result=LineTo(hDC,x,y);
@@ -25,7 +24,7 @@ bool ModelWindow::_arc(float x1, float y1, float x2, float y2,
 
   SelectObject(hDC, hBrush); 
   SelectObject(hDC, hPen);
-  SetROP2(hDC, R2_NOTXORPEN);
+  SetROP2(hDC, ROP2);
   result=Arc(hDC,x-R,y+R,x+R,y-R, x1,y1, x2,y2);
   return result;
 
@@ -33,6 +32,10 @@ bool ModelWindow::_arc(float x1, float y1, float x2, float y2,
 
 HDC ModelWindow::getHDC(){
   return hDC;
+}
+bool ModelWindow::setROP2(int rop2){
+	ROP2=rop2;
+	return ROP2;
 }
 
 bool ModelWindow::setScale(float sf)

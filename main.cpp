@@ -2,6 +2,7 @@
 #include "wndclass.h"
 #include "model.h"
 #include <string>
+#include "kdib.h"
 
 using namespace std;
 
@@ -20,6 +21,8 @@ BaseWindow tbModifyWindow,tbDrawWindow;
 CommandLine comStr;
 toolbarDraw tbModify,tbDraw,tbStd;
 
+KDib bmp;
+
 extern Layer* defaultLayer;
 extern Layer* currentLayer;
 extern Layer layer[];
@@ -27,7 +30,7 @@ extern Layer layer[];
 Model myModel;
 
 char buffer[180];
-
+ 
 // Listing OFWIN_1
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                    LPSTR lpCmdLine, int nCmdShow)
@@ -272,17 +275,20 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
    BOOL success;
    static OPENFILENAME ofn;
    static char szFile[MAX_PATH];
+// -----------------bmp loader ------------------------
+   int dX, dY;
+   int ws, hs, wd, hd;
+   static BOOL isFileLoaded;
+   static int substrate;
 
    switch(message)                // Process selected messages
    {  
       case WM_CREATE:
 	    if (mode++==0){
-	    //MessageBox(hWnd, "вызов WM_CREATE", "Меню File", MB_OK);
-	    // Инициализация структуры ofn
-	    ofn.lStructSize = sizeof(OPENFILENAME);
-	    ofn.hwndOwner = hWnd;
-	    ofn.lpstrFile = szFile;
-	    ofn.nMaxFile = sizeof(szFile);
+	       ofn.lStructSize = sizeof(OPENFILENAME);
+	       ofn.hwndOwner = hWnd;
+	       ofn.lpstrFile = szFile;
+	       ofn.nMaxFile = sizeof(szFile);
 	    }
 
       break;
@@ -498,8 +504,15 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
   		    TextOut(hDC,10,10,buffer,strlen(buffer));
 		}
 	        EndPaint(hWnd, &PaintSt); // Terminate window redraw operation
-		if (hWnd==modelWindow.getHWND())
-		   TransformAndDraw(mode,modelWindow.getHWND(),scaleFactor,&origin);		
+		if (hWnd==modelWindow.getHWND()){
+			if (substrate==ON){
+		   		wd = ws = bmp.GetWidth();
+		   		hd = hs = bmp.GetHeight();
+ 		   		bmp.Draw(hDC, -wd/2, -hd/2, wd, hd, 0, 0, ws, hs, SRCCOPY);
+			}
+    		   myModel.showModel();
+		   //TransformAndDraw(mode,modelWindow.getHWND(),scaleFactor,&origin);		
+		}
 		break;
 
       case WM_COMMAND:
@@ -507,10 +520,33 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 	 {
 //----------------- STANTARD-------------------------------------------------
 		case IDM_OPEN:
+			if (strlen(ofn.lpstrFile)>1){
+				MessageBox(hWnd,"close File","Information",MB_HELP);
+				bmp.closeFile();
+			}
 			   strcpy(szFile, "");
+			
 			   success = GetOpenFileName(&ofn);
-			   if (success)
-				MessageBox(hWnd, ofn.lpstrFile, "Открывается файл:", MB_OK);
+			   if (success){
+				hDC = GetDC(hWnd);
+				isFileLoaded = bmp.LoadFromFile(ofn.lpstrFile);
+				if (!isFileLoaded) {
+					MessageBox(hWnd, ofn.lpstrFile, "Error", MB_OK);
+				MessageBox(hWnd, bmp.GetError(), "Error", MB_OK);
+				break;
+				}
+		// Подогнать размеры окна программы под размер растра bmp
+			        GetClientRect(hWnd, &rect);
+			        dX = bmp.GetWidth() - rect.right;
+			        dY = bmp.GetHeight() - rect.bottom;
+			        GetWindowRect(hWnd, &rect);
+			        InflateRect(&rect, dX/2, dY/2);
+			        MoveWindow(hWnd, 0, 0,
+			        rect.right-rect.left, rect.bottom-rect.top, TRUE);
+			        ReleaseDC(hWnd, hDC);
+				substrate=ON;
+		  	        //MessageBox(hWnd, ofn.lpstrFile, "Открывается файл:", MB_OK);
+			   }
 			   else
 				MessageBox(hWnd, "GetOpenFileName",
 				"Отказ от выбора или ошибка", MB_ICONWARNING);

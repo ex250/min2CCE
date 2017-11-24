@@ -13,6 +13,8 @@ const int STATE_ARC3P_POINT1=6;
 const int STATE_ARC3P_POINT2=7;
 const int STATE_ARC3P_POINT3=8;
 const float PI=3.14159265;
+const int ON=1;
+const int OFF=0;
 
 #if !defined(HEADERUI)
 #define HEADERUI
@@ -179,6 +181,7 @@ class ModelWindow:public BaseWindow
     HDC hDC;
     POINT windowOrg;
     int xOrg, yOrg;
+    int ROP2;
     float scaleFactor;
  public:
     ModelWindow():BaseWindow()
@@ -187,6 +190,7 @@ class ModelWindow:public BaseWindow
 	windowOrg.y=0;
 	xOrg=0;
 	yOrg=0;
+	ROP2=R2_COPYPEN;
     }
 
     HDC getHDC();
@@ -196,6 +200,8 @@ class ModelWindow:public BaseWindow
     bool setWOrg(float,float);  
 
     bool setScale(float);
+
+    bool setROP2(int);
     
     bool line(int ,int, int, int );
 

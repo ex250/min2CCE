@@ -235,7 +235,7 @@ bool Line::printInfo(){
 //--------------ARC SECTION------------------------------------------
 
 ArcSegment::ArcSegment(float x1, float y1 ,float x2,float y2, float x, float y,
- float R, int ArcDir)
+ float R, int ArcDir): color(currentLayer->getColor())
 {
   width=5;
   type=PS_SOLID;
