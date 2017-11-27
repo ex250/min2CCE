@@ -111,7 +111,7 @@ int CommandLine::getText(LPTSTR buffer, int maxChar){
 
 bool CommandLine::addCommand()
 {
-
+	char *ptrChar=buffer;
 	RECT aRect;
 	aRect.left=0;
 	aRect.top =40;
@@ -123,7 +123,7 @@ bool CommandLine::addCommand()
 	switch(state){
           case STATE_WAIT_COMMAND:
 		if (!strcmp(buffer,"line")){
-		segLine(0,0);
+			segLine(0,0);
         	}
 		else if(!strcmp(buffer,"arc")){
 		       segArc(0,0);
@@ -134,9 +134,56 @@ bool CommandLine::addCommand()
 	        }
 	  break;
 	  case STATE_LINE_POINT1:
-	        //анализ buffer для получения координат
-		//вызов метода parse();
-		//вызов метода segLine(x,y)
+	  	ptrChar=strtok(ptrChar,",");
+		if (ptrChar!=NULL)
+			x1=atof(ptrChar);
+		ptrChar=NULL;
+	  	ptrChar=strtok(ptrChar,"\0");
+		if (ptrChar!=NULL)
+			y1=atof(ptrChar);
+		segLine(x1,y1);
+	  break;
+	  case STATE_LINE_POINT2:
+	  	ptrChar=strtok(ptrChar,",");
+		if (ptrChar!=NULL)
+			x2=atof(ptrChar);
+		ptrChar=NULL;
+	  	ptrChar=strtok(ptrChar,"\0");
+		if (ptrChar!=NULL)
+			y2=atof(ptrChar);
+		segLine(x2,y2);
+		myModel.showModel();
+	  break;
+	  case STATE_ARC_POINT1:
+	  	ptrChar=strtok(ptrChar,",");
+		if (ptrChar!=NULL)
+			x1=atof(ptrChar);
+		ptrChar=NULL;
+	  	ptrChar=strtok(ptrChar,"\0");
+		if (ptrChar!=NULL)
+			y1=atof(ptrChar);
+		segArc(x1,y1);
+	  break;
+	  case STATE_ARC_POINT2:
+	  	ptrChar=strtok(ptrChar,",");
+		if (ptrChar!=NULL)
+			x2=atof(ptrChar);
+		ptrChar=NULL;
+	  	ptrChar=strtok(ptrChar,"\0");
+		if (ptrChar!=NULL)
+			y2=atof(ptrChar);
+		segArc(x2,y2);
+	  break;
+	  case STATE_ARC_POINT3:
+	  	ptrChar=strtok(ptrChar,",");
+		if (ptrChar!=NULL)
+			x3=atof(ptrChar);
+		ptrChar=NULL;
+	  	ptrChar=strtok(ptrChar,"\0");
+		if (ptrChar!=NULL)
+			y3=atof(ptrChar);
+		segArc(x3,y3);
+		myModel.showModel();
 	  break;
 	}
 	
@@ -508,7 +555,7 @@ int CommandLine::getRC(float xd, float yd)
 		xc=(xa+xd)/2;
 		yc=((xa-xc)*(xa-xc)-(xb-xc)*(xb-xc)+yd*yd-yb*yb)/(2*(yd-yb));
 		R=sqrt((xd-xc)*(xd-xc)+(yd-yc)*(yd-yc));
-		return 0;
+	//	return 0;
 	}
 	else if (xa==xd) // AD || OY
 		if (xb!=xd)
@@ -519,7 +566,7 @@ int CommandLine::getRC(float xd, float yd)
 			else
 				xc=(xd*xd-xb*xb+(yc-yd)*(yc-yd)-(yc-yb)*(yc-yb))/(2*(xd-xb));
 			R=sqrt((xc-xa)*(xc-xa)+(ya-yb)*(ya-yb));
-			return 0;
+	//		return 0;
 		}
 		else 
 		{
@@ -556,7 +603,6 @@ int CommandLine::getRC(float xd, float yd)
 	float xdp=xd-xc;
 	float ydp=yd-yc;
 
-
 	if (xap==0){
 		if (yap>0)
 			fia=PI/2;
@@ -566,8 +612,10 @@ int CommandLine::getRC(float xd, float yd)
 	else
 	{
 		fia=atan(yap/xap);
-		if (yap<0)
+		if (xap<0)
 			fia+=PI;
+		else if (xap>0&&yap<0)
+			fia+=2*PI;
 	}
 
 	if (xbp==0){
@@ -579,8 +627,11 @@ int CommandLine::getRC(float xd, float yd)
 	else
 	{
 		fib=atan(ybp/xbp);
-		if (ybp<0)
+		if (xbp<0)
 			fib+=PI;
+		else if (xbp>0&&ybp<0)
+			fib+=2*PI;
+		
 	}
 
 	if (xdp==0){
@@ -592,11 +643,13 @@ int CommandLine::getRC(float xd, float yd)
 	else
 	{
 		fid=atan(ydp/xdp);
-		if (ydp<0)
+		if (xdp<0)
 			fid+=PI;
+		else if (xdp>0&&ydp<0)
+			fid+=2*PI;
 	}
 
-	if (fia>fid)
+	if (fia<fid)
 		ArcDirection=AD_CLOCKWISE;
 	else
 		ArcDirection=AD_COUNTERCLOCKWISE;

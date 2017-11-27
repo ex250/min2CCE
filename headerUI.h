@@ -203,7 +203,7 @@ class ModelWindow:public BaseWindow
 
     bool setROP2(int);
     
-    bool line(int ,int, int, int );
+    bool line(float ,float, float, float );
 
     bool _arc(float, float, float, float, float, float, float, int );
 

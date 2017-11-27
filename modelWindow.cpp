@@ -1,8 +1,10 @@
 #include "headerui.h"
 
-bool ModelWindow::line(int xPrev,int yPrev,int x, int y)
+bool ModelWindow::line(float xPrev,float yPrev,float x, float y)
 {
   bool result;
+  xPrev*=100;yPrev*=100;
+  x*=100;y*=100;
 
   hDC=GetDC(hWnd);
 
@@ -19,6 +21,10 @@ bool ModelWindow::_arc(float x1, float y1, float x2, float y2,
 			 float x, float y, float R, int ArcDir)
 {
   bool result;
+  x1*=100;y1*=100;
+  x2*=100;y2*=100;
+  x*=100;y*=100;
+  R*=100;
   SetArcDirection(hDC,ArcDir);
   hDC=GetDC(hWnd);
 
