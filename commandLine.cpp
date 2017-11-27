@@ -518,35 +518,31 @@ LRESULT CALLBACK CommandLine::subProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 
 int CommandLine::getRC(float xd, float yd)
 {
-
 //            
-//            ...
-//          .     b             A(xa,ya)
-//         .       .            B(xb,yb)
-//         a_______d            D(xd,yd) 
-//          .     .             R - radius
-//            ...               C(xc,yc) - center
+//            xxx
+//          x     B             A(xa,ya)
+//         x       x            B(xb,yb)
+//         A_______D            D(xd,yd) 
+//          x     x             R - radius
+//            xxx               C(xc,yc) - center
 //
 //
+
         float xa=x1, ya=y1;
  	float xb=x2, yb=y2;
-
 	float e,Kab;
 	if (xa==xb && ya==yb)   // A = B
 	{
-		//cout<<"A = B"<<endl;
 		return -1;
 	}
 
 	if (xa==xd && ya==yd)   // A = D
 	{
-		//cout<<"D = A)"<<endl;
 		return -2;
 	}
 
 	if (xb==xd && yb==yd)   // B = D
 	{
-		//cout<<"D = B"<<endl;
 		return -3;
 	}
 
@@ -555,22 +551,16 @@ int CommandLine::getRC(float xd, float yd)
 		xc=(xa+xd)/2;
 		yc=((xa-xc)*(xa-xc)-(xb-xc)*(xb-xc)+yd*yd-yb*yb)/(2*(yd-yb));
 		R=sqrt((xd-xc)*(xd-xc)+(yd-yc)*(yd-yc));
-	//	return 0;
 	}
 	else if (xa==xd) // AD || OY
 		if (xb!=xd)
 		{
 			yc=(ya+yd)/2;
-			if (xb>xa)
 			xc=(3*xa*xa-4*xb*xb-2*xa*xd+xd*xd+ya*ya-2*ya*yd+yd*yd-(ya-yd-2*yb)*(ya+yd-2*yb))/(8*(xa-xb));
-			else
-				xc=(xd*xd-xb*xb+(yc-yd)*(yc-yd)-(yc-yb)*(yc-yb))/(2*(xd-xb));
 			R=sqrt((xc-xa)*(xc-xa)+(ya-yb)*(ya-yb));
-	//		return 0;
 		}
 		else 
 		{
-			//cout<<"B na AD"<<endl;
 			return -1;
 		}
 	else 
@@ -582,26 +572,25 @@ int CommandLine::getRC(float xd, float yd)
 		else 
 		{
 			yc=((xb-xd)*(xb*xb+yb*yb-xa*xa-ya*ya)-(xb-xa)*(xb*xb+yb*yb-xd*xd-yd*yd))/(2*((yd-yb)*(xb-xa)-(ya-yb)*(xb-xd)));
-			if (xb!=xd)
+			if (xb==xa)
 			{
 				xc=(xb*xb+yb*yb-yd*yd-xd*xd+2*yc*(yd-yb))/(2*(xb-xd));
 			}
 			else 
-			{       if (xb!=xa)
+			{   
 				xc=(xb*xb+yb*yb-ya*ya-xa*xa+2*yc*(ya-yb))/(2*(xb-xa));
 			}
-		}
+			}
 	R=sqrt((xa-xc)*(xa-xc)+(ya-yc)*(ya-yc));
-	}
-
-	// transfer to polar SC 
-	// test CW or CCW
+		}
 	float xap=xa-xc;
 	float yap=ya-yc;
 	float xbp=xb-xc;
 	float ybp=yb-yc;
 	float xdp=xd-xc;
 	float ydp=yd-yc;
+
+	float fia,fib,fid;
 
 	if (xap==0){
 		if (yap>0)
@@ -649,10 +638,16 @@ int CommandLine::getRC(float xd, float yd)
 			fid+=2*PI;
 	}
 
-	if (fia<fid)
-		ArcDirection=AD_CLOCKWISE;
-	else
+	if (fia>fid)
+		if (fib>fid&&fib<fia)
 		ArcDirection=AD_COUNTERCLOCKWISE;
+		else
+		ArcDirection=AD_CLOCKWISE;
+	else 
+		if (fib>fia&&fib<fid)
+			ArcDirection=AD_CLOCKWISE;
+		else
+			ArcDirection=AD_COUNTERCLOCKWISE;
 	x4=xdp;
 	y4=ydp;
 	x5=xap;

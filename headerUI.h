@@ -207,8 +207,6 @@ class ModelWindow:public BaseWindow
 
     bool _arc(float, float, float, float, float, float, float, int );
 
-    //bool _arc(float, float, float, float, float, float);
-
 };
 
 #endif

@@ -356,8 +356,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 		   switch (comStr.getState()){
 			   case STATE_LINE_POINT2:
-			modelWindow.line(comStr.getStartPOINT().x,comStr.getStartPOINT().y,static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
-			modelWindow.line(comStr.getStartPOINT().x,comStr.getStartPOINT().y,static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+			modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+			modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 		        prevCursPos=*lpPoint;
 			break;
 			   case STATE_ARC_POINT1:
