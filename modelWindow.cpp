@@ -91,9 +91,9 @@ bool ModelWindow::setGM(){
   SetMapMode(hDC, MM_ISOTROPIC);
   SetViewportExtEx(hDC, width, height, NULL);
   float aspect=width/height;
-  SetWindowExtEx(hDC, width, height, NULL);
+  SetWindowExtEx(hDC, width*10, height*10, NULL);
   //SetWindowOrgEx(hDC, windowOrg.x,windowOrg.y,NULL);
-  SetWindowOrgEx(hDC,-width/2,-height/2,NULL);
+  SetWindowOrgEx(hDC,-width*5,-height*5,NULL);
 
             xForm.eM11 = (FLOAT) scaleFactor; 
             xForm.eM12 = (FLOAT) 0.0; 

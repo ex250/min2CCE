@@ -12,14 +12,6 @@ extern Model myModel;
 CommandLine::CommandLine():BaseWindow()
 {
 	pStrCmd="Command";
-
-/*	sbInfo.cbSize=sizeof(SCROLLINFO);
-	sbInfo.fMask =SIF_POS;
-	sbInfo.nMin=0;
-	sbInfo.nMax=1000;
-	sbInfo.nPage=2;
-	sbInfo.nPos=1;
-*/
 }
 
 WNDPROC CommandLine::wpOrigEditProc=0;
@@ -528,6 +520,8 @@ int CommandLine::getRC(float xd, float yd)
 //
 //
 
+	x3=xd;
+	y3=yd;
         float xa=x1, ya=y1;
  	float xb=x2, yb=y2;
 	float e,Kab;
