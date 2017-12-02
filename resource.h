@@ -44,6 +44,7 @@
 #define IDM_UCSONOFF	        3120
 //-----меню ВСТАВИТЬ--------------------------
 #define IDM_INSERTBMP		4000
+#define IDM_SUBSTRATE		4010
 //-----меню ПРИМИТИВ--------------------------
 #define IDM_LINE  			5000
 #define IDM_ARC3POINTS			5010

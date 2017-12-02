@@ -89,9 +89,10 @@ BEGIN
 
 	END
 //----------------------------------------------------------
-	POPUP "&Вставить"
+	POPUP "&Подложка"
 	BEGIN
-		MENUITEM "BMP файл",		IDM_INSERTBMP
+		MENUITEM "загрузить растр",		IDM_INSERTBMP
+		MENUITEM "показать",			IDM_SUBSTRATE
 	END
 
 //----------------------------------------------------------

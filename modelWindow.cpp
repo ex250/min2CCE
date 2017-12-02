@@ -46,26 +46,29 @@ bool ModelWindow::setROP2(int rop2){
 
 bool ModelWindow::setScale(float sf)
 {
+  XFORM transform;
   RECT aRect;
   GetClientRect(hWnd,&aRect);
 
   hDC=GetDC(hWnd);
 
-  scaleFactor=sf/10;
-  xForm.eM11 = (FLOAT) scaleFactor; 
-  xForm.eM12 = (FLOAT) 0.0; 
-  xForm.eM21 = (FLOAT) 0.0; 
-  xForm.eM22 = (FLOAT) scaleFactor; 
-  xForm.eDx  = (FLOAT) 0.0; 
-  xForm.eDy  = (FLOAT) 0.0; 
+  scaleFactor=sf;
+  transform.eM11 = (FLOAT) scaleFactor; 
+  transform.eM12 = (FLOAT) 0.0; 
+  transform.eM21 = (FLOAT) 0.0; 
+  transform.eM22 = (FLOAT) scaleFactor; 
+  transform.eDx  = (FLOAT) 0.0; 
+  transform.eDy  = (FLOAT) 0.0; 
   
-  SetWorldTransform(hDC, &xForm);
+  //SetWorldTransform(hDC, &xForm);
+  ModifyWorldTransform(hDC,&transform, MWT_RIGHTMULTIPLY);
   InvalidateRect(hWnd,&aRect,true); 
   return true;
 }
 
 bool ModelWindow::setWOrg(float dx, float dy){
 
+  XFORM transform;
   RECT aRect;
   GetClientRect(hWnd,&aRect);
 
@@ -74,13 +77,14 @@ bool ModelWindow::setWOrg(float dx, float dy){
 
   hDC=GetDC(hWnd);
 
-  xForm.eM11 = (FLOAT) scaleFactor; 
-  xForm.eM12 = (FLOAT) 0.0; 
-  xForm.eM21 = (FLOAT) 0.0; 
-  xForm.eM22 = (FLOAT) scaleFactor; 
-  xForm.eDx  = (FLOAT) dx; 
-  xForm.eDy  = (FLOAT) dy; 
-  SetWorldTransform(hDC, &xForm);
+  transform.eM11 = (FLOAT) 1; 
+  transform.eM12 = (FLOAT) 0.0; 
+  transform.eM21 = (FLOAT) 0.0; 
+  transform.eM22 = (FLOAT) 1; 
+  transform.eDx  = (FLOAT) dx; 
+  transform.eDy  = (FLOAT) dy; 
+  ModifyWorldTransform(hDC,&transform, MWT_RIGHTMULTIPLY);
+  //SetWorldTransform(hDC, &xForm);
   InvalidateRect(hWnd,&aRect,true);  
   return true;
 }

@@ -1,5 +1,11 @@
 #include <vector>
+#include <process.h>
+#include <fstream>
+#include <string>
+#include <typeinfo>
+#include <sstream>
 
+#define MAXFILENAME	256
 #define OFF	0
 #define SOLID	1
 #define SMALL	1
@@ -12,6 +18,7 @@
 #define FALSE		0
 
 enum {ONE,TWO,THREE,FOR,FIFE,SIX,SEVEN,EIGHT,NINE,TEN};
+enum entityType {tPoint,tLine,tArc};
 
 class Layer
 {
@@ -39,6 +46,7 @@ class Entity
   public:
 	virtual void show()=0;
 	virtual bool getDataFromUser()=0;
+	virtual entityType getType();
 
 	unsigned char getLayerID();
 	bool setLayerID(unsigned char);	
@@ -120,6 +128,7 @@ class ArcSegment:public Entity
 	int direction;
 
   public:
+	ArcSegment();
 	ArcSegment(float,float,float,float,float,float,float,int);
 	void show();
 
@@ -131,11 +140,14 @@ class ArcSegment:public Entity
 
 class Model{
   private:
+	char FileName[MAXFILENAME];
 	std::vector<Entity*> entities;
 	Layer *ptrToDefaultLayer;
 	Layer *ptrToCurrentLayer;
   public:
 	Model();
+
+	int  setFileName(char*);
 	
 	bool	appendLine(Point*,Point*);
 	bool	appendPoint();
@@ -145,8 +157,8 @@ class Model{
 	int	deleteEntity(int[]);
 	int	transformEntity(int[]);
 
-	int readModel();
-	int writeModel();
+	int readModel(char *);
+	int writeModel(char *);
 	void showModel();
 	int printModelInfo()const;
 	int deleteAll();

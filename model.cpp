@@ -81,6 +81,21 @@ bool Entity::setLayerID(unsigned char ID){
   layerID=ID;
   return true;
 }	
+entityType Entity::getType(){
+	if (typeid(*this)==typeid(Point))
+		return tPoint;
+	else if (typeid(*this)==typeid(Line))
+		return tLine;
+	else if (typeid(*this)==typeid(ArcSegment))
+		return tArc;
+	else
+	{
+		MessageBox(modelWindow.getHWND(),"invalid type",
+				"Error:model.cpp:93",MB_OK);
+	       	exit(-1);
+	}
+	return tPoint;
+}
 
 //**************class Point*********************************************
 
@@ -125,9 +140,9 @@ void Point::show(){
 }
 
 bool Point::printInfo(){
-  char buff[80];
+  char buff[2560];
   sprintf(buff,"x1=%f y1=%f ",x,y);
-  modelWindow.printText(10,10,buff);
+  comStr.addTextToHistory(buff);
   return true;
 }
 
@@ -161,7 +176,7 @@ bool Point::getDataFromUser()
   //cin>>y;
   return TRUE;
 }
-//**************class Line *********************************************
+//**************class Line ********************************************
 Line::Line():start(),end(),
 		type(currentLayer->getType()),
 		width(currentLayer->getWidth()),
@@ -226,19 +241,25 @@ bool Line::getDataFromUser()
 }
 
 bool Line::printInfo(){
-  char buff[80];
+  char buff[2560];
   sprintf(buff,"x1=%f y1=%f  x2=%f y2=%f",start.getX(),start.getY(),end.getX(),end.getY());
-  modelWindow.printText(10,10,buff);
+  comStr.addTextToHistory(buff);
   return true;
 }
 
 //--------------ARC SECTION------------------------------------------
 
-ArcSegment::ArcSegment(float x1, float y1 ,float x2,float y2, float x, float y,
- float R, int ArcDir): color(currentLayer->getColor())
+ArcSegment::ArcSegment():
+		type(currentLayer->getType()),
+		width(currentLayer->getWidth()),
+		color(currentLayer->getColor())
 {
-  width=5;
-  type=PS_SOLID;
+  layerID=currentLayer->getID();
+}
+
+ArcSegment::ArcSegment(float x1, float y1 ,float x2,float y2, float x, float y,
+ float R, int ArcDir): color(currentLayer->getColor()),type(currentLayer->getType()),width(currentLayer->getWidth())
+{
   xs=x1;
   ys=y1;
   xe=x2;
@@ -258,11 +279,14 @@ void ArcSegment::show()
   HPEN hPen=CreatePen(type, width, RGB(R,G,B));
   modelWindow.setPen(&hPen);
   modelWindow._arc(xs,ys,xe,ye,xc,yc,radius,direction);
-  printInfo();
 }
 
 bool ArcSegment::printInfo()
-{ }
+{
+  char buff[2560];
+  sprintf(buff,"x1=%f y1=%f  x2=%f y2=%f Xc=%f Yc=%f R=%f Direction=%d",xs,ys,xe,ye,xc,yc,radius,direction);
+  comStr.addTextToHistory(buff);
+}
 
 bool ArcSegment::getDataFromUser()
 { }
@@ -315,18 +339,127 @@ int  Model::transformEntity(int selectedEntities[])
 	return 0;
 }
 
-int  Model::readModel()
-{
+int  Model::setFileName(char* fn){
+	strcpy(FileName,fn);
 	return 0;
 }
-int  Model::writeModel()
+
+int  Model::readModel(char * fn)
 {
+	//stringstream outMem;
+	char buff[256];
+	int size;
+	Entity * enPtr;
+	entityType etype;
+	ifstream is;
+	is.open(fn,ios::binary);
+	if (!is)
+	{
+		//outMem<<"Error open file"; 
+		MessageBox(modelWindow.getHWND(),"Error open file:model.cpp:346","Error",MB_OK);
+	}
+	while(true){
+		is.read((char*)&etype,sizeof(etype));
+		if (is.eof())
+			break;
+		if (!is)
+	{
+		//outMem<<"read error type"; 
+		MessageBox(modelWindow.getHWND(),"read error type: model.cpp:355","Error",MB_OK);
+	}
+		switch(etype){
+			case tPoint:
+				enPtr=new Point;
+				size=sizeof(Point);
+				break;
+			case tLine:
+				enPtr=new Line;
+				size=sizeof(Line);
+				break;
+			case tArc:
+				enPtr=new ArcSegment;
+				size=sizeof(ArcSegment);
+				break;
+			default:
+		MessageBox(modelWindow.getHWND(),"ERROR READ: unknown Type","Control Read",MB_OK);
+				exit( -1);
+		}
+		is.read((char*)enPtr,size);
+		if (!is)
+		{
+		MessageBox(modelWindow.getHWND(),"ERROR READ","Control Read",MB_OK);
+		}
+		else{ 
+			entities.push_back(enPtr);
+			enPtr->printInfo();
+		}
+	}
+	is.close();
+
+	return 0;
+}
+int  Model::writeModel(char * fn)
+{  
+	setFileName(fn);
+	ofstream ouf;
+	entityType enType;
+	int size;
+	int j;
+	char buff[256];
+
+	if (FileName!="")
+		ouf.open(FileName,ios::binary);
+	else 
+	{
+		sprintf(buff,"empty file name %s",FileName);
+		MessageBox(modelWindow.getHWND(),buff,"Error",MB_OK);
+	       	exit(-1);
+	}
+
+
+
+   for (j=0;j<entities.size();j++){
+	   enType=entities[j]->getType();
+	   switch(enType){
+		   case tPoint:
+			   size=sizeof(Point);
+			   break;
+		   case tLine:
+			   size=sizeof(Line);
+			   break;
+		   case tArc:
+			   size=sizeof(ArcSegment);
+			   break;
+		   default:
+			   cerr<<"unknown type"<<endl;
+			   exit(-1);
+	   }
+
+	   ouf.write((char*)&enType,sizeof(enType));
+	   if (!ouf){
+		sprintf(buff,"error write type %d",enType);
+		MessageBox(modelWindow.getHWND(),buff,"Error",MB_OK);
+	   	exit(-1);
+	   }
+
+	   ouf.write((char*)entities[j],size);
+	   if (!ouf)
+	   { 
+		sprintf(buff,"error write Entities %d",enType);
+		MessageBox(modelWindow.getHWND(),buff,"Error",MB_OK);
+	   	exit(-1);
+	   }
+   }
+
+	ouf.close();
+
 	return 0;
 }
 
 void Model::showModel()
 {
-   for (int j=0;j<entities.size();j++)
+   int j;
+   for (j=0;j<entities.size();j++)
 	entities[j]->show();
 }
 

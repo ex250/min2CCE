@@ -266,7 +266,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
    int wheel_number;
    short ticks=0;
    int direction=0;
-   static int scaleFactor=10;
+   static float scaleFactor=1;
    RECT rectStr={100,10,300,30};
 	
    HPEN hPen;
@@ -340,11 +340,16 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		   	DPtoLP(modelWindow.getHDC(),lpPoint,1);		   
 		   	float dx=prevCursPos.x-lpPoint->x;
 		   	float dy=prevCursPos.y-lpPoint->y;
-		   	modelWindow.setWOrg(origin.x,origin.y);
-		   	origin.x-=dx;
-		   	origin.y-=dy;
-		   	prevCursPos=*lpPoint;
-		   	modelWindow.setWOrg(origin.x,origin.y);
+
+			if (dx<0)
+				dx=50;
+			else dx=-50;
+
+			if (dy<0)
+				dy=50;
+			else dy=-50;
+
+		   	modelWindow.setWOrg(dx,dy);
 		     }
 		   else {
 		   GetCursorPos(lpPoint);
@@ -484,18 +489,12 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
          */
         wheel_number = LOWORD( wParam );
         ticks = ( short )HIWORD( wParam ) / 120;
-        direction = 1;
 
         if( ticks < 0 )
         {
-            direction = -1;
-            ticks = -ticks;
+	    scaleFactor=0.5;
         }
-
-      scaleFactor-=ticks*direction;
-
-      if (scaleFactor<1) 
-		scaleFactor=1;
+	else scaleFactor=1.5;
 
       modelWindow.setScale(scaleFactor); 
 
@@ -534,36 +533,16 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 //----------------- STANTARD-------------------------------------------------
 		case IDM_OPEN:
 			if (strlen(ofn.lpstrFile)>1){
-				MessageBox(hWnd,"close File","Information",MB_HELP);
-				bmp.closeFile();
+				MessageBox(hWnd,"close prev File","Information",MB_HELP);
 			}
-			   strcpy(szFile, "");
-			
-			   success = GetOpenFileName(&ofn);
-			   if (success){
-				hDC = GetDC(hWnd);
-				isFileLoaded = bmp.LoadFromFile(ofn.lpstrFile);
-				if (!isFileLoaded) {
-					MessageBox(hWnd, ofn.lpstrFile, "Error", MB_OK);
-				MessageBox(hWnd, bmp.GetError(), "Error", MB_OK);
-				break;
-				}
-		// Подогнать размеры окна программы под размер растра bmp
-			        GetClientRect(hWnd, &rect);
-			        dX = bmp.GetWidth() - rect.right;
-			        dY = bmp.GetHeight() - rect.bottom;
-			        GetWindowRect(hWnd, &rect);
-			        InflateRect(&rect, dX/2, dY/2);
-			        MoveWindow(hWnd, 0, 0,
-			        rect.right-rect.left, rect.bottom-rect.top, TRUE);
-			        ReleaseDC(hWnd, hDC);
-				substrate=ON;
-		  	        //MessageBox(hWnd, ofn.lpstrFile, "Открывается файл:", MB_OK);
-			   }
-			   else
-				MessageBox(hWnd, "GetOpenFileName",
-				"Отказ от выбора или ошибка", MB_ICONWARNING);
+			strcpy(szFile, "");
+			success = GetOpenFileName(&ofn);
+			if (success){
+				myModel.readModel(ofn.lpstrFile);
+				myModel.showModel();
+			}
 			break;
+		
 		
 
 		case IDM_NEW:
@@ -578,9 +557,11 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
  		case IDM_SAVEAS:
 			strcpy(szFile, "");
 			success = GetSaveFileName(&ofn);
-			if (success)
+			if (success){
 				MessageBox(hWnd, ofn.lpstrFile,
 				"Файл сохраняется с именем:", MB_OK);
+				myModel.writeModel(ofn.lpstrFile);
+			}
 			else
 				MessageBox(hWnd, "GetSaveFileName",
 				"Отказ от выбора или ошибка", MB_ICONWARNING);
@@ -681,6 +662,40 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			MessageBox(hWnd, "Выбран пункт 'СОПРЯЖЕНИЕ'", "Меню Преобразовать", MB_OK);
 			//modelWindow.printText(10,10,"Окно модели. Выбрано сопряжение");
 			break;
+//------------------S U B S T R A T E-------------------------------
+		case IDM_INSERTBMP:
+			if (strlen(ofn.lpstrFile)>1){
+				MessageBox(hWnd,"close File","Information",MB_HELP);
+				bmp.closeFile();
+			}
+			   strcpy(szFile, "");
+			
+			   success = GetOpenFileName(&ofn);
+			   if (success){
+				hDC = GetDC(hWnd);
+				isFileLoaded = bmp.LoadFromFile(ofn.lpstrFile);
+				if (!isFileLoaded) {
+					MessageBox(hWnd, ofn.lpstrFile, "Error", MB_OK);
+				MessageBox(hWnd, bmp.GetError(), "Error", MB_OK);
+				break;
+				}
+		// Подогнать размеры окна программы под размер растра bmp
+			        GetClientRect(hWnd, &rect);
+			        dX = bmp.GetWidth() - rect.right;
+			        dY = bmp.GetHeight() - rect.bottom;
+			        GetWindowRect(hWnd, &rect);
+			        InflateRect(&rect, dX/2, dY/2);
+			        MoveWindow(hWnd, 0, 0,
+			        rect.right-rect.left, rect.bottom-rect.top, TRUE);
+			        ReleaseDC(hWnd, hDC);
+				substrate=ON;
+		  	        //MessageBox(hWnd, ofn.lpstrFile, "Открывается файл:", MB_OK);
+			   }
+			   else
+				MessageBox(hWnd, "GetOpenFileName",
+				"Отказ от выбора или ошибка", MB_ICONWARNING);
+			break;
+
 //-----------------menu VIEW------------------------------------------
 		case  IDM_REDRAW:
 			 myModel.showModel();
@@ -706,12 +721,13 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
                		       modelWindow.setPen(&hPen);
 			   }
 			}
+			break;
 				
         	default:
 			break;
 	}
 	break;
-
+     
 
       case WM_DESTROY:             // Window is being destroyed
          PostQuitMessage(0);

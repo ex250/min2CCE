@@ -151,7 +151,7 @@ class CommandLine:public BaseWindow
 
     inline int  addCoordToHistory(float,float,int);
 
-    inline int  addTextToHistory(char *);
+    int  addTextToHistory(char *);
 
     bool segLine(float,float);
 
