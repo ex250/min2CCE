@@ -411,6 +411,13 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 		        prevCursPos=*lpPoint;
 			break;
+			   case STATE_CONTUR_LINE2:
+				if (flagRegen==true)
+				modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+				else flagRegen=true;
+				modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+		        	prevCursPos=*lpPoint;
+			break;
 		   }
 		   }
 		}
@@ -452,12 +459,28 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				myModel.showModel();
 				flagRegen=false;
 				break;
+				
+			case STATE_CONTUR_LINE1:
+			        prevCursPos=*lpPoint;
+				comStr.contur(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				break;
+			case STATE_CONTUR_LINE2:
+				comStr.contur(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				myModel.showModel();
+				flagRegen=false;
+				break;
 
 		  }
 		}
 		break;
 
 	case WM_RBUTTONDOWN:
+		switch(comStr.getState()){
+			case STATE_CONTUR_LINE2:
+				modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+				comStr.setState(STATE_WAIT_COMMAND);
+				break;
+		}
 
 		break;
 
@@ -508,6 +531,13 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
       break;
 
+      case WM_KEYDOWN:
+      switch(wParam){
+	      case VK_ESCAPE:
+		      comStr.setState(STATE_WAIT_COMMAND);
+		break;
+      }
+      break;
       case WM_PAINT:                       // Message is to redraw the window
 		//statusBar.printText(10,10,buffer);
 		hDC = BeginPaint(hWnd, &PaintSt);
@@ -584,7 +614,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			//MessageBox(hWnd, "Выбран пункт 'ДУГА НАЧАЛЬНАЯ, КОНЕЧНАЯ ТОЧКА, РАДИУС, НАПРАВЛЕНИЕ'", "Меню Примитив", MB_OK);
 			break;
 		case IDM_ARC3POINTS:
-			MessageBox(hWnd, "Выбран пункт 'ДУГА ПО 3 ТОЧКАМ'", "Меню Примитив", MB_OK);
+			comStr.setState(STATE_WAIT_COMMAND);
 			break;
 		case IDM_ARCCENTREANG1ANG2:
 			MessageBox(hWnd, "Выбран пункт 'ДУГА ЦЕНТР РАДИУС УГОЛ1 УГОЛ2'", "Меню Примитив", MB_OK);
@@ -601,7 +631,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			break;
 
 		case IDM_CONTUR:
-			MessageBox(hWnd, "Выбран пункт 'КОНТУР'", "Меню Примитив", MB_OK);
+			comStr.contur(0,0);
 			break;
 		case IDM_RECTANGLE:
 			MessageBox(hWnd, "Выбран пункт 'ПРЯМОУГОЛЬНИК'", "Меню Примитив", MB_OK);

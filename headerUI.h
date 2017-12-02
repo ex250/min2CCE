@@ -12,6 +12,11 @@ const int STATE_ARC_POINT3=5;
 const int STATE_ARC3P_POINT1=6;
 const int STATE_ARC3P_POINT2=7;
 const int STATE_ARC3P_POINT3=8;
+const int STATE_CONTUR_ARC1=9;
+const int STATE_CONTUR_ARC2=10;
+const int STATE_CONTUR_ARC3=11;
+const int STATE_CONTUR_LINE1=12;
+const int STATE_CONTUR_LINE2=13;
 const float PI=3.14159265;
 const int ON=1;
 const int OFF=0;
@@ -124,6 +129,7 @@ class CommandLine:public BaseWindow
     char buffer[128];   //буффер команды
     char *pStrCmd;      //указатель на строку запрос 
     int state;		//индикатор текущего состояния системы
+    int EnType;
     float x1,y1,x2,y2,x3,y3;// переменные для хранения координат точек
     float x4,y4,x5,y5,x6,y6;// переменные для хранения координат точек
     float xc,yc,R; // координаты центра и радиус окружности
@@ -147,6 +153,8 @@ class CommandLine:public BaseWindow
 
     int setState(int);
 
+    int setEnType(int);
+
     bool addCommand();
 
     inline int  addCoordToHistory(float,float,int);
@@ -156,6 +164,8 @@ class CommandLine:public BaseWindow
     bool segLine(float,float);
 
     bool segArc(float,float);
+
+    bool contur(float,float);
 
     POINT getStartPOINT();
 

@@ -12,6 +12,7 @@ extern Model myModel;
 CommandLine::CommandLine():BaseWindow()
 {
 	pStrCmd="Command";
+	EnType=tLine;
 }
 
 WNDPROC CommandLine::wpOrigEditProc=0;
@@ -120,6 +121,9 @@ bool CommandLine::addCommand()
 		else if(!strcmp(buffer,"arc")){
 		       segArc(0,0);
 		     }
+		else if(!strcmp(buffer,"contur")){
+		       contur(0,0);
+		     }
 		else {
 		  strcat(buffer,"-unknown command");
 		  addTextToHistory(buffer);
@@ -181,9 +185,6 @@ bool CommandLine::addCommand()
 	
 	SetWindowText(hwndC,"");
 
-	//SendMessage(hwndH,(UINT) LB_ADDSTRING,(WPARAM) 0,(LPARAM) &buffer);
-        //SendMessage(hwndH,WM_VSCROLL,SB_BOTTOM,NULL);
-        //InvalidateRect(hWnd,&aRect,TRUE);
  	return result;
 }
 
@@ -209,6 +210,11 @@ int CommandLine::getState(){
 int CommandLine::setState(int st){
 	state=st;
 	return state;
+}
+
+int CommandLine::setEnType(int entype){
+	EnType=entype;
+	return EnType;
 }
 
 bool CommandLine::segLine(float x,float y){
@@ -301,6 +307,61 @@ bool CommandLine::segArc(float x,float y){
 
 	}
 	result = true; 
+	return result;
+}
+
+bool CommandLine::contur(float x, float y)
+{
+	bool result;
+	RECT aRect={0,40,180,80}; 	
+        char str[256];
+	switch (state){
+		case STATE_WAIT_COMMAND:
+           pStrCmd="координаты x,y: ";
+	   InvalidateRect(hWnd,&aRect,TRUE);
+	   switch(EnType){
+		   case tLine:
+	   		addTextToHistory("Line");
+	   		state=STATE_CONTUR_LINE1;
+		   break;
+		   case tArc:
+	   		addTextToHistory("Arc");
+	   		state=STATE_CONTUR_ARC1;
+		   break;
+	   }
+	   modelWindow.setROP2(R2_NOTXORPEN);
+	  break;
+	  	case STATE_CONTUR_LINE1:
+	  	x1=x;
+	    	y1=y;
+	    	addCoordToHistory(x,y,1);
+	    	state=STATE_CONTUR_LINE2;
+	  break;
+
+		case STATE_CONTUR_LINE2:
+	    	Point start(x1,y1);
+	    	Point end(x,y);
+	    	myModel.appendLine(&start,&end);
+	    	addCoordToHistory(x,y,2);
+            	pStrCmd="команда: ";
+	    	InvalidateRect(hWnd,&aRect,TRUE);	
+	    	//modelWindow.setROP2(R2_COPYPEN);
+		myModel.showModel();
+		x1=x;
+		y1=y;
+
+		switch(EnType){
+		   case tLine:
+	   		addTextToHistory("Line");
+	   		state=STATE_CONTUR_LINE2;
+		   break;
+		   case tArc:
+	   		addTextToHistory("Arc");
+	   		state=STATE_CONTUR_ARC1;
+		   break;
+	   	}
+	  break;
+	}
 	return result;
 }
 
