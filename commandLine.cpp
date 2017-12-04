@@ -217,6 +217,16 @@ int CommandLine::setEnType(int entype){
 	return EnType;
 }
 
+int CommandLine::getEnType(){
+	return EnType;
+}
+int CommandLine::enumEnType(){
+	if (EnType==tLine)
+		EnType=tArc;
+	else
+		EnType=tLine;
+}
+
 bool CommandLine::segLine(float x,float y){
 	bool result;
 	RECT aRect={0,40,180,80}; 	
@@ -315,6 +325,7 @@ bool CommandLine::contur(float x, float y)
 	bool result;
 	RECT aRect={0,40,180,80}; 	
         char str[256];
+	Point start,end;
 	switch (state){
 		case STATE_WAIT_COMMAND:
            pStrCmd="координаты x,y: ";
@@ -335,32 +346,81 @@ bool CommandLine::contur(float x, float y)
 	  	x1=x;
 	    	y1=y;
 	    	addCoordToHistory(x,y,1);
-	    	state=STATE_CONTUR_LINE2;
+		if (EnType==tLine)
+	    		state=STATE_CONTUR_LINE2;
+		else 
+	    		state=STATE_CONTUR_ARC2;
 	  break;
 
 		case STATE_CONTUR_LINE2:
-	    	Point start(x1,y1);
-	    	Point end(x,y);
-	    	myModel.appendLine(&start,&end);
-	    	addCoordToHistory(x,y,2);
-            	pStrCmd="команда: ";
-	    	InvalidateRect(hWnd,&aRect,TRUE);	
-	    	//modelWindow.setROP2(R2_COPYPEN);
-		myModel.showModel();
-		x1=x;
-		y1=y;
+		if (EnType==tLine){
+	    		start.setXY(x1,y1);
+	    		end.setXY(x,y);
+	    		myModel.appendLine(&start,&end);
+	    		addCoordToHistory(x,y,2);
+            		pStrCmd="команда: ";
+	    		InvalidateRect(hWnd,&aRect,TRUE);	
+			x1=x;
+			y1=y;
+	    		state=STATE_CONTUR_LINE2;
+		}
+		else {
+	    		state=STATE_CONTUR_ARC2;
+			contur(x,y);
+		}
 
-		switch(EnType){
-		   case tLine:
-	   		addTextToHistory("Line");
-	   		state=STATE_CONTUR_LINE2;
-		   break;
-		   case tArc:
-	   		addTextToHistory("Arc");
-	   		state=STATE_CONTUR_ARC1;
-		   break;
-	   	}
+		break;
+
+	  	case STATE_CONTUR_ARC1:
+	  	x1=x;
+	    	y1=y;
+	    	addCoordToHistory(x,y,1);
+		if (EnType==tLine)
+	    		state=STATE_CONTUR_LINE2;
+		else 
+	    		state=STATE_CONTUR_ARC2;
+	  	break;
+
+	  	case STATE_CONTUR_ARC2:
+		if (EnType==tArc){
+	  	x2=x;
+	    	y2=y;
+	    	addCoordToHistory(x,y,2);
+	    	state=STATE_CONTUR_ARC3;
+		}
+		else{
+			state=STATE_CONTUR_LINE2;
+			contur(x,y);
+		}
+      		break;
+	  	case STATE_CONTUR_ARC3:
+		if (EnType==tArc){
+		x3=x;
+	  	y3=y;	
+	   addCoordToHistory(x,y,3);
+	    if (!getRC(x,y))
+		    myModel.appendArc(x1,y1,x3,y3,xc,yc,R,ArcDirection);
+
+            sprintf(str,"R=%4.2f, Xc=%4.2f, Yc=%4.2f",R,xc,yc);
+	    
+	    if (ArcDirection==AD_COUNTERCLOCKWISE)
+		    strcat(str," rotation: CCW");
+	    else
+		    strcat(str," rotation: CW");
+
+	    addTextToHistory(str);
+            pStrCmd="команда: ";
+	    InvalidateRect(hWnd,&aRect,TRUE);	
+		x1=x3;
+		y1=y3;
+			state=STATE_CONTUR_ARC2;
+		}
+		else{
+			state=STATE_CONTUR_LINE2;
+			contur(x,y);
+		}
 	  break;
+	  
 	}
 	return result;
 }

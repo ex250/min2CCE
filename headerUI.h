@@ -17,6 +17,7 @@ const int STATE_CONTUR_ARC2=10;
 const int STATE_CONTUR_ARC3=11;
 const int STATE_CONTUR_LINE1=12;
 const int STATE_CONTUR_LINE2=13;
+const int STATE_CONTUR_SELECT=14;
 const float PI=3.14159265;
 const int ON=1;
 const int OFF=0;
@@ -154,6 +155,9 @@ class CommandLine:public BaseWindow
     int setState(int);
 
     int setEnType(int);
+    int getEnType();
+
+    int enumEnType();
 
     bool addCommand();
 

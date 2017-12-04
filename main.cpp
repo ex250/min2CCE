@@ -365,9 +365,9 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			   case STATE_LINE_POINT2:
 		   	if (flagRegen==true)
 				modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
-			else flagRegen=true;
 			modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 		        prevCursPos=*lpPoint;
+			flagRegen=true;
 			break;
 			   case STATE_ARC_POINT1:
 		        prevCursPos=*lpPoint;
@@ -376,9 +376,9 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 		   	if (flagRegen==true)
 				modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
-			else flagRegen=true;
 			modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 		        prevCursPos=*lpPoint;
+			flagRegen=true;
 
 		        break;
 
@@ -395,7 +395,6 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 					 comStr.getR(),
 					 comStr.getDirection()
 			);
-		     else flagRegen=true;
 
 			comStr.getRC(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 
@@ -410,14 +409,51 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			);
 
 		        prevCursPos=*lpPoint;
+				flagRegen=true;
 			break;
 			   case STATE_CONTUR_LINE2:
 				if (flagRegen==true)
 				modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
-				else flagRegen=true;
 				modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 		        	prevCursPos=*lpPoint;
+			flagRegen=true;
 			break;
+			   case STATE_CONTUR_ARC2:
+			if (flagRegen==true)
+				modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+			modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+		        prevCursPos=*lpPoint;
+			flagRegen=true;
+
+		        break;
+			   case STATE_CONTUR_ARC3:
+			comStr.getRC(static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+
+		     if (flagRegen==true)
+			modelWindow._arc(comStr.getX1(),
+					 comStr.getY1(),
+					 comStr.getX3(),
+					 comStr.getY3(),
+                                         comStr.getXc(),
+                                         comStr.getYc(),
+					 comStr.getR(),
+					 comStr.getDirection()
+			);
+
+			comStr.getRC(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+
+			modelWindow._arc(comStr.getX1(),
+					 comStr.getY1(),
+					 comStr.getX3(),
+					 comStr.getY3(),
+                                         comStr.getXc(),
+                                         comStr.getYc(),
+					 comStr.getR(),
+					 comStr.getDirection()
+			);
+
+		        prevCursPos=*lpPoint;
+			flagRegen=true;
 		   }
 		   }
 		}
@@ -452,7 +488,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			case STATE_ARC_POINT2:
 				comStr.segArc(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 			modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
-			flagRegen=false;
+				flagRegen=false;
 				break;
 			case STATE_ARC_POINT3:
 				comStr.segArc(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
@@ -466,7 +502,21 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				break;
 			case STATE_CONTUR_LINE2:
 				comStr.contur(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
-				myModel.showModel();
+				flagRegen=false;
+				break;
+
+			case STATE_CONTUR_ARC1:
+				comStr.contur(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				break;
+
+			case STATE_CONTUR_ARC2:
+				comStr.contur(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+			modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+				flagRegen=false;
+				break;
+
+			case STATE_CONTUR_ARC3:
+				comStr.contur(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 				flagRegen=false;
 				break;
 
@@ -478,9 +528,25 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		switch(comStr.getState()){
 			case STATE_CONTUR_LINE2:
 				modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
-				comStr.setState(STATE_WAIT_COMMAND);
+				break;
+			case STATE_CONTUR_ARC2:
+				modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+				break;
+			case STATE_CONTUR_ARC3:
+			comStr.getRC(static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+
+			modelWindow._arc(comStr.getX1(),
+					 comStr.getY1(),
+					 comStr.getX3(),
+					 comStr.getY3(),
+                                         comStr.getXc(),
+                                         comStr.getYc(),
+					 comStr.getR(),
+					 comStr.getDirection()
+			);
 				break;
 		}
+		comStr.setState(STATE_WAIT_COMMAND);
 
 		break;
 
@@ -535,6 +601,14 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
       switch(wParam){
 	      case VK_ESCAPE:
 		      comStr.setState(STATE_WAIT_COMMAND);
+		      flagRegen=false;
+		break;
+	      case VK_SPACE:
+		      comStr.enumEnType();
+		      if (comStr.getEnType()==tLine)
+			      comStr.setState(STATE_CONTUR_LINE2);
+		      else
+			      comStr.setState(STATE_CONTUR_ARC2);
 		break;
       }
       break;
