@@ -20,19 +20,19 @@ Layer::Layer():
 	case 1:
 		color=0xff;
 		type=PS_SOLID;
-		width=5;
+		width=35;
 	break;
 
 	case 2:
 		color=0xff00;
 		type=PS_DASH;
-		width=1;
+		width=18;
 	break;
 
 	case 3:
                 color=0xff0000;
 		type=PS_DOT;
-		width=1;
+		width=18;
 	break;
 
         default:
@@ -146,6 +146,17 @@ bool Point::printInfo(){
   return true;
 }
 
+bool Point::getInfo(char* infPtr){
+	char buff[256];
+	sprintf(buff,"Point\tx=%3.2f, y=%3.2f\n",x,y);
+	strcpy(infPtr,buff);
+	return true;
+}
+bool Point::scale(float sf ){
+	x*=sf;
+	y*=sf;
+	return true;
+}
 
 bool Point::setXY(float xx,float yy){
   x=xx;
@@ -240,11 +251,24 @@ bool Line::getDataFromUser()
   return TRUE;
 }
 
+bool Line::getInfo(char* infPtr){
+	char buff[256];
+  sprintf(buff,"LINE\tx1=%3.2f y1=%3.2f  x2=%3.2f y2=%3.2f\n",start.getX(),start.getY(),end.getX(),end.getY());
+	strcpy(infPtr,buff);
+	return true;
+}
+
 bool Line::printInfo(){
   char buff[2560];
   sprintf(buff,"x1=%f y1=%f  x2=%f y2=%f",start.getX(),start.getY(),end.getX(),end.getY());
   comStr.addTextToHistory(buff);
   return true;
+}
+
+bool Line::scale(float sf ){
+	start.scale(sf);
+	end.scale(sf);
+	return true;
 }
 
 //--------------ARC SECTION------------------------------------------
@@ -281,6 +305,19 @@ void ArcSegment::show()
   modelWindow._arc(xs,ys,xe,ye,xc,yc,radius,direction);
 }
 
+
+bool ArcSegment::getInfo(char* infPtr){
+	char buff[256];
+	char direct[16];
+	if (direction==AD_COUNTERCLOCKWISE)
+		strcpy(direct,"CCW");
+	else 
+		strcpy(direct,"CW");
+  sprintf(buff,"ARC\tx1=%3.2f y1=%3.2f  x2=%3.2f y2=%3.2f Xc=%3.2f Yc=%3.2f R=%3.2f Direction=%s\n",xs,ys,xe,ye,xc,yc,radius,direct);
+	strcpy(infPtr,buff);
+	return true;
+}
+
 bool ArcSegment::printInfo()
 {
   char buff[2560];
@@ -290,6 +327,17 @@ bool ArcSegment::printInfo()
 
 bool ArcSegment::getDataFromUser()
 { }
+
+bool ArcSegment::scale(float sf ){
+	xs*=sf;
+	ys*=sf;
+	xe*=sf;
+	ye*=sf;
+	xc*=sf;
+	yc*=sf;
+	radius*=sf;
+	return true;
+}
 
 //**************class Model*********************************************
 Model::Model()
@@ -391,7 +439,7 @@ int  Model::readModel(char * fn)
 		}
 		else{ 
 			entities.push_back(enPtr);
-			enPtr->printInfo();
+		//	enPtr->printInfo();
 		}
 	}
 	is.close();
@@ -455,6 +503,29 @@ int  Model::writeModel(char * fn)
 
 	return 0;
 }
+int Model::saveInfo(char *fn){
+   int j;
+   char buff[256];
+   char tmp[64];
+   ofstream oufile;
+   oufile.open(fn);
+   if (!oufile)
+	MessageBox(modelWindow.getHWND(),"Error open file","SAVE...",MB_OK);
+   
+   for (j=0;j<entities.size();j++){
+	entities[j]->getInfo(buff);
+	oufile.write(buff,strlen(buff));
+	sprintf(tmp,"Len=%d",strlen(buff));
+	strcat(buff,tmp);
+	MessageBox(modelWindow.getHWND(),buff,"SAVE...",MB_OK);
+   if (!oufile)
+	MessageBox(modelWindow.getHWND(),"Error write file","SAVE...",MB_OK);
+
+   }
+   oufile.close();
+   return 0;
+}
+
 
 void Model::showModel()
 {
@@ -477,3 +548,10 @@ int Model::deleteAll()
 	}
 	return result;
 }
+int Model::scaleModel(float sf){
+   int j;
+   for (j=0;j<entities.size();j++)
+	entities[j]->scale(sf);
+   return 0;
+}
+

@@ -327,7 +327,6 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 	   mainWindow.getWidth(),
 	   HSTBAR);
 
-
 	 break;
 
 
@@ -341,15 +340,19 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		   	float dx=prevCursPos.x-lpPoint->x;
 		   	float dy=prevCursPos.y-lpPoint->y;
 
-			if (dx<0)
-				dx=50;
-			else dx=-50;
+			if (prevCursPos.x<lpPoint->x)
+				dx=10;
+			else if(prevCursPos.x>lpPoint->x)
+				dx=-10;
+			else dx=0;
 
-			if (dy<0)
-				dy=50;
-			else dy=-50;
+			if (prevCursPos.y<lpPoint->y)
+				dy=10;
+			else if(prevCursPos.y>lpPoint->y)
+				dy=-10;
+			else dy=0;
 
-		   	modelWindow.setWOrg(dx,dy);
+		   	modelWindow.setWOrg(dx*2,dy*2);
 		     }
 		   else {
 		   GetCursorPos(lpPoint);
@@ -525,29 +528,12 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		break;
 
 	case WM_RBUTTONDOWN:
-		switch(comStr.getState()){
-			case STATE_CONTUR_LINE2:
-				modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
-				break;
-			case STATE_CONTUR_ARC2:
-				modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
-				break;
-			case STATE_CONTUR_ARC3:
-			comStr.getRC(static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
-
-			modelWindow._arc(comStr.getX1(),
-					 comStr.getY1(),
-					 comStr.getX3(),
-					 comStr.getY3(),
-                                         comStr.getXc(),
-                                         comStr.getYc(),
-					 comStr.getR(),
-					 comStr.getDirection()
-			);
-				break;
-		}
-		comStr.setState(STATE_WAIT_COMMAND);
-
+		
+		      comStr.enumEnType();
+		      if (comStr.getEnType()==tLine)
+			      comStr.setState(STATE_CONTUR_LINE2);
+		      else
+			      comStr.setState(STATE_CONTUR_ARC2);
 		break;
 
     case WM_MBUTTONDOWN:
@@ -565,6 +551,9 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
     case WM_MBUTTONUP:
 		if (flagMiddlePress==true){
 		   flagMiddlePress=false;
+      		   aRect=modelWindow.getRect();
+      		   InvalidateRect(modelWindow.getHWND(),&aRect,TRUE);
+
 		}
 
 	break;
@@ -604,11 +593,29 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		      flagRegen=false;
 		break;
 	      case VK_SPACE:
-		      comStr.enumEnType();
-		      if (comStr.getEnType()==tLine)
-			      comStr.setState(STATE_CONTUR_LINE2);
-		      else
-			      comStr.setState(STATE_CONTUR_ARC2);
+		switch(comStr.getState()){
+			case STATE_CONTUR_LINE2:
+				modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+				break;
+			case STATE_CONTUR_ARC2:
+				modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+				break;
+			case STATE_CONTUR_ARC3:
+			comStr.getRC(static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+
+			modelWindow._arc(comStr.getX1(),
+					 comStr.getY1(),
+					 comStr.getX3(),
+					 comStr.getY3(),
+                                         comStr.getXc(),
+                                         comStr.getYc(),
+					 comStr.getR(),
+					 comStr.getDirection()
+			);
+				break;
+		}
+		comStr.setState(STATE_WAIT_COMMAND);
+
 		break;
       }
       break;
@@ -621,10 +628,10 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		}
 	        EndPaint(hWnd, &PaintSt); // Terminate window redraw operation
 		if (hWnd==modelWindow.getHWND()){
-			if (substrate==ON){
+			if (substrate==ON&&flagMiddlePress==false){
 		   		wd = ws = bmp.GetWidth();
 		   		hd = hs = bmp.GetHeight();
- 		   		bmp.Draw(hDC, -wd/2, -hd/2, wd, hd, 0, 0, ws, hs, SRCCOPY);
+ 		   		bmp.Draw(hDC, 0, 0, wd*10, hd*10, 0, 0, ws, hs, SRCCOPY);
 			}
     		   myModel.showModel();
 		   //TransformAndDraw(mode,modelWindow.getHWND(),scaleFactor,&origin);		
@@ -655,6 +662,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			break;
 
  		case IDM_SAVE:
+			myModel.saveInfo("info.txt");
 			MessageBox(hWnd, "Выбран пункт 'Save'", "Меню File", MB_OK);
 			break;
 
@@ -747,6 +755,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			break;
 
 		case IDM_SCALE:
+			myModel.scaleModel(2.8);
 			MessageBox(hWnd, "Выбран пункт 'SCALE'", "Меню Преобразовать", MB_OK);
 			break;
 

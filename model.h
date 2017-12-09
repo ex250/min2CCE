@@ -51,11 +51,12 @@ class Entity
 	unsigned char getLayerID();
 	bool setLayerID(unsigned char);	
 	virtual bool printInfo()=0;
+	virtual bool getInfo(char *)=0;
+	virtual bool scale(float)=0;
 /*	virtual	unsigned char getLayer()=0;
 	virtual	bool setLayer(unsigned char)=0;	
 	virtual bool rotate()=0;
 	virtual bool move()=0;
-	virtual bool scale()=0;
 	virtual bool mirror()=0;
 	virtual bool offset()=0;
 	virtual bool trim()=0;
@@ -82,6 +83,8 @@ class Point:public Entity
 
 	bool printInfo();
 
+	bool getInfo(char*);
+
 	void getPoint();
 	
 	float getX();
@@ -91,6 +94,8 @@ class Point:public Entity
 	bool setXY(float,float);
 
 	bool getDataFromUser();
+
+	bool scale(float );
 };
 
 class Line:public Entity
@@ -108,7 +113,11 @@ class Line:public Entity
 
 	Line(Point*,Point*,Layer*);
 
+	bool scale(float );
+
 	void show();
+
+	bool getInfo(char*);
 
 	bool printInfo();
 
@@ -131,6 +140,10 @@ class ArcSegment:public Entity
 	ArcSegment();
 	ArcSegment(float,float,float,float,float,float,float,int);
 	void show();
+
+	bool scale(float );
+
+	bool getInfo(char*);
 
 	bool printInfo();
 
@@ -159,6 +172,8 @@ class Model{
 
 	int readModel(char *);
 	int writeModel(char *);
+	int saveInfo(char *);
+	int scaleModel(float);
 	void showModel();
 	int printModelInfo()const;
 	int deleteAll();
