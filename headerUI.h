@@ -69,7 +69,7 @@ class BaseWindow
 	bool setPen(HPEN*);
 	bool SetWindowPosition(int x,int y,int cx,int cy);
 
-	bool printText(int , int ,char*);
+	bool printText(int , int ,const char*);
 
 	bool lineTo(int ,int );
 
@@ -128,7 +128,7 @@ class CommandLine:public BaseWindow
     HWND hwndC;
     HWND hwndH;
     char buffer[128];   //буффер команды
-    char *pStrCmd;      //указатель на строку запрос 
+    const char *pStrCmd;      //указатель на строку запрос 
     int state;		//индикатор текущего состояния системы
     int EnType;
     float x1,y1,x2,y2,x3,y3;// переменные для хранения координат точек
@@ -163,7 +163,7 @@ class CommandLine:public BaseWindow
 
     inline int  addCoordToHistory(float,float,int);
 
-    int  addTextToHistory(char *);
+    int  addTextToHistory(const char *);
 
     bool segLine(float,float);
 

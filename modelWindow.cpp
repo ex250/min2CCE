@@ -14,6 +14,8 @@ bool ModelWindow::line(float xPrev,float yPrev,float x, float y)
   //SetBkMode(hDC, TRANSPARENT);      // Set text background mode
   MoveToEx(hDC,xPrev,yPrev,NULL);
   result=LineTo(hDC,x,y);
+
+  ReleaseDC(hWnd,hDC);
   return result;
 }
 
@@ -32,6 +34,7 @@ bool ModelWindow::_arc(float x1, float y1, float x2, float y2,
   SelectObject(hDC, hPen);
   SetROP2(hDC, ROP2);
   result=Arc(hDC,x-R,y+R,x+R,y-R, x1,y1, x2,y2);
+  ReleaseDC(hWnd,hDC);
   return result;
 
 }
@@ -62,7 +65,7 @@ bool ModelWindow::setScale(float sf)
   
   //SetWorldTransform(hDC, &xForm);
   ModifyWorldTransform(hDC,&transform, MWT_RIGHTMULTIPLY);
-  InvalidateRect(hWnd,&aRect,true); 
+  //InvalidateRect(hWnd,&aRect,true); 
   return true;
 }
 
@@ -85,7 +88,7 @@ bool ModelWindow::setWOrg(float dx, float dy){
   transform.eDy  = (FLOAT) dy; 
   ModifyWorldTransform(hDC,&transform, MWT_RIGHTMULTIPLY);
   //SetWorldTransform(hDC, &xForm);
-  InvalidateRect(hWnd,&aRect,true);  
+  //InvalidateRect(hWnd,&aRect,true);  
   return true;
 }
 

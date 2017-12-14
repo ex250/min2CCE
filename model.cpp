@@ -344,11 +344,11 @@ Model::Model()
 {
 ptrToDefaultLayer=defaultLayer;
 ptrToCurrentLayer=currentLayer;
+iter=entities.begin();
 }
 
 bool Model::addEntity(Entity* entity)
 {
-	//cout<<"Model:: addEntity(Entity *entity)"<<endl;
 	entities.push_back(entity);
 	return TRUE;
 }
@@ -356,6 +356,10 @@ bool Model::addEntity(Entity* entity)
 bool Model::appendLine(Point *start,Point *end){
 	Line *ptrToLine;
 	ptrToLine=new Line(start,end);
+	if (!ptrToLine){
+		MessageBox(modelWindow.getHWND(),"Model:appendLine:360. NULL pointer","Error", MB_OK);
+		exit(-1);
+	}
 	entities.push_back(ptrToLine);
 	return TRUE;
 }
@@ -364,6 +368,10 @@ bool Model::appendLine(Point *start,Point *end){
 bool Model::appendPoint(){
 	Point *ptrToPoint;
 	ptrToPoint=new Point();
+	if (!ptrToPoint){
+		MessageBox(modelWindow.getHWND(),"Model:appendPoint:372. NULL pointer","Error", MB_OK);
+		exit(-1);
+	}
 	ptrToPoint->getDataFromUser();
 	entities.push_back(ptrToPoint);
 	return TRUE;
@@ -374,6 +382,10 @@ bool Model::appendArc(float x1, float y1, float x2, float y2,
 {
 	ArcSegment *ptrToArc;
 	ptrToArc=new ArcSegment(x1,y1,x2,y2,xc,yc,R,ArcDir);
+	if (!ptrToArc){
+		MessageBox(modelWindow.getHWND(),"Model:appendArc:386. NULL pointer","Error", MB_OK);
+		exit(-1);
+	}
 	entities.push_back(ptrToArc);
 	return TRUE;
 }
@@ -394,7 +406,6 @@ int  Model::setFileName(char* fn){
 
 int  Model::readModel(char * fn)
 {
-	//stringstream outMem;
 	char buff[256];
 	int size;
 	Entity * enPtr;
@@ -403,7 +414,6 @@ int  Model::readModel(char * fn)
 	is.open(fn,ios::binary);
 	if (!is)
 	{
-		//outMem<<"Error open file"; 
 		MessageBox(modelWindow.getHWND(),"Error open file:model.cpp:346","Error",MB_OK);
 	}
 	while(true){
@@ -412,7 +422,6 @@ int  Model::readModel(char * fn)
 			break;
 		if (!is)
 	{
-		//outMem<<"read error type"; 
 		MessageBox(modelWindow.getHWND(),"read error type: model.cpp:355","Error",MB_OK);
 	}
 		switch(etype){
@@ -503,7 +512,7 @@ int  Model::writeModel(char * fn)
 
 	return 0;
 }
-int Model::saveInfo(char *fn){
+int Model::saveInfo(const char *fn){
    int j;
    char buff[256];
    char tmp[64];
@@ -529,9 +538,10 @@ int Model::saveInfo(char *fn){
 
 void Model::showModel()
 {
-   int j;
-   for (j=0;j<entities.size();j++)
-	entities[j]->show();
+   iter=entities.begin();
+   if (!entities.empty())
+   for (iter;iter!=entities.end();++iter)
+	(*iter)->show();
 }
 
 int  Model::printModelInfo()const

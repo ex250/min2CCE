@@ -155,6 +155,7 @@ class Model{
   private:
 	char FileName[MAXFILENAME];
 	std::vector<Entity*> entities;
+	std::vector<Entity*>::iterator iter;
 	Layer *ptrToDefaultLayer;
 	Layer *ptrToCurrentLayer;
   public:
@@ -172,7 +173,7 @@ class Model{
 
 	int readModel(char *);
 	int writeModel(char *);
-	int saveInfo(char *);
+	int saveInfo(const char *);
 	int scaleModel(float);
 	void showModel();
 	int printModelInfo()const;

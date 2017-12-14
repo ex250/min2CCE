@@ -11,7 +11,7 @@ LFLAGS        =        -mthreads -Wl,-subsystem,windows
 LIBS        = -lglu32 -lopengl32 -lwinmm -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -lcomctl32
 
 
-srcs=baseWindow.cpp main.cpp toolbardraw.cpp commandLine.cpp transform.cpp model.cpp modelWindow.cpp kdib.cpp
+srcs=baseWindow.cpp main.cpp toolbardraw.cpp commandLine.cpp model.cpp modelWindow.cpp kdib.cpp
 
 objs=$(srcs:.cpp=.o)
 
@@ -31,7 +31,6 @@ main.o:main.cpp headerui.h wndclass.h kdib.h kdib.cpp
 baseWindow.o:baseWindow.cpp headerui.h wndclass.h
 toolbardraw.o:toolbardraw.cpp
 commandLine.o:commandLine.cpp
-transform.o:transform.cpp  
 model.o:model.cpp  
 modelWindow.o:modelWindow.cpp
 kdib.cpp:kdib.h

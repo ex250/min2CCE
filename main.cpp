@@ -8,8 +8,6 @@ using namespace std;
 
 long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-void TransformAndDraw(int iTransform, HWND hWnd,int scale,LPPOINT lpPoint);
-
 BOOL APIENTRY dlgprc(HWND, UINT, WPARAM, LPARAM);
 HINSTANCE g_hInst;
 
@@ -244,7 +242,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
                        LPARAM lParam)
 {
-   HDC hDC;                       // Display context handle
+   static HDC hDC;                       // Display context handle
    PAINTSTRUCT PaintSt;           // Structure defining area to be drawn
    RECT aRect;                    // A working rectangle
    static LPPOINT lpPoint;//****
@@ -336,7 +334,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		     {
 		   	GetCursorPos(lpPoint);
 		   	ScreenToClient(hWnd,lpPoint);
-		   	DPtoLP(modelWindow.getHDC(),lpPoint,1);		   
+		   	//DPtoLP(GetDC(modelWindow.getHWND()),lpPoint,1);		   
 		   	float dx=prevCursPos.x-lpPoint->x;
 		   	float dy=prevCursPos.y-lpPoint->y;
 
@@ -357,7 +355,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		   else {
 		   GetCursorPos(lpPoint);
 		   ScreenToClient(hWnd,lpPoint);
-		   DPtoLP(modelWindow.getHDC(),lpPoint,1);
+		   //DPtoLP(GetDC(modelWindow.getHWND()),lpPoint,1);
 		   sprintf(buffer,"Coordinate x=%4.3f y=%4.3f ",static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 		   strcat(buffer,buf);
 		   aRect=statusBar.getRect();
@@ -474,7 +472,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 		  GetCursorPos(lpPoint);
 		  ScreenToClient(hWnd,lpPoint);
-		  DPtoLP(modelWindow.getHDC(),lpPoint,1);
+		  //DPtoLP(GetDC(modelWindow.getHWND()),lpPoint,1);
 		  switch (comStr.getState()){
 			case STATE_LINE_POINT1:
 			        prevCursPos=*lpPoint;
@@ -542,7 +540,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 		   	GetCursorPos(lpPoint);
 		   	ScreenToClient(hWnd,lpPoint);
-		   	DPtoLP(modelWindow.getHDC(),lpPoint,1);		   
+		   	//DPtoLP(GetDC(modelWindow.getHWND()),lpPoint,1);		   
 		   	prevCursPos=*lpPoint;
 
 		}
@@ -584,6 +582,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
       aRect=statusBar.getRect();
       InvalidateRect(statusBar.getHWND(),&aRect,TRUE);
 
+      myModel.showModel();
       break;
 
       case WM_KEYDOWN:
@@ -633,8 +632,9 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		   		hd = hs = bmp.GetHeight();
  		   		bmp.Draw(hDC, 0, 0, wd*10, hd*10, 0, 0, ws, hs, SRCCOPY);
 			}
+			modelWindow.line(-500,0,500,0);
+			modelWindow.line(0,-500,0,500);
     		   myModel.showModel();
-		   //TransformAndDraw(mode,modelWindow.getHWND(),scaleFactor,&origin);		
 		}
 		break;
 

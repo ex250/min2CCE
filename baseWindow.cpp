@@ -119,7 +119,7 @@ bool BaseWindow::SetWindowPosition(int x,int y,int cx,int cy)
   return SetWindowPos(hWnd,HWND_TOP,x,y,cx,cy,SWP_SHOWWINDOW);
 }
 
-bool BaseWindow::printText(int xt=0, int yt=0,char* str="")
+bool BaseWindow::printText(int xt=0, int yt=0,const  char* str="")
 {
   HDC hDC;
   hDC=GetDC(hWnd);

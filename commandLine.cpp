@@ -196,7 +196,7 @@ int  CommandLine::addCoordToHistory(float x,float y, int index)
            SendMessage(hwndH,WM_VSCROLL,SB_BOTTOM,NULL);
 	   return strlen(str);
 }
-int  CommandLine::addTextToHistory(char * pStr){
+int  CommandLine::addTextToHistory(const char * pStr){
 	SendMessage(hwndH,(UINT) LB_ADDSTRING,(WPARAM) 0,(LPARAM) pStr);
         SendMessage(hwndH,WM_VSCROLL,SB_BOTTOM,NULL);
 	return strlen(pStr);
