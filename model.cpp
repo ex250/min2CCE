@@ -360,7 +360,10 @@ bool Model::appendLine(Point *start,Point *end){
 		MessageBox(modelWindow.getHWND(),"Model:appendLine:360. NULL pointer","Error", MB_OK);
 		exit(-1);
 	}
-	entities.push_back(ptrToLine);
+	if (entities.size()<(entities.max_size()-10))
+		entities.push_back(ptrToLine);
+	else 
+		MessageBox(modelWindow.getHWND(),"Overflow vector!!!","Error",MB_OK);
 	return TRUE;
 }
 
@@ -539,7 +542,7 @@ int Model::saveInfo(const char *fn){
 void Model::showModel()
 {
    iter=entities.begin();
-   if (!entities.empty())
+   if (!entities.empty()&&(entities.size()<entities.max_size()))
    for (iter;iter!=entities.end();++iter)
 	(*iter)->show();
 }

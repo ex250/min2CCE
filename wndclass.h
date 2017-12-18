@@ -18,7 +18,7 @@ const int SEPARATOR_WIDTH=20;
 
 // определение класса главного окна
 WNDCLASS OFwin = {
-      CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
+      CS_HREDRAW | CS_VREDRAW ,
       WindowProc,
       0,          // No extra bytes after the window class
       0,          // structure or the window instance
@@ -32,7 +32,7 @@ WNDCLASS OFwin = {
 
 // определение класса дочерних окон
 WNDCLASS TBwin = {
-      CS_HREDRAW | CS_VREDRAW|CS_OWNDC,
+      CS_HREDRAW | CS_VREDRAW,
       WindowProc,
       0,          // No extra bytes after the window class
       0,          // structure or the window instance

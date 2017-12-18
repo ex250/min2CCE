@@ -242,7 +242,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
                        LPARAM lParam)
 {
-   static HDC hDC;                       // Display context handle
+   HDC hDC;                       // Display context handle
    PAINTSTRUCT PaintSt;           // Structure defining area to be drawn
    RECT aRect;                    // A working rectangle
    static LPPOINT lpPoint;//****
@@ -330,11 +330,12 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 	case WM_MOUSEMOVE:
 		if (hWnd==modelWindow.getHWND()){
+			hDC=GetDC(modelWindow.getHWND());
 		   if (flagMiddlePress==true)
 		     {
 		   	GetCursorPos(lpPoint);
 		   	ScreenToClient(hWnd,lpPoint);
-		   	//DPtoLP(GetDC(modelWindow.getHWND()),lpPoint,1);		   
+		   	DPtoLP(hDC,lpPoint,1);		   
 		   	float dx=prevCursPos.x-lpPoint->x;
 		   	float dy=prevCursPos.y-lpPoint->y;
 
@@ -355,7 +356,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		   else {
 		   GetCursorPos(lpPoint);
 		   ScreenToClient(hWnd,lpPoint);
-		   //DPtoLP(GetDC(modelWindow.getHWND()),lpPoint,1);
+		   DPtoLP(hDC,lpPoint,1);
 		   sprintf(buffer,"Coordinate x=%4.3f y=%4.3f ",static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 		   strcat(buffer,buf);
 		   aRect=statusBar.getRect();
@@ -457,6 +458,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			flagRegen=true;
 		   }
 		   }
+		   ReleaseDC(modelWindow.getHWND(),hDC);
 		}
 
 		break;
@@ -469,10 +471,11 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 	case WM_LBUTTONDOWN:
 		SetFocus(modelWindow.getHWND());
 		if (hWnd==modelWindow.getHWND()){
+		  hDC=GetDC(modelWindow.getHWND());
 
 		  GetCursorPos(lpPoint);
 		  ScreenToClient(hWnd,lpPoint);
-		  //DPtoLP(GetDC(modelWindow.getHWND()),lpPoint,1);
+		  DPtoLP(hDC,lpPoint,1);
 		  switch (comStr.getState()){
 			case STATE_LINE_POINT1:
 			        prevCursPos=*lpPoint;
@@ -522,6 +525,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				break;
 
 		  }
+		  ReleaseDC(modelWindow.getHWND(),hDC);
 		}
 		break;
 
@@ -536,12 +540,14 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
     case WM_MBUTTONDOWN:
 		if (flagMiddlePress==false&&hWnd==modelWindow.getHWND()){
+			hDC=GetDC(modelWindow.getHWND());
 		   flagMiddlePress=true;
 
 		   	GetCursorPos(lpPoint);
 		   	ScreenToClient(hWnd,lpPoint);
-		   	//DPtoLP(GetDC(modelWindow.getHWND()),lpPoint,1);		   
+		   	DPtoLP(hDC,lpPoint,1);		   
 		   	prevCursPos=*lpPoint;
+			ReleaseDC(modelWindow.getHWND(),hDC);
 
 		}
 	break;
@@ -571,8 +577,12 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 	    scaleFactor=0.5;
         }
 	else scaleFactor=1.5;
-
+	
+      modelWindow.setROP2(R2_NOTXORPEN);
+      myModel.showModel();
       modelWindow.setScale(scaleFactor); 
+      modelWindow.setROP2(R2_COPYPEN);
+      myModel.showModel();
 
       sprintf(buffer,"x=%4d y=%4d     Scale:%f",lpPoint->x,lpPoint->y,scaleFactor);
 
@@ -582,7 +592,6 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
       aRect=statusBar.getRect();
       InvalidateRect(statusBar.getHWND(),&aRect,TRUE);
 
-      myModel.showModel();
       break;
 
       case WM_KEYDOWN:
@@ -625,17 +634,16 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
   		    SetBkMode(hDC, TRANSPARENT);      // Set text background mode
   		    TextOut(hDC,10,10,buffer,strlen(buffer));
 		}
-	        EndPaint(hWnd, &PaintSt); // Terminate window redraw operation
 		if (hWnd==modelWindow.getHWND()){
 			if (substrate==ON&&flagMiddlePress==false){
 		   		wd = ws = bmp.GetWidth();
 		   		hd = hs = bmp.GetHeight();
  		   		bmp.Draw(hDC, 0, 0, wd*10, hd*10, 0, 0, ws, hs, SRCCOPY);
 			}
-			modelWindow.line(-500,0,500,0);
-			modelWindow.line(0,-500,0,500);
     		   myModel.showModel();
 		}
+	        EndPaint(hWnd, &PaintSt); // Terminate window redraw operation
+		
 		break;
 
       case WM_COMMAND:
@@ -716,7 +724,12 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			comStr.contur(0,0);
 			break;
 		case IDM_RECTANGLE:
-			MessageBox(hWnd, "Выбран пункт 'ПРЯМОУГОЛЬНИК'", "Меню Примитив", MB_OK);
+			{
+				for(int i=0;i<5000;i++){
+      					myModel.showModel();
+				}
+			}
+			//MessageBox(hWnd, "Выбран пункт 'ПРЯМОУГОЛЬНИК'", "Меню Примитив", MB_OK);
 			break;
 		case IDM_POLYGON:
 			MessageBox(hWnd, "Выбран пункт 'ПОЛИГОН'", "Меню Примитив", MB_OK);
