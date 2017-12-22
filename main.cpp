@@ -3,6 +3,7 @@
 #include "model.h"
 #include <string>
 #include "kdib.h"
+#include <zmouse.h>
 
 using namespace std;
 
@@ -253,6 +254,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
    static int mode=0;
    static POINT origin={0,0};
    static POINT prevCursPos;
+   static POINT prevPosition;
+   static XFORM xForm;
    static bool flagMiddlePress=false;
    static bool flagRegen=false;
    int prevMode;
@@ -269,6 +272,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 	
    HPEN hPen;
    int ItemIndex;
+   XFORM rMatrix;
 
 // Переменные для стандартных диалогов "Open", "Save as"
    BOOL success;
@@ -333,34 +337,29 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			hDC=GetDC(modelWindow.getHWND());
 		   if (flagMiddlePress==true)
 		     {
-		   	GetCursorPos(lpPoint);
-		   	ScreenToClient(hWnd,lpPoint);
-		   	DPtoLP(hDC,lpPoint,1);		   
-		   	float dx=prevCursPos.x-lpPoint->x;
-		   	float dy=prevCursPos.y-lpPoint->y;
-
-			if (prevCursPos.x<lpPoint->x)
-				dx=10;
-			else if(prevCursPos.x>lpPoint->x)
-				dx=-10;
-			else dx=0;
-
-			if (prevCursPos.y<lpPoint->y)
-				dy=10;
-			else if(prevCursPos.y>lpPoint->y)
-				dy=-10;
-			else dy=0;
-
-		   	modelWindow.setWOrg(dx*2,dy*2);
+		      GetCursorPos(lpPoint);
+		      int dx=lpPoint->x-prevPosition.x;
+		      int dy=lpPoint->y-prevPosition.y;
+		      xForm.eM11=1;
+		      xForm.eM22=1;
+		      xForm.eDx=dx;
+		      xForm.eDy=dy;
+		      
+	      	      ModifyWorldTransform(hDC,&xForm,MWT_RIGHTMULTIPLY);
+	      	      GetWorldTransform(hDC,&xForm);
+		      prevPosition=*lpPoint;
+	              GetClientRect(hWnd,&aRect);
+	              InvalidateRect(hWnd,&aRect,true);
 		     }
 		   else {
 		   GetCursorPos(lpPoint);
+		   prevPosition=*lpPoint;
 		   ScreenToClient(hWnd,lpPoint);
 		   DPtoLP(hDC,lpPoint,1);
 		   sprintf(buffer,"Coordinate x=%4.3f y=%4.3f ",static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 		   strcat(buffer,buf);
-		   aRect=statusBar.getRect();
-		   InvalidateRect(statusBar.getHWND(),&aRect,TRUE);
+		   //aRect=statusBar.getRect();
+		   //InvalidateRect(statusBar.getHWND(),&aRect,TRUE);
 
 
 		   switch (comStr.getState()){
@@ -539,14 +538,10 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		break;
 
     case WM_MBUTTONDOWN:
-		if (flagMiddlePress==false&&hWnd==modelWindow.getHWND()){
+		if (hWnd==modelWindow.getHWND()){
 			hDC=GetDC(modelWindow.getHWND());
-		   flagMiddlePress=true;
-
-		   	GetCursorPos(lpPoint);
-		   	ScreenToClient(hWnd,lpPoint);
-		   	DPtoLP(hDC,lpPoint,1);		   
-		   	prevCursPos=*lpPoint;
+			flagMiddlePress=true;
+		   	GetCursorPos(&prevPosition);
 			ReleaseDC(modelWindow.getHWND(),hDC);
 
 		}
@@ -562,35 +557,37 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 	break;
 
-    case 0x020a:
-        /* Should be WM_MOUSEWHEEL but my compiler doesn't recognize it */
-    
-        /*
-         * XXX THIS IS SPECULATIVE -- John Fay, 10/2/03
-         * XXX Should use WHEEL_DELTA instead of 120
-         */
-        wheel_number = LOWORD( wParam );
-        ticks = ( short )HIWORD( wParam ) / 120;
+    case WM_MOUSEWHEEL:
+	if (hWnd==modelWindow.getHWND()){
+	hDC=GetDC(hWnd);
+	ticks=(short)HIWORD(wParam);
+	      GetCursorPos(lpPoint);
+	      
+	      if (ticks>0){
+	      xForm.eM11=1.25;
+	      xForm.eM22=1.25;
+	      }
+	      else{
+	      xForm.eM11=0.8;
+	      xForm.eM22=0.8;
+	      }
+	      //ScreenToClient(hWnd,lpPoint);
+	      //DPtoLP(hDC,lpPoint,1);
+	      xForm.eDx=static_cast<float>(lpPoint->x)*(1-xForm.eM11);
+	      xForm.eDy=static_cast<float>(lpPoint->y)*(1-xForm.eM11);
+	      ModifyWorldTransform(hDC,&xForm,MWT_RIGHTMULTIPLY);
+	      GetWorldTransform(hDC,&xForm);
+	  ReleaseDC(hWnd,hDC);
+	      GetClientRect(hWnd,&aRect);
+	      InvalidateRect(hWnd,&aRect,true);
+	}
 
-        if( ticks < 0 )
-        {
-	    scaleFactor=0.5;
-        }
-	else scaleFactor=1.5;
-	
-      modelWindow.setROP2(R2_NOTXORPEN);
-      myModel.showModel();
-      modelWindow.setScale(scaleFactor); 
-      modelWindow.setROP2(R2_COPYPEN);
-      myModel.showModel();
+      sprintf(buffer,"x=%4d y=%4d     Scale:%3.3f",
+		      lpPoint->x,lpPoint->y,rMatrix.eM11);
 
-      sprintf(buffer,"x=%4d y=%4d     Scale:%f",lpPoint->x,lpPoint->y,scaleFactor);
-
-      sprintf(buf,"     Scale:%3d",scaleFactor);
+      sprintf(buf,"     Scale:%3.3f",rMatrix.eM11);
 
       statusBar.printText(10,10,buffer);
-      aRect=statusBar.getRect();
-      InvalidateRect(statusBar.getHWND(),&aRect,TRUE);
 
       break;
 

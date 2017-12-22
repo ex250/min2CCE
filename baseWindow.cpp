@@ -123,7 +123,7 @@ bool BaseWindow::printText(int xt=0, int yt=0,const  char* str="")
 {
   HDC hDC;
   hDC=GetDC(hWnd);
-  SetBkMode(hDC, TRANSPARENT);      // Set text background mode
+  //SetBkMode(hDC, TRANSPARENT);      // Set text background mode
   TextOut(hDC,xt,yt,str,strlen(str));
   ReleaseDC(hWnd,hDC);
   return TRUE;

@@ -1,4 +1,5 @@
 #include "headerui.h"
+#include <stdio.h>
 
 bool ModelWindow::line(float xPrev,float yPrev,float x, float y)
 {
@@ -102,22 +103,11 @@ bool ModelWindow::setWOrg(float dx, float dy){
 }
 
 bool ModelWindow::setGM(){
-  hDC=GetDC(hWnd);
-  SetGraphicsMode(hDC, GM_ADVANCED);
-  SetMapMode(hDC, MM_ISOTROPIC);
-  SetViewportExtEx(hDC, width, height, NULL);
-  float aspect=width/height;
-  SetWindowExtEx(hDC, width*10, height*10, NULL);
-  //SetWindowOrgEx(hDC, windowOrg.x,windowOrg.y,NULL);
-  SetWindowOrgEx(hDC,-width*5,height*5,NULL);
 
-            xForm.eM11 = (FLOAT) scaleFactor; 
-            xForm.eM12 = (FLOAT) 0.0; 
-            xForm.eM21 = (FLOAT) 0.0; 
-            xForm.eM22 = (FLOAT) scaleFactor; 
-            xForm.eDx  = (FLOAT) xOrg; 
-            xForm.eDy  = (FLOAT) yOrg; 
-            SetWorldTransform(hDC, &xForm); 
+  hDC=GetDC(hWnd);
+  SetMapMode(hDC, MM_TEXT);
+  SetGraphicsMode(hDC, GM_ADVANCED);
+  SetWindowOrgEx(hDC,-width/2,-height/2,NULL);
   ReleaseDC(hWnd,hDC);
 
   return true;
