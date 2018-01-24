@@ -20,6 +20,7 @@ BaseWindow tbModifyWindow,tbDrawWindow;
 CommandLine comStr;
 toolbarDraw tbModify,tbDraw,tbStd;
 
+BmpPic bmpPic;
 KDib bmp;
 
 extern Layer* defaultLayer;
@@ -27,6 +28,7 @@ extern Layer* currentLayer;
 extern Layer layer[];
 
 Model myModel;
+myCursor mycursor;
 
 char buffer[180];
  
@@ -39,7 +41,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 
    mainWindow.registerClass(OFwin);
-   mainWindow.init("Главное окно");
+   mainWindow.init("Min2CCE");
 
    tbDrawWindow.registerClass(TBwin);
    tbDrawWindow.init("Примитив",
@@ -274,15 +276,16 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
    int ItemIndex;
    XFORM rMatrix;
 
-// Переменные для стандартных диалогов "Open", "Save as"
    BOOL success;
    static OPENFILENAME ofn;
-   static char szFile[MAX_PATH];
-// -----------------bmp loader ------------------------
+   char szFile[MAX_PATH];
    int dX, dY;
    int ws, hs, wd, hd;
-   static BOOL isFileLoaded;
-   static int substrate;
+   BOOL isFileLoaded;
+   int substrate;
+
+   static HINSTANCE hInst;
+   static HICON hIcon;
 
    switch(message)                // Process selected messages
    {  
@@ -292,6 +295,9 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 	       ofn.hwndOwner = hWnd;
 	       ofn.lpstrFile = szFile;
 	       ofn.nMaxFile = sizeof(szFile);
+	       hInst=GetModuleHandle(NULL);
+	       hIcon=LoadIcon(hInst,MAKEINTRESOURCE(IDI_ICONMIN2C));
+	       SetClassLong(hWnd,GCL_HICON,(LONG)hIcon);
 	    }
 
       break;
@@ -337,13 +343,14 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			hDC=GetDC(modelWindow.getHWND());
 		   if (flagMiddlePress==true)
 		     {
+		      flagRegen=false;
 		      GetCursorPos(lpPoint);
 		      int dx=lpPoint->x-prevPosition.x;
 		      int dy=lpPoint->y-prevPosition.y;
 		      xForm.eM11=1;
 		      xForm.eM22=1;
-		      xForm.eDx=dx;
-		      xForm.eDy=dy;
+		      xForm.eDx=dx*50;
+		      xForm.eDy=-dy*50;
 		      
 	      	      ModifyWorldTransform(hDC,&xForm,MWT_RIGHTMULTIPLY);
 	      	      GetWorldTransform(hDC,&xForm);
@@ -353,14 +360,19 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		     }
 		   else {
 		   GetCursorPos(lpPoint);
+
 		   prevPosition=*lpPoint;
 		   ScreenToClient(hWnd,lpPoint);
 		   DPtoLP(hDC,lpPoint,1);
-		   sprintf(buffer,"Coordinate x=%4.3f y=%4.3f ",static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
-		   strcat(buffer,buf);
-		   //aRect=statusBar.getRect();
-		   //InvalidateRect(statusBar.getHWND(),&aRect,TRUE);
 
+		   //mycursor.show(lpPoint->x,lpPoint->y);
+
+		   sprintf(buffer,"Coordinate x=%4.3f y=%4.3f       ",static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+		   strcat(buffer,buf);
+      		   statusBar.printText(10,10,buffer);
+
+		   if (comStr.getState()==STATE_WAIT_COMMAND)
+ 	           	myModel.hitModel(lpPoint->x,lpPoint->y,mycursor.getSize());
 
 		   switch (comStr.getState()){
 			   case STATE_LINE_POINT2:
@@ -539,6 +551,9 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
     case WM_MBUTTONDOWN:
 		if (hWnd==modelWindow.getHWND()){
+
+			mycursor.setVisible(false);
+
 			hDC=GetDC(modelWindow.getHWND());
 			flagMiddlePress=true;
 		   	GetCursorPos(&prevPosition);
@@ -559,6 +574,10 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
     case WM_MOUSEWHEEL:
 	if (hWnd==modelWindow.getHWND()){
+
+	flagRegen=false;
+	mycursor.setVisible(false);
+
 	hDC=GetDC(hWnd);
 	ticks=(short)HIWORD(wParam);
 	      GetCursorPos(lpPoint);
@@ -571,8 +590,6 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 	      xForm.eM11=0.8;
 	      xForm.eM22=0.8;
 	      }
-	      //ScreenToClient(hWnd,lpPoint);
-	      //DPtoLP(hDC,lpPoint,1);
 	      xForm.eDx=static_cast<float>(lpPoint->x)*(1-xForm.eM11);
 	      xForm.eDy=static_cast<float>(lpPoint->y)*(1-xForm.eM11);
 	      ModifyWorldTransform(hDC,&xForm,MWT_RIGHTMULTIPLY);
@@ -582,10 +599,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 	      InvalidateRect(hWnd,&aRect,true);
 	}
 
-      sprintf(buffer,"x=%4d y=%4d     Scale:%3.3f",
-		      lpPoint->x,lpPoint->y,rMatrix.eM11);
-
-      sprintf(buf,"     Scale:%3.3f",rMatrix.eM11);
+      sprintf(buf,"Scale:%3.3f       ",xForm.eM11);
 
       statusBar.printText(10,10,buffer);
 
@@ -638,6 +652,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
  		   		bmp.Draw(hDC, 0, 0, wd*10, hd*10, 0, 0, ws, hs, SRCCOPY);
 			}
     		   myModel.showModel();
+		   mycursor.setVisible(false);
 		}
 	        EndPaint(hWnd, &PaintSt); // Terminate window redraw operation
 		
@@ -657,13 +672,15 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				myModel.readModel(ofn.lpstrFile);
 				myModel.showModel();
 			}
+			else
+				MessageBox(hWnd,"error open File","ERROR",MB_HELP);
 			break;
 		
 		
 
 		case IDM_NEW:
-			DialogBox(NULL,MAKEINTRESOURCE(EXAMPLEDIALOG),mainWindow.getHWND(),dlgprc);
-			//MessageBox(hWnd, "Выбран пункт 'New'", "Меню File", MB_OK);
+			
+			MessageBox(hWnd, "Выбран пункт 'New'", "Меню File", MB_OK);
 			break;
 
  		case IDM_SAVE:
@@ -721,12 +738,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			comStr.contur(0,0);
 			break;
 		case IDM_RECTANGLE:
-			{
-				for(int i=0;i<5000;i++){
-      					myModel.showModel();
-				}
-			}
-			//MessageBox(hWnd, "Выбран пункт 'ПРЯМОУГОЛЬНИК'", "Меню Примитив", MB_OK);
+			//SetCursor(hCursor);
+			MessageBox(hWnd, "Выбран пункт 'ПРЯМОУГОЛЬНИК'", "Меню Примитив", MB_OK);
 			break;
 		case IDM_POLYGON:
 			MessageBox(hWnd, "Выбран пункт 'ПОЛИГОН'", "Меню Примитив", MB_OK);
@@ -765,7 +778,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			break;
 
 		case IDM_SCALE:
-			myModel.scaleModel(2.8);
+			myModel.scaleModel(3.63);
 			MessageBox(hWnd, "Выбран пункт 'SCALE'", "Меню Преобразовать", MB_OK);
 			break;
 
@@ -787,36 +800,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			break;
 //------------------S U B S T R A T E-------------------------------
 		case IDM_INSERTBMP:
-			if (strlen(ofn.lpstrFile)>1){
-				MessageBox(hWnd,"close File","Information",MB_HELP);
-				bmp.closeFile();
-			}
-			   strcpy(szFile, "");
+			bmpPic.open();
 			
-			   success = GetOpenFileName(&ofn);
-			   if (success){
-				hDC = GetDC(hWnd);
-				isFileLoaded = bmp.LoadFromFile(ofn.lpstrFile);
-				if (!isFileLoaded) {
-					MessageBox(hWnd, ofn.lpstrFile, "Error", MB_OK);
-				MessageBox(hWnd, bmp.GetError(), "Error", MB_OK);
-				break;
-				}
-		// Подогнать размеры окна программы под размер растра bmp
-			        GetClientRect(hWnd, &rect);
-			        dX = bmp.GetWidth() - rect.right;
-			        dY = bmp.GetHeight() - rect.bottom;
-			        GetWindowRect(hWnd, &rect);
-			        InflateRect(&rect, dX/2, dY/2);
-			        MoveWindow(hWnd, 0, 0,
-			        rect.right-rect.left, rect.bottom-rect.top, TRUE);
-			        ReleaseDC(hWnd, hDC);
-				substrate=ON;
-		  	        //MessageBox(hWnd, ofn.lpstrFile, "Открывается файл:", MB_OK);
-			   }
-			   else
-				MessageBox(hWnd, "GetOpenFileName",
-				"Отказ от выбора или ошибка", MB_ICONWARNING);
 			break;
 
 //-----------------menu VIEW------------------------------------------
@@ -845,7 +830,15 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			   }
 			}
 			break;
+		case IDM_HELPABOUT:
+	   		DialogBox(NULL,MAKEINTRESOURCE(IDD_HELPDIALOG1),
+					hWnd,dlgprc);
+			break;
 				
+		case IDM_HELPINFO:
+			MessageBox(hWnd, "Help info", "help info", MB_OK);
+			break;
+
         	default:
 			break;
 	}
@@ -865,10 +858,21 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 //************************************************************************
 BOOL APIENTRY dlgprc(HWND hDlg, UINT uMsg,WPARAM wParam, LPARAM lParam){
+	static HICON hIcon;
 	switch(uMsg){
-		case WM_DESTROY:
-			PostQuitMessage(0);
-			break;
+		case WM_INITDIALOG:
+		
+	        hIcon=LoadIcon((HINSTANCE)GetModuleHandle(NULL),MAKEINTRESOURCE(IDI_ICONMIN2C));
+		if(SendDlgItemMessage(
+					hDlg,
+					IDI_ICONMIN3C,
+					STM_SETICON,
+					(WPARAM)hIcon,
+					(LPARAM)NULL
+					))
+			MessageBox(hDlg,"ERROR LOAD ICON","ERROR",MB_OK);
+		
+		break;
 	case WM_COMMAND:
 		switch (LOWORD(wParam)) {
 		case IDCANCEL:

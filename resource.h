@@ -1,10 +1,5 @@
 #if !defined(RESOURCE)
 #define RESOURCE
-#define EXAMPLEDIALOG		11000
-#define IDC_CHECKBOX		11100
-#define IDC_RADIO1		11200
-#define IDC_RADIO2		11300
-
 
 #define ID_SEP			 100
 #define IDC_TBCOMBO_LAYER    	 200
@@ -75,6 +70,9 @@
 #define IDM_LINECOLOR                   7010
 #define IDM_LINEWEIGHT                  7020
 #define IDM_LINETYPE                    7030
+
+#define IDM_HELPABOUT			7040
+#define IDM_HELPINFO			7050
 //-----меню НАСТРОЙКИ--------------------------
 #define IDM_BACKGROUND			8000
 #define IDM_UCS                         8010
@@ -83,5 +81,43 @@
 #define IDR_TOOLBAR2	9100
 #define IDS_NEW		10000
 #define IDS_NEW2	10100
+
+#define EXAMPLEDIALOG		11000
+#define IDC_CHECKBOX		11100
+#define IDC_RADIO1		11200
+#define IDC_RADIO2		11300
+
+//----курсор и иконка------------------
+#define IDC_CROSSPTR		11400
+#define IDI_ICONMIN2C		11500
+#define IDI_ICONMIN3C		11600
+
+
+//----------─Диалоговое окно Растровое изображение ---------
+#define IDD_PICDIALOG1                  12000
+#define IDC_PICCOMBOPATH                12100
+#define IDC_PICBUTTONPATH               12200
+#define IDC_PICBUTTONHELP               12300
+#define IDC_PICNAME                     12400
+#define IDC_PICSTATICINSERTGROUP        12500
+#define IDC_PICSTATICSCALEGROUP         12600
+#define IDC_PICSTATICROTATEGROUP        12700
+#define IDC_PICCHECKSCALE               12800
+#define IDC_PICCHECKINSPOINT            12900
+#define IDC_PICCHECKROTATE              13000
+#define IDC_PICEDITX                    13100
+#define IDC_PICEDITY                    13200
+#define IDC_PICEDITSCALE                13300
+#define IDC_PICSTATICX                  13400
+#define IDC_PICSTATICY                  13500
+#define IDC_PICEDITANGLE                13600
+#define IDC_PICSTATICPATH               13700
+
+//----------─Диалоговое окно Помощь ---------
+#define IDD_HELPDIALOG1                 14000
+#define IDC_HELPABOUTINFO               14100
+#define IDC_HELPABOUT2                  14200
+#define IDC_HELPABOUT3                  14300
+
 #endif
 

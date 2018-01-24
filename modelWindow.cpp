@@ -1,6 +1,30 @@
 #include "headerui.h"
 #include <stdio.h>
 
+bool ModelWindow::init(LPCTSTR windowName,
+	 	  DWORD dwStyle,
+		  int x,
+		  int y,
+		  int cx,
+		  int cy,
+		  HWND hwndParent,
+		  HMENU hMenu,
+		  HINSTANCE hInst)
+{
+	BaseWindow::init(windowName,
+	 	  dwStyle,
+		  x,
+		  y,
+		  cx,
+		  cy,
+		  hwndParent,
+		  hMenu,
+		  hInst);
+	       hCursor=LoadCursor(hInst,MAKEINTRESOURCE(IDC_CROSSPTR));
+	       SetClassLong(hWnd,GCL_HCURSOR,(LONG)hCursor);
+	       return true;
+}	
+
 bool ModelWindow::line(float xPrev,float yPrev,float x, float y)
 {
   bool result;
@@ -105,7 +129,7 @@ bool ModelWindow::setWOrg(float dx, float dy){
 bool ModelWindow::setGM(){
 
   hDC=GetDC(hWnd);
-  SetMapMode(hDC, MM_TEXT);
+  SetMapMode(hDC, MM_HIMETRIC);
   SetGraphicsMode(hDC, GM_ADVANCED);
   SetWindowOrgEx(hDC,-width/2,-height/2,NULL);
   ReleaseDC(hWnd,hDC);

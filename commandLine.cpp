@@ -4,7 +4,7 @@
 #include "math.h"
 #include <stdio.h>
 
-UINT CHANGEWINDOWPROC=NULL;
+UINT CHANGEWINDOWPROC=(UINT)NULL;
 extern BaseWindow mainWindow;
 extern ModelWindow modelWindow;
 extern Model myModel; 
@@ -90,7 +90,7 @@ WNDCLASS CommandWindow= {
 				GWL_WNDPROC,
 				(LONG)subProc);
 
-   SendMessage(hwndC,WM_USER+1,(WPARAM)this,NULL);
+   SendMessage(hwndC,WM_USER+1,(WPARAM)this,(LPARAM)NULL);
 
    SetFocus(hwndC);
 
@@ -193,12 +193,12 @@ int  CommandLine::addCoordToHistory(float x,float y, int index)
 	   char str[256];
 	   sprintf(str,"x%d=%3.2f,y%d=%3.2f",index,x,index,y);
 	   SendMessage(hwndH,(UINT) LB_ADDSTRING,(WPARAM) 0,(LPARAM) str);
-           SendMessage(hwndH,WM_VSCROLL,SB_BOTTOM,NULL);
+           SendMessage(hwndH,WM_VSCROLL,SB_BOTTOM,(LPARAM)NULL);
 	   return strlen(str);
 }
 int  CommandLine::addTextToHistory(const char * pStr){
 	SendMessage(hwndH,(UINT) LB_ADDSTRING,(WPARAM) 0,(LPARAM) pStr);
-        SendMessage(hwndH,WM_VSCROLL,SB_BOTTOM,NULL);
+        SendMessage(hwndH,WM_VSCROLL,SB_BOTTOM,(LPARAM)NULL);
 	return strlen(pStr);
 }
 

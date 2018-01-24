@@ -5,7 +5,7 @@ toolbarDraw::toolbarDraw():BaseWindow(),ImageListID(0)
 	dwStyle=WS_CHILD|WS_BORDER;
 	cx=cy=16;
 	flag=ILC_MASK|ILC_COLOR16;
-	cGrow=NULL;
+	cGrow=(int)NULL;
 }
 
 void toolbarDraw::setStyle(DWORD style)
@@ -44,7 +44,7 @@ int toolbarDraw::init(  HWND hWndParent,
         );
 
     if (hWnd == NULL)
-        return NULL;
+        return 0;
 
 
     hImageList = ImageList_Create(cx, cy,flag, cInitial, cGrow);
@@ -98,7 +98,7 @@ int toolbarDraw::initSTD(  HWND hWndParent,
         );
 
     if (hWnd == NULL)
-        return NULL;
+        return 0;
 
 
     hImageList = ImageList_Create(cx, cy,flag, cInitial, cGrow);

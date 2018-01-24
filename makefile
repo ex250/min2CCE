@@ -8,18 +8,38 @@ CXXFLAGS      = -pipe -fno-keep-inline-dllexport -g -frtti -fexceptions -mthread
 INCPATH       = -I'../../../qt-4.8.7/include/QtCore' -I'../../../qt-4.8.7/include/QtGui' -I'../../../qt-4.8.7/include' -I'../../../qt-4.8.7/include/ActiveQt' -I'debug' -I'../../../qt-4.8.7/mkspecs/win32-g++-4.6'
 LINK        =        g++
 LFLAGS        =        -mthreads -Wl,-subsystem,windows
-LIBS        = -lglu32 -lopengl32 -lwinmm -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -lcomctl32
+LIBS        = -luser32 -lgdi32 -lcomdlg32 -lcomctl32
+#-lwinmm -lkernel32  -lwinspool -lshell32 -lole32 -loleaut32 -luuid  -ladvapi32 
 
 
-srcs=baseWindow.cpp main.cpp toolbardraw.cpp commandLine.cpp model.cpp modelWindow.cpp kdib.cpp
+srcs=baseWindow.cpp main.cpp toolbardraw.cpp commandLine.cpp model.cpp modelWindow.cpp kdib.cpp myCursor.cpp bmppic.cpp
 
 objs=$(srcs:.cpp=.o)
 
 all:$(objs) resource.res.o
 	g++ -g $(LFLAGS) -o $(name) $(objs) resource.res.o $(LIBS) 
 
-.cpp.o:
-	g++ -c -g  $(srcs)
+baseWindow.o:baseWindow.cpp headerui.h
+	g++ -c -g  baseWindow.cpp
+main.o:main.cpp headerui.h wndclass.h model.h
+	g++ -c -g  main.cpp
+toolbardraw.o:toolbardraw.cpp headerui.h
+	g++ -c -g  toolbardraw.cpp
+commandLine.o: commandLine.cpp model.h headerui.h
+	g++ -c -g  commandLine.cpp
+model.o: model.cpp model.h headerui.h
+	g++ -c -g  model.cpp
+modelWindow.o: modelWindow.cpp headerui.h
+	g++ -c -g  modelWindow.cpp
+kdib.o: kdib.cpp
+	g++ -c -g  kdib.cpp
+myCursor.o: myCursor.cpp headerui.h
+	g++ -c -g  myCursor.cpp
+bmppic.o: bmppic.cpp headerui.h
+	g++ -c -g  bmppic.cpp
+
+#.cpp.o:
+#	g++ -c -g  $(srcs)
 
 resource.res.o:resource.res
 	windres -J res -O coff -i resource.res -o resource.res.o 
@@ -33,4 +53,6 @@ toolbardraw.o:toolbardraw.cpp
 commandLine.o:commandLine.cpp
 model.o:model.cpp  
 modelWindow.o:modelWindow.cpp
-kdib.cpp:kdib.h
+kdib.o:kdib.cpp kdib.h 
+bmppic.o:bmppic.cpp headerUI.h
+myCursor.o:myCursor.cpp headerUI.h

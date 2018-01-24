@@ -2,6 +2,7 @@
 //#define _WIN32_IE	0x0300
 #include <commctrl.h>
 #include "resource.h"
+#include <string>
 
 const int STATE_WAIT_COMMAND=0;
 const int STATE_LINE_POINT1=1;
@@ -197,6 +198,7 @@ class ModelWindow:public BaseWindow
     int xOrg, yOrg;
     int ROP2;
     float scaleFactor;
+    HCURSOR hCursor;
  public:
     ModelWindow():BaseWindow()
     {
@@ -206,6 +208,16 @@ class ModelWindow:public BaseWindow
 	yOrg=0;
 	ROP2=R2_COPYPEN;
     }
+
+    bool init(LPCTSTR windowName,
+	 	  DWORD dwStyle,
+		  int x,
+		  int y,
+		  int cx,
+		  int cy,
+		  HWND hwndParent,
+		  HMENU hMenu,
+		  HINSTANCE hInst);
 
     HDC getHDC();
 
@@ -221,6 +233,40 @@ class ModelWindow:public BaseWindow
 
     bool _arc(float, float, float, float, float, float, float, int );
 
+};
+
+//----------------class coord system----------------------------------
+class myCursor{
+	private:
+		int curPosX;
+		int curPosY;
+		int size;
+		bool visible;
+	public:
+		myCursor();
+		void show(int,int);
+		int getSize();
+		bool setVisible(bool);
+};
+
+//----------------class BmpPic----------------------------------
+class BmpPic{
+	private:
+		static BOOL CALLBACK PicDlgProc(HWND,UINT,WPARAM,LPARAM);
+		static std::string fileNames;
+		int curPosX;
+		int curPosY;
+		int size;
+		bool visible;
+
+	public:
+
+		BmpPic();
+		bool open();
+		void show();
+		int getWidth();
+		int getHeight();
+		bool setVisible(bool);
 };
 
 #endif

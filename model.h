@@ -47,6 +47,7 @@ class Entity
 	virtual void show()=0;
 	virtual bool getDataFromUser()=0;
 	virtual entityType getType();
+	virtual bool hitCursor(int,int,int)=0;
 
 	unsigned char getLayerID();
 	bool setLayerID(unsigned char);	
@@ -96,6 +97,8 @@ class Point:public Entity
 	bool getDataFromUser();
 
 	bool scale(float );
+
+	bool hitCursor(int,int,int);
 };
 
 class Line:public Entity
@@ -124,6 +127,8 @@ class Line:public Entity
 	void getLine();
 
 	bool getDataFromUser();
+
+	bool hitCursor(int,int,int);
 };
 
 
@@ -149,6 +154,7 @@ class ArcSegment:public Entity
 
 	bool getDataFromUser();
 
+	bool hitCursor(int,int,int);
 };
 
 class Model{
@@ -170,6 +176,7 @@ class Model{
 	bool 	addEntity(Entity*);
 	int	deleteEntity(int[]);
 	int	transformEntity(int[]);
+	bool	hitModel(int,int,int);
 
 	int readModel(char *);
 	int writeModel(char *);

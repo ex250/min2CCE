@@ -52,7 +52,7 @@ WNDCLASS modelWin = {
       0,          // structure or the window instance
       NULL,   // Application instance handle
       LoadIcon(0, IDI_APPLICATION),
-      LoadCursor(0, IDC_ARROW),
+      LoadCursor(0, IDC_CROSS),
       static_cast<HBRUSH>(GetStockObject(WHITE_BRUSH)),
       0,           // No menu, so no menu resource name
       "modelWindowClass"  // Set class name

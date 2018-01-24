@@ -11,7 +11,7 @@ BaseWindow::BaseWindow()
 	LOGBRUSH logBrush={
 			BS_SOLID,
 			RGB(0,200,0),
-			NULL
+			(ULONG_PTR)NULL
 	};
 	hBrush=CreateBrushIndirect(&logBrush);
 

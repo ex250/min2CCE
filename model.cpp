@@ -20,19 +20,19 @@ Layer::Layer():
 	case 1:
 		color=0xff;
 		type=PS_SOLID;
-		width=35;
+		width=30;
 	break;
 
 	case 2:
 		color=0xff00;
 		type=PS_DASH;
-		width=18;
+		width=8;
 	break;
 
 	case 3:
                 color=0xff0000;
 		type=PS_DOT;
-		width=18;
+		width=12;
 	break;
 
         default:
@@ -187,6 +187,23 @@ bool Point::getDataFromUser()
   //cin>>y;
   return TRUE;
 }
+
+bool Point::hitCursor(int xPos,int yPos,int size){
+	bool result;
+	char str[64];
+	int xL=xPos-size;
+	int xR=xPos+size;
+	int yT=yPos-size;
+	int yB=xPos+size;
+	sprintf(str,"x=%f y=%f",x,y);
+	if (x*100>=xL&&x*100<=xR&&y*100<=yB&&y*100>=yT){
+		result=true;
+	}
+	else 
+		result=false;
+
+	return result;
+}
 //**************class Line ********************************************
 Line::Line():start(),end(),
 		type(currentLayer->getType()),
@@ -271,6 +288,28 @@ bool Line::scale(float sf ){
 	return true;
 }
 
+bool Line::hitCursor(int xPos,int yPos,int size){
+	bool result;
+	int xL=xPos-size;
+	int xR=xPos+size;
+	int yT=yPos-size;
+	int yB=xPos+size;
+	if (start.hitCursor(xPos,yPos,size)||end.hitCursor(xPos,yPos,size)){
+		HDC hDC=GetDC(modelWindow.getHWND());
+		HPEN hOldPen=(HPEN)SelectObject(hDC,CreatePen(PS_SOLID,width,RGB(255,0,0)));
+		SetROP2(hDC,R2_COPYPEN);
+		MoveToEx(hDC,start.getX()*100,start.getY()*100,NULL);
+		LineTo(hDC,end.getX()*100,end.getY()*100);
+		SelectObject(hDC,hOldPen);
+		ReleaseDC(modelWindow.getHWND(),hDC);
+		result=true;
+	}
+	else {
+		result=false;
+	}
+	return result;
+}
+
 //--------------ARC SECTION------------------------------------------
 
 ArcSegment::ArcSegment():
@@ -337,6 +376,15 @@ bool ArcSegment::scale(float sf ){
 	yc*=sf;
 	radius*=sf;
 	return true;
+}
+
+bool ArcSegment::hitCursor(int xPos,int yPos,int size){
+	bool result;
+	int xL=xPos-size;
+	int xR=xPos+size;
+	int yT=yPos-size;
+	int yB=xPos+size;
+	return false;
 }
 
 //**************class Model*********************************************
@@ -568,3 +616,12 @@ int Model::scaleModel(float sf){
    return 0;
 }
 
+bool Model::hitModel(int xPos,int yPos,int size){
+   int result=0;
+   iter=entities.begin();
+   if (!entities.empty()&&(entities.size()<entities.max_size()))
+   for (iter;iter!=entities.end();++iter)
+	result+=(*iter)->hitCursor(xPos,yPos,size);
+
+	return result;
+}
