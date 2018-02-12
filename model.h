@@ -1,3 +1,5 @@
+#ifndef MODELH
+#define MODELH
 #include <vector>
 #include <process.h>
 #include <fstream>
@@ -159,7 +161,7 @@ class ArcSegment:public Entity
 
 class Model{
   private:
-	char FileName[MAXFILENAME];
+	char FileName[256];
 	std::vector<Entity*> entities;
 	std::vector<Entity*>::iterator iter;
 	Layer *ptrToDefaultLayer;
@@ -179,7 +181,7 @@ class Model{
 	bool	hitModel(int,int,int);
 
 	int readModel(char *);
-	int writeModel(char *);
+	int writeModel(const char *);
 	int saveInfo(const char *);
 	int scaleModel(float);
 	void showModel();
@@ -187,4 +189,5 @@ class Model{
 	int deleteAll();
 };
 
+#endif
 

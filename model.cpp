@@ -20,13 +20,13 @@ Layer::Layer():
 	case 1:
 		color=0xff;
 		type=PS_SOLID;
-		width=30;
+		width=50;
 	break;
 
 	case 2:
 		color=0xff00;
 		type=PS_DASH;
-		width=8;
+		width=20;
 	break;
 
 	case 3:
@@ -38,7 +38,7 @@ Layer::Layer():
         default:
                 color=0;
 		type=PS_SOLID;
-		width=5;
+		width=80;
   }
 
   countID++;
@@ -67,8 +67,6 @@ int Layer::getColor()const{
 }
 
 void Layer::show()const{
-	//cout<<"Слой "<<(int)ID<<" тип линии: "<<type<<" Толщина линии:"<<width
-	//<<" Цвет: "<<color<<endl;
 }
 
 //**************class Entity********************************************
@@ -103,9 +101,6 @@ Point::Point():	type(currentLayer->getType()),
 		width(currentLayer->getWidth()),
 		color(currentLayer->getColor())
 {
-  //comStr.getFloatFloat();
-  //x(0.0),y(0.0),
-  //cout<<"POINT конструктор без параметров"<<endl;
   layerID=currentLayer->getID();
 }
 
@@ -114,14 +109,12 @@ Point::Point(Layer* layer):x(0.0),y(0.0),type(layer->getType()),width(layer->get
 		color(layer->getColor())
 {
   layerID=layer->getID();  
-  //cout<<"POINT конструктор с одним параметром"<<endl;
 }
 
 Point::Point(float xx,float yy):x(xx),y(yy),
 		type(DEFAULTTYPE),width(DEFAULTWIDTH),color(DEFAULTCOLOR)
 {
   layerID=currentLayer->getID();  
-  //cout<<"POINT конструктор с двумя параметрами"<<endl;	
 }
 
 
@@ -129,14 +122,9 @@ Point::Point(float xx,float yy,Layer* layer):x(xx),y(yy),type(layer->getType()),
 		color(layer->getColor())
 {
   layerID=currentLayer->getID();  
-  //cout<<"POINT конструктор с тремя параметрами"<<endl;	
 }
 
 void Point::show(){
-  //cout<<"--------START POINT---------"<<endl;
-  //cout<<"POINT x="<<x<<" y="<<y<<" type="<<type<<" width="<<width<<" color="<<color<<endl;
-  //ptrToLayer->show();
-  //cout<<"--------END OF POINT---------"<<endl;
 }
 
 bool Point::printInfo(){
@@ -173,18 +161,10 @@ float Point::getY(){
 }
 
 void Point::getPoint(){
-  //cout<<"Введите x:";
-  //cin>>x;
-  //cout<<"Введите y:";
-  //cin>>y;
 }
 
 bool Point::getDataFromUser()
 {
-  //cout<<"Введите x:";
-  //cin>>x;
-  //cout<<"Введите y:";
-  //cin>>y;
   return TRUE;
 }
 
@@ -210,7 +190,6 @@ Line::Line():start(),end(),
 		width(currentLayer->getWidth()),
 		color(currentLayer->getColor())
 {
-  //cout<<"LINE конструктор без параметров"<<endl;
   layerID=currentLayer->getID();
 }
 
@@ -218,26 +197,19 @@ Line::Line():start(),end(),
 Line::Line(Layer* layer):start(0.0,0.0,layer),end(10.0,10.0,layer),type(layer->getType()),width(layer->getWidth()),
 		color(layer->getColor())
 {
- //cout<<"LINE конструктор с одним параметром"<<endl;
  layerID=layer->getID();
 }
 
 Line::Line(Point *a,Point *b):start(*a),end(*b),type(currentLayer->getType()),width(currentLayer->getWidth()),
 		color(currentLayer->getColor())
 {
- //cout<<"LINE конструктор с тремя параметрами"<<endl;
  layerID=currentLayer->getID();
- //char str[30];
- //sprintf(str,"x1=%d y1=%d x2=%d y2=%d",start.getX(),start.getY(),end.getX(),end.getY());
- //MessageBox(modelWindow.getHWND(),str,"Координаты линии",MB_OK);
- //modelWindow.line(start.getX(),start.getY(),end.getX(),end.getY());
 }
 
 
 Line::Line(Point *a,Point *b,Layer* layer):start(*a),end(*b),type(layer->getType()),width(layer->getWidth()),
 		color(layer->getColor())
 {
- //cout<<"LINE конструктор с тремя параметрами"<<endl;
  layerID=layer->getID();
 }
 
@@ -250,19 +222,16 @@ void Line::show()
   HPEN hPen=CreatePen(type, width, RGB(R,G,B));
   modelWindow.setPen(&hPen);
   modelWindow.line(start.getX(),start.getY(),end.getX(),end.getY());
-  //printInfo();
 }
 
 void Line::getLine()
 {
-  //cout<<"введите координаты начала и конца отрезка"<<endl;
   start.getPoint();
   end.getPoint();
 }
 
 bool Line::getDataFromUser()
 {
-  //cout<<"введите координаты начала и конца отрезка"<<endl;
   start.getPoint();
   end.getPoint();
   return TRUE;
@@ -459,10 +428,11 @@ int  Model::readModel(char * fn)
 {
 	char buff[256];
 	int size;
+	strcpy(FileName,fn);
 	Entity * enPtr;
 	entityType etype;
 	ifstream is;
-	is.open(fn,ios::binary);
+	is.open(FileName,ios::binary);
 	if (!is)
 	{
 		MessageBox(modelWindow.getHWND(),"Error open file:model.cpp:346","Error",MB_OK);
@@ -506,14 +476,15 @@ int  Model::readModel(char * fn)
 
 	return 0;
 }
-int  Model::writeModel(char * fn)
+int  Model::writeModel(const char * fn)
 {  
-	setFileName(fn);
 	ofstream ouf;
 	entityType enType;
 	int size;
 	int j;
 	char buff[256];
+
+	strcpy(FileName,fn);
 
 	if (FileName!="")
 		ouf.open(FileName,ios::binary);
@@ -545,7 +516,7 @@ int  Model::writeModel(char * fn)
 
 	   ouf.write((char*)&enType,sizeof(enType));
 	   if (!ouf){
-		sprintf(buff,"error write type %d",enType);
+		sprintf(buff,"error write type %d\nCod:%d\ngood:%d\neof:%d\nfail:%d\nbad:%d",enType,ouf.rdstate(),ouf.good(),ouf.eof(),ouf.fail(),ouf.bad());
 		MessageBox(modelWindow.getHWND(),buff,"Error",MB_OK);
 	   	exit(-1);
 	   }
@@ -561,6 +532,7 @@ int  Model::writeModel(char * fn)
 
 	ouf.close();
 
+
 	return 0;
 }
 int Model::saveInfo(const char *fn){
@@ -575,9 +547,6 @@ int Model::saveInfo(const char *fn){
    for (j=0;j<entities.size();j++){
 	entities[j]->getInfo(buff);
 	oufile.write(buff,strlen(buff));
-	sprintf(tmp,"Len=%d",strlen(buff));
-	strcat(buff,tmp);
-	MessageBox(modelWindow.getHWND(),buff,"SAVE...",MB_OK);
    if (!oufile)
 	MessageBox(modelWindow.getHWND(),"Error write file","SAVE...",MB_OK);
 
@@ -585,7 +554,6 @@ int Model::saveInfo(const char *fn){
    oufile.close();
    return 0;
 }
-
 
 void Model::showModel()
 {
@@ -617,11 +585,11 @@ int Model::scaleModel(float sf){
 }
 
 bool Model::hitModel(int xPos,int yPos,int size){
-   int result=0;
+/*   int result=0;
    iter=entities.begin();
    if (!entities.empty()&&(entities.size()<entities.max_size()))
    for (iter;iter!=entities.end();++iter)
 	result+=(*iter)->hitCursor(xPos,yPos,size);
-
-	return result;
+*/
+	return false;
 }

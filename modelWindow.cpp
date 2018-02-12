@@ -131,7 +131,7 @@ bool ModelWindow::setGM(){
   hDC=GetDC(hWnd);
   SetMapMode(hDC, MM_HIMETRIC);
   SetGraphicsMode(hDC, GM_ADVANCED);
-  SetWindowOrgEx(hDC,-width/2,-height/2,NULL);
+  SetViewportOrgEx(hDC,20,height-50,NULL);
   ReleaseDC(hWnd,hDC);
 
   return true;

@@ -22,6 +22,19 @@ const int STATE_CONTUR_SELECT=14;
 const float PI=3.14159265;
 const int ON=1;
 const int OFF=0;
+const int MAXFILENAME=256;
+
+const int HSTBAR=35; 	//высота строки состояния
+const int WTBDRAW=30;   //ширина инстр. панели DRAW
+const int HTBSTD=35;    //высота стандартной инстр. панели
+const int WTBMODIFY=30;
+const int HTBVERT=500;
+const int XPOSWINDOW=50;
+const int YPOSWINDOW=20;
+const int HCOMSTR=90;
+const int COMBO_SPACE_WIDTH=100;
+const int COMBO_SPACE_HEIGHT=300;
+const int SEPARATOR_WIDTH=20;
 
 #if !defined(HEADERUI)
 #define HEADERUI
@@ -186,6 +199,7 @@ class CommandLine:public BaseWindow
     float getYc();
     float getR();
     int getDirection();
+    HWND getHWNDC();
 };
 
 
@@ -238,15 +252,18 @@ class ModelWindow:public BaseWindow
 //----------------class coord system----------------------------------
 class myCursor{
 	private:
-		int curPosX;
-		int curPosY;
-		int size;
+		float size;
+		float arrowSize;
+		float arrowAngle;
 		bool visible;
 	public:
 		myCursor();
-		void show(int,int);
-		int getSize();
+		void show();
+		float getSize();
+		float getArrowSize();
 		bool setVisible(bool);
+		bool setArrowSize(float);
+		bool setArrowAngle(float);
 };
 
 //----------------class BmpPic----------------------------------
@@ -254,10 +271,16 @@ class BmpPic{
 	private:
 		static BOOL CALLBACK PicDlgProc(HWND,UINT,WPARAM,LPARAM);
 		static std::string fileNames;
-		int curPosX;
-		int curPosY;
-		int size;
+   		static OPENFILENAME ofn;
+		int index;
+		float curPosX;
+		float curPosY;
+		float alfa;
+		int sizeX;
+		int sizeY;
 		bool visible;
+		BITMAP pv;
+		HBITMAP hBitmap;
 
 	public:
 
@@ -267,6 +290,7 @@ class BmpPic{
 		int getWidth();
 		int getHeight();
 		bool setVisible(bool);
+		HBITMAP adaptedBMP();
 };
 
 #endif

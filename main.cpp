@@ -21,7 +21,6 @@ CommandLine comStr;
 toolbarDraw tbModify,tbDraw,tbStd;
 
 BmpPic bmpPic;
-KDib bmp;
 
 extern Layer* defaultLayer;
 extern Layer* currentLayer;
@@ -119,7 +118,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	   numTbStd,
 	   TBSTD);
 
-   tbDraw.setStyle(WS_CHILD|CCS_VERT);
+   tbDraw.setStyle(WS_CHILD|CCS_VERT|TBSTYLE_TOOLTIPS);
 
    HBITMAP hBmp = LoadBitmap(g_hInst, MAKEINTRESOURCE(IDR_TOOLBAR1));
 
@@ -132,7 +131,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
    hBmp = LoadBitmap(g_hInst, MAKEINTRESOURCE(IDR_TOOLBAR2));
 
-   tbModify.setStyle(WS_CHILD|CCS_VERT);
+   tbModify.setStyle(WS_CHILD|CCS_VERT|TBSTYLE_TOOLTIPS);
    tbModify.init(tbModifyWindow.getHWND(),
 	   "Modify",
 	   numTbModify,
@@ -278,14 +277,17 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
    BOOL success;
    static OPENFILENAME ofn;
-   char szFile[MAX_PATH];
+   char szFile[MAXFILENAME];
    int dX, dY;
    int ws, hs, wd, hd;
    BOOL isFileLoaded;
+   BOOL isImageLoaded;
    int substrate;
 
    static HINSTANCE hInst;
    static HICON hIcon;
+
+   LPTOOLTIPTEXT lpTTT;
 
    switch(message)                // Process selected messages
    {  
@@ -552,8 +554,6 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
     case WM_MBUTTONDOWN:
 		if (hWnd==modelWindow.getHWND()){
 
-			mycursor.setVisible(false);
-
 			hDC=GetDC(modelWindow.getHWND());
 			flagMiddlePress=true;
 		   	GetCursorPos(&prevPosition);
@@ -576,7 +576,6 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 	if (hWnd==modelWindow.getHWND()){
 
 	flagRegen=false;
-	mycursor.setVisible(false);
 
 	hDC=GetDC(hWnd);
 	ticks=(short)HIWORD(wParam);
@@ -609,6 +608,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
       switch(wParam){
 	      case VK_ESCAPE:
 		      comStr.setState(STATE_WAIT_COMMAND);
+		      modelWindow.setROP2(R2_COPYPEN);
+		      myModel.showModel();
 		      flagRegen=false;
 		break;
 	      case VK_SPACE:
@@ -636,6 +637,9 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		comStr.setState(STATE_WAIT_COMMAND);
 
 		break;
+	      case VK_TAB:
+		SetFocus(comStr.getHWNDC());
+		break;
       }
       break;
       case WM_PAINT:                       // Message is to redraw the window
@@ -646,16 +650,20 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
   		    TextOut(hDC,10,10,buffer,strlen(buffer));
 		}
 		if (hWnd==modelWindow.getHWND()){
-			if (substrate==ON&&flagMiddlePress==false){
-		   		wd = ws = bmp.GetWidth();
-		   		hd = hs = bmp.GetHeight();
- 		   		bmp.Draw(hDC, 0, 0, wd*10, hd*10, 0, 0, ws, hs, SRCCOPY);
-			}
+		   if (flagMiddlePress==false)
+		   		bmpPic.show();
     		   myModel.showModel();
-		   mycursor.setVisible(false);
+		   mycursor.show();
 		}
 	        EndPaint(hWnd, &PaintSt); // Terminate window redraw operation
 		
+		break;
+      case WM_NOTIFY:
+		lpTTT=(LPTOOLTIPTEXT)lParam;
+		if (lpTTT->hdr.code==TTN_NEEDTEXT){
+			lpTTT->hinst=GetModuleHandle(NULL);
+			lpTTT->lpszText=MAKEINTRESOURCE(lpTTT->hdr.idFrom);
+		}
 		break;
 
       case WM_COMMAND:
@@ -689,11 +697,9 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			break;
 
  		case IDM_SAVEAS:
-			strcpy(szFile, "");
+			//strcpy(szFile, "");
 			success = GetSaveFileName(&ofn);
 			if (success){
-				MessageBox(hWnd, ofn.lpstrFile,
-				"Файл сохраняется с именем:", MB_OK);
 				myModel.writeModel(ofn.lpstrFile);
 			}
 			else

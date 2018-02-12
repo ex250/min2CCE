@@ -17,6 +17,10 @@ CommandLine::CommandLine():BaseWindow()
 
 WNDPROC CommandLine::wpOrigEditProc=0;
 
+HWND CommandLine::getHWNDC(){
+	return hwndC;
+}
+
 bool CommandLine::init(LPCTSTR windowName,
 			DWORD dwStyle,
 			int x, int y,
@@ -66,7 +70,7 @@ WNDCLASS CommandWindow= {
 		WS_CHILD|WS_VISIBLE|WS_VSCROLL,
 		10,1,
 		cx-10,
-		cy-29,
+		cy-cy/3,
 		hWnd,
 		NULL,
 		GetModuleHandle(NULL),
@@ -78,9 +82,9 @@ WNDCLASS CommandWindow= {
 		NULL,
 		WS_CHILD|WS_VISIBLE|ES_LEFT,
 		120,
-		cy-29,
+		cy-cy/3+4,
 		cx-120,
-		25,
+		cy/3-4,
 		hWnd,
 		NULL,
 		GetModuleHandle(NULL),
@@ -363,6 +367,7 @@ bool CommandLine::contur(float x, float y)
 			x1=x;
 			y1=y;
 	    		state=STATE_CONTUR_LINE2;
+
 		}
 		else {
 	    		state=STATE_CONTUR_ARC2;
@@ -398,8 +403,10 @@ bool CommandLine::contur(float x, float y)
 		x3=x;
 	  	y3=y;	
 	   addCoordToHistory(x,y,3);
-	    if (!getRC(x,y))
+	    if (!getRC(x,y)){
 		    myModel.appendArc(x1,y1,x3,y3,xc,yc,R,ArcDirection);
+	    }
+
 
             sprintf(str,"R=%4.2f, Xc=%4.2f, Yc=%4.2f",R,xc,yc);
 	    
@@ -529,9 +536,9 @@ LRESULT CALLBACK CommandLine::cmdProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 
 	    case WM_PAINT:
 		hDC=BeginPaint(hWnd,&ps);
-		TextOut(hDC,10,40,pCmd->pStrCmd,strlen(pCmd->pStrCmd));
+		TextOut(hDC,10,(INT)(2*pCmd->getHeight()/3+5),pCmd->pStrCmd,strlen(pCmd->pStrCmd));
 		EndPaint(hWnd,&ps);
-		pCmd->line(0,(INT)(pCmd->getHeight()/2),(INT)(pCmd->getWidth()),(INT)(pCmd->getHeight()/2));
+		pCmd->line(0,(INT)(2*pCmd->getHeight()/3-5),(INT)(pCmd->getWidth()),(INT)(2*pCmd->getHeight()/3-5));
 		break;
 
 	    case WM_SIZE:

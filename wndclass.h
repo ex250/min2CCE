@@ -1,19 +1,10 @@
+#ifndef WNDCLASSH
+#define WNDCLASSH
 #include "resource.h"
 
 long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 long WINAPI cmdProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-const int HSTBAR=35; 	//ўлб®в  бва®ЄЁ б®бв®п­Ёп
-const int WTBDRAW=70;   //иЁаЁ­  Ё­бва. Ї ­Ґ«Ё DRAW
-const int HTBSTD=35;    //ўлб®в  бв ­¤ ав­®© Ё­бва. Ї ­Ґ«Ё
-const int WTBMODIFY=70;
-const int HTBVERT=500;
-const int XPOSWINDOW=50;
-const int YPOSWINDOW=20;
-const int HCOMSTR=70;
-const int COMBO_SPACE_WIDTH=100;
-const int COMBO_SPACE_HEIGHT=300;
-const int SEPARATOR_WIDTH=20;
 
 
 // ®ЇаҐ¤Ґ«Ґ­ЁҐ Є« бб  Ј« ў­®Ј® ®Є­ 
@@ -68,34 +59,44 @@ const int buttonStyles=TBSTYLE_BUTTON;
 //бвагЄвгал Ё­бваг¬Ґ­в «м­ле Ї ­Ґ«Ґ©
 TBBUTTON TBDRAW[numTbDraw] = 
     {
-        { 0, IDM_LINE,              TBSTATE_ENABLED|TBSTATE_WRAP, TBSTYLE_BUTTON, {0}, 0, (INT_PTR)"Линия" },
-        { 1, IDM_ARCSTARTENDRADIUS, TBSTATE_ENABLED|TBSTATE_WRAP, TBSTYLE_BUTTON, {0}, 0, (INT_PTR)"Дуга2тR" },
-        { 2, IDM_ARC3POINTS,        TBSTATE_ENABLED|TBSTATE_WRAP, TBSTYLE_BUTTON, {0}, 0, (INT_PTR)"Дуга3т" },
-        { 3, IDM_ARCCENTREANG1ANG2, TBSTATE_ENABLED|TBSTATE_WRAP, TBSTYLE_BUTTON, {0}, 0, (INT_PTR)"ДугаЦRУ" },
-        { 4, IDM_CIRCCENTRRAD,      TBSTATE_ENABLED|TBSTATE_WRAP, TBSTYLE_BUTTON, {0}, 0, (INT_PTR)"ОкружнЦR" },
-        { 5, IDM_CIRCCENTRDIAM,     TBSTATE_ENABLED|TBSTATE_WRAP, TBSTYLE_BUTTON, {0}, 0, (INT_PTR)"ОкружнЦD" },
-        { 6, IDM_CIRC3POINTS,       TBSTATE_ENABLED|TBSTATE_WRAP, TBSTYLE_BUTTON, {0}, 0, (INT_PTR)"Окружн3т" },
-        { 7, IDM_CONTUR,            TBSTATE_ENABLED|TBSTATE_WRAP, TBSTYLE_BUTTON, {0}, 0, (INT_PTR)"Контур" },
-        { 8, IDM_RECTANGLE,         TBSTATE_ENABLED|TBSTATE_WRAP, TBSTYLE_BUTTON, {0}, 0, (INT_PTR)"Прямоуг." },
-        { 9, IDM_POLYGON,           TBSTATE_ENABLED|TBSTATE_WRAP, TBSTYLE_BUTTON, {0}, 0, (INT_PTR)"Полигон" },
-        { 10, IDM_TEXT,             TBSTATE_ENABLED|TBSTATE_WRAP, TBSTYLE_BUTTON, {0}, 0, (INT_PTR)"Текст"},
+        { 0, IDM_LINE, TBSTATE_ENABLED|TBSTATE_WRAP, TBSTYLE_BUTTON,
+	      {0}, 0, 0 },
+        { 1, IDM_ARCSTARTENDRADIUS, TBSTATE_ENABLED|TBSTATE_WRAP,
+	      TBSTYLE_BUTTON, {0}, 0, 0 },
+        { 2, IDM_ARC3POINTS,        TBSTATE_ENABLED|TBSTATE_WRAP,
+	     TBSTYLE_BUTTON, {0}, 0, 0 },
+        { 3, IDM_ARCCENTREANG1ANG2, TBSTATE_ENABLED|TBSTATE_WRAP,
+	     TBSTYLE_BUTTON, {0}, 0, 0 },
+        { 4, IDM_CIRCCENTRRAD,      TBSTATE_ENABLED|TBSTATE_WRAP,
+	     TBSTYLE_BUTTON, {0}, 0, 0 },
+        { 5, IDM_CIRCCENTRDIAM,     TBSTATE_ENABLED|TBSTATE_WRAP,
+	     TBSTYLE_BUTTON, {0}, 0, 0 },
+        { 6, IDM_CIRC3POINTS,       TBSTATE_ENABLED|TBSTATE_WRAP,
+	     TBSTYLE_BUTTON, {0}, 0, 0 },
+        { 7, IDM_CONTUR,TBSTATE_ENABLED|TBSTATE_WRAP,
+	     TBSTYLE_BUTTON, {0}, 0, 0 },
+        { 8, IDM_RECTANGLE, TBSTATE_ENABLED|TBSTATE_WRAP,
+	     TBSTYLE_BUTTON, {0}, 0, 0 },
+        { 9, IDM_POLYGON, TBSTATE_ENABLED|TBSTATE_WRAP,
+	     TBSTYLE_BUTTON, {0}, 0, 0 },
+        { 10, IDM_TEXT, TBSTATE_ENABLED|TBSTATE_WRAP,
+	      TBSTYLE_BUTTON, {0}, 0, 0},
 };
 
 TBBUTTON TBMODIFY[numTbModify] = 
-    {
-        { 0, IDM_ERASE,  TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, (INT_PTR)"Очистить" },
-        { 1, IDM_PCOPY,  TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, (INT_PTR)"Копия" },
-        { 2, IDM_MIRROR, TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, (INT_PTR)"Зеркало" },
-        { 3, IDM_OFFSET, TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, (INT_PTR)"Эквидист." },
-        { 4, IDM_ARRAY,  TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, (INT_PTR)"Массив" },
-        { 5, IDM_MOVE,   TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, (INT_PTR)"Переместить" },
-        { 6, IDM_ROTATE, TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, (INT_PTR)"Поворот" },
-        { 7, IDM_SCALE,  TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, (INT_PTR)"Масштаб" },
-        { 8, IDM_TRIM,   TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, (INT_PTR)"Обрезать" },
-        { 9, IDM_LENGTH, TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, (INT_PTR)"Продлить" },
-        { 10,IDM_CHAMFER,TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, (INT_PTR)"Фаска" },
-        { 11,IDM_FILLET, TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, (INT_PTR)"Скруглить" }
-
+{
+  { 0, IDM_ERASE,  TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, 0 },
+  { 1, IDM_PCOPY,  TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, 0 },
+  { 2, IDM_MIRROR, TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, 0 },
+  { 3, IDM_OFFSET, TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, 0 },
+  { 4, IDM_ARRAY,  TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, 0 },
+  { 5, IDM_MOVE,   TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, 0 },
+  { 6, IDM_ROTATE, TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, 0 },
+  { 7, IDM_SCALE,  TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, 0 },
+  { 8, IDM_TRIM,   TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, 0 },
+  { 9, IDM_LENGTH, TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, 0 },
+  { 10,IDM_CHAMFER,TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, 0 },
+  { 11,IDM_FILLET, TBSTATE_ENABLED|TBSTATE_WRAP, buttonStyles, {0}, 0, 0 }
 };
 
 TBBUTTON TBSTD[numTbStd] = 
@@ -106,3 +107,4 @@ TBBUTTON TBSTD[numTbStd] =
         { SEPARATOR_WIDTH,   ID_SEP,   TBSTATE_ENABLED, TBSTYLE_SEP, {0}, 0, 0 },
         { COMBO_SPACE_WIDTH, ID_SEP,   TBSTATE_ENABLED, TBSTYLE_SEP, {0}, 0, 0 }
 };
+#endif

@@ -1,21 +1,69 @@
 #include "headerui.h"
+#include <math.h>
 
+extern ModelWindow modelWindow;
 extern BaseWindow mainWindow; 
 
-std::string BmpPic::fileNames;
+bool isRealNumber(char * str){
+	char *ptr;
+	ptr=str;
+	while (*ptr!=0){
+		if (isdigit(static_cast<int>(*ptr))||*ptr=='.'||*ptr=='-')
+			ptr++;
+		else 
+			return false;
+	}
+	return true;
+}
 
-BmpPic::BmpPic():curPosX(0),curPosY(0)
+
+std::string BmpPic::fileNames;
+OPENFILENAME BmpPic::ofn;
+
+BmpPic::BmpPic():curPosX(0),curPosY(0),sizeX(100),sizeY(100)
 {}
 
+HBITMAP BmpPic::adaptedBMP(){
+
+	return hBitmap;
+}
+
 void BmpPic::show(){
+	XFORM rotMatrix;
+	XFORM curMatrix;
+	HDC hDC=GetDC(modelWindow.getHWND());
+	HDC compDC=CreateCompatibleDC(hDC);
+	SelectObject(compDC, hBitmap);
+	SaveDC(hDC);
+
+	GetWorldTransform(hDC,&curMatrix);
+
+	rotMatrix.eM11=(FLOAT)cos(alfa);
+	rotMatrix.eM12=(FLOAT)sin(alfa);
+	rotMatrix.eM21=(FLOAT)-sin(alfa);
+	rotMatrix.eM22=(FLOAT)cos(alfa);
+	rotMatrix.eDx=curPosX;
+	rotMatrix.eDy=curPosY;
+
+	SetWorldTransform(hDC,&rotMatrix);
+	ModifyWorldTransform(hDC,&curMatrix,MWT_RIGHTMULTIPLY);
+
+	StretchBlt(hDC,0,0,sizeX,sizeY,
+			compDC,0,0,pv.bmWidth,pv.bmHeight,SRCCOPY);
+
+	RestoreDC(hDC,-1);
+	DeleteDC(compDC);
+	ReleaseDC(modelWindow.getHWND(),hDC);
 }
 
 bool BmpPic::open(){
   	BOOL success;
-   	static OPENFILENAME ofn;
-   	static char szFile[MAX_PATH];
-	static char strFilter[]="BMP file\0*.bmp\0";
-	static char *pStrFilter=strFilter;
+   	char szFile[MAXFILENAME];
+	char strFilter[]="BMP file\0*.bmp\0";
+	char *pStrFilter=strFilter;
+
+	if (hBitmap)
+		DeleteObject((HBITMAP)hBitmap);
 
 	ofn.lStructSize = sizeof(OPENFILENAME);
 	ofn.hwndOwner = mainWindow.getHWND();
@@ -28,8 +76,9 @@ bool BmpPic::open(){
 		fileNames+=szFile;
 		fileNames+=";";
 
-	   DialogBox(NULL,MAKEINTRESOURCE(IDD_PICDIALOG1),
-			mainWindow.getHWND(),PicDlgProc);
+	        DialogBoxParam(NULL,MAKEINTRESOURCE(IDD_PICDIALOG1),
+			mainWindow.getHWND(),PicDlgProc,
+			(LPARAM)this);
 	}
         else
         {
@@ -61,23 +110,21 @@ bool BmpPic::setVisible(bool v){
 BOOL CALLBACK BmpPic::PicDlgProc(HWND hDlg,UINT uMsg,
 		WPARAM wParam,LPARAM lParam)
 {
+	static BmpPic *bmp;
 	static HWND hwndEditX;
 	static HWND hwndEditY;
 	static HWND hwndEditAngle;
 	static HWND hwndEditScale;
-	BITMAP pv;
-	HBITMAP hBitmap;
+	HDC hDC;
 	static float xPos=0.0;
 	static float yPos=0.0;
 	static float scale=1.0;
 	static float angle=0.0;
-   	int dX, dY;
-   	int ws, hs, wd, hd;
 	int picIndex=0;
+	bool flagNumber;
  
   	BOOL success;
-   	static OPENFILENAME ofn;
-   	static char szFile[MAX_PATH];
+   	static char szFile[MAXFILENAME];
 	static const char strFilter[]="BMP file\0*.bmp\0";
 	static const char *pStrFilter=strFilter;
 	bool checkInsPoint=true;
@@ -93,6 +140,13 @@ BOOL CALLBACK BmpPic::PicDlgProc(HWND hDlg,UINT uMsg,
 	{
 		case WM_INITDIALOG:
 			{
+			bmp=(BmpPic*)lParam;
+			if (!bmp){
+				MessageBox(hDlg,"Error retrieve pointer to BMP","ERROR",MB_OK);
+				return -1;
+			}
+
+
 			ofn.lStructSize = sizeof(OPENFILENAME);
 			ofn.hwndOwner = mainWindow.getHWND();
 			ofn.lpstrFile = szFile;
@@ -230,34 +284,139 @@ BOOL CALLBACK BmpPic::PicDlgProc(HWND hDlg,UINT uMsg,
 			switch(LOWORD(wParam))
 			{
 				case IDC_PICEDITX:
-					if (HIWORD(wParam)==EN_KILLFOCUS)
-					MessageBox(hDlg,"Edit X","Changed",
-							MB_OK);
+					if (HIWORD(wParam)==EN_KILLFOCUS){
+					   SendDlgItemMessage(
+						hDlg,
+						IDC_PICEDITX,
+						WM_GETTEXT,
+						(WPARAM)16,
+						(LPARAM)temp
+					   );
+					   flagNumber=isRealNumber(temp);
+					   if (flagNumber)
+						   xPos=atof(temp);
+					   else {
+						MessageBox(hDlg,
+						"Invalid value X","Error",
+						MB_OK);
+						SetFocus(hwndEditX);
+					   }
+					}
 					break;
 
 				case IDC_PICEDITY:
-					if (HIWORD(wParam)==EN_KILLFOCUS)
-					MessageBox(hDlg,"Edit Y","Changed",
-							MB_OK);
+					if (HIWORD(wParam)==EN_KILLFOCUS){
+					   SendDlgItemMessage(
+						hDlg,
+						IDC_PICEDITY,
+						WM_GETTEXT,
+						(WPARAM)16,
+						(LPARAM)temp
+					   );
+					   flagNumber=isRealNumber(temp);
+					   if (flagNumber)
+						   yPos=atof(temp);
+					   else {
+						MessageBox(hDlg,
+						"Invalid value Y","Error",
+						MB_OK);
+						SetFocus(hwndEditY);
+					   }
+					}
 					break;
 
 				case IDC_PICEDITSCALE:
-					if (HIWORD(wParam)==EN_KILLFOCUS)
-					MessageBox(hDlg,"Edit Scale","Changed",
-							MB_OK);
+					if (HIWORD(wParam)==EN_KILLFOCUS){
+					   SendDlgItemMessage(
+						hDlg,
+						IDC_PICEDITSCALE,
+						WM_GETTEXT,
+						(WPARAM)16,
+						(LPARAM)temp
+					   );
+					   flagNumber=isRealNumber(temp);
+					   if (flagNumber)
+						   scale=atof(temp);
+					   else {
+						MessageBox(hDlg,
+						"Invalid value Scale","Error",
+						MB_OK);
+						SetFocus(hwndEditScale);
+					   }
+					}
 					break;
 
 				case IDC_PICEDITANGLE:
-					if (HIWORD(wParam)==EN_KILLFOCUS)
-					MessageBox(hDlg,"Edit Angle","Changed",
-							MB_OK);
+					if (HIWORD(wParam)==EN_KILLFOCUS){
+					   SendDlgItemMessage(
+						hDlg,
+						IDC_PICEDITANGLE,
+						WM_GETTEXT,
+						(WPARAM)16,
+						(LPARAM)temp
+					   );
+					   flagNumber=isRealNumber(temp);
+					   if (flagNumber)
+						   angle=atof(temp);
+					   else {
+						MessageBox(hDlg,
+						"Invalid value Angle","Error",
+						MB_OK);
+						SetFocus(hwndEditAngle);
+					   }
+					}
 					break;
 
 				case IDOK:
 
-					MessageBox(hDlg,"OK","Select",
-							MB_OK);
-					break;
+					bmp->curPosX=xPos*100;
+					bmp->curPosY=yPos*100;
+
+					picIndex=SendDlgItemMessage(
+						hDlg,
+						IDC_PICCOMBOPATH,
+						CB_GETCURSEL,
+						(WPARAM)NULL,
+						(LPARAM)NULL
+					);
+
+					bmp->index=picIndex;
+
+					SendDlgItemMessage(
+						hDlg,
+						IDC_PICCOMBOPATH,
+						CB_GETLBTEXT,
+						(WPARAM)picIndex,
+						(LPARAM)temp
+					);
+
+				bmp->hBitmap=(HBITMAP)LoadImage(NULL,
+					  temp,IMAGE_BITMAP,0,0,
+					  LR_LOADFROMFILE|
+					  LR_CREATEDIBSECTION);
+
+					if(bmp->hBitmap==NULL){
+						MessageBox(
+						 hDlg,"File not found",
+						 "Error load BMP",
+						 MB_OK|MB_ICONHAND);
+						return -1;
+					}
+
+					GetObject(bmp->hBitmap,
+					  sizeof(bmp->pv),&bmp->pv);
+
+				bmp->sizeX=static_cast<float>(bmp->pv.bmWidth)*(scale*10);
+				bmp->sizeY=static_cast<float>(bmp->pv.bmHeight)*(scale*10);
+
+				bmp->alfa=angle*PI/180;
+
+					bmp->show();
+
+					EndDialog(hDlg,0);
+
+					return true;
+
 				case IDC_PICBUTTONHELP:
 					MessageBox(hDlg,"HELP","Select",
 							MB_OK);
@@ -344,14 +503,14 @@ BOOL CALLBACK BmpPic::PicDlgProc(HWND hDlg,UINT uMsg,
 						SetWindowLong(
 						hwndEditScale,
 						GWL_STYLE,
-						0x58012000
+						0x58010000
 						);
 					}
 					else{
 					SetWindowLong(
 						hwndEditScale,
 						GWL_STYLE,
-						0x50012000
+						0x50010000
 						);
 						checkRotate=TRUE;
 					}
@@ -377,14 +536,14 @@ BOOL CALLBACK BmpPic::PicDlgProc(HWND hDlg,UINT uMsg,
 					SetWindowLong(
 						hwndEditAngle,
 						GWL_STYLE,
-						0x58012000
+						0x58010000
 						);
 					}
 					else{
 					SetWindowLong(
 						hwndEditAngle,
 						GWL_STYLE,
-						0x50012000
+						0x50010000
 						);
 						checkRotate=TRUE;
 					}

@@ -139,6 +139,31 @@ BEGIN
 Окруж.ЦD~Окруж.3т~Контур~Прямоуг.~Полигон~Текст~Ё"
 	IDS_NEW2 "~Очистить~Копия~Зеркало~Эквидист.~Массив~\
 Переместить~Поворот~Масштаб~Обрезать~Продолжить~Фаска~Скруглить~E"
+IDM_LINE  		"Line"
+IDM_ARC3POINTS		"Arc 3 points"
+IDM_ARCSTARTENDRADIUS	"Arc start end radius"
+IDM_ARCCENTREANG1ANG2         "Arc angle start/end center"
+IDM_CIRCCENTRRAD               "Circle center, radius"
+IDM_CIRCCENTRDIAM              "Circle center, diametr"
+IDM_CIRC3POINTS                "Circle 3 points"
+IDM_CONTUR			"Kontur"
+IDM_RECTANGLE			"Rectangle"
+IDM_POLYGON                    "Polygon"
+IDM_TEXT                       "Text"
+//-----¬Ґ­о Џђ…ЋЃђЂ‡Ћ‚Ђ’њ----------------------
+IDM_ERASE			"Erase"
+IDM_PCOPY                       "Copy"
+IDM_MIRROR                      "Mirror"
+IDM_OFFSET                      "Offset"
+IDM_ARRAY                       "Array"
+IDM_MOVE                        "Move"
+IDM_ROTATE                     	"Rotate"
+IDM_SCALE              	     	"Scale"
+IDM_LENGTH     	             	"Length"
+IDM_TRIM                    	"Trim"
+IDM_CHAMFER                     "Chamfer"
+IDM_FILLET                      "Fillet"
+
 END
 
 IDR_TOOLBAR1            BITMAP  DISCARDABLE     "toolbar1.bmp"
@@ -206,4 +231,40 @@ IDI_ICONMIN2C ICON DISCARDABLE "iconka.ico"
 
 IDC_CROSSPTR CURSOR DISCARDABLE "new.cur"
 
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "041904b0"
+        BEGIN
+            VALUE "Comments", "Векторный 2D CAD/CAM редактор\0"
+            VALUE "CompanyName", "MiniCAD\0"
+            VALUE "FileDescription", "Min2CCE\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "Min2CCE\0"
+            VALUE "LegalCopyright", "Copyright й 2018\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "Min2CCE\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "Minimal 2D CAD/CAM Editor\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x419, 1200
+    END
+END
 
