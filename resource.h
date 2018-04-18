@@ -119,5 +119,34 @@
 #define IDC_HELPABOUT2                  14200
 #define IDC_HELPABOUT3                  14300
 
+//----------Диалоговое окно Ввод текста------
+#define IDHLPFONT                       15010
+#define IDD_DIALOGTEXT                  15000
+#define IDC_TEXTINPUT                   15020
+#define IDC_TEXT_INSPOINTX              15030
+#define IDC_TEXT_INSPOINTY              15040
+#define IDC_TEXT_ANGLE                  15050
+#define IDC_TEXT_BUTTON_FONT            15060
+#define IDC_TEXT_BUTTONLENSTR           15070
+#define IDC_TEXT_BUTTON_INSPOINT        15080
+#define IDC_TEXT_LEN                    15090
+#define IDC_TEXT_BUTTONANGLE            15100
+#define IDC_TEXT_APPROXLINEAR           15110
+#define IDC_TEXT_APPROXBIARC            15120
+#define IDC_TEXT_NUMBLINES              15130
+#define IDC_TEXT_TOLERANCE              15140
+#define IDC_TEXTFONTNAME                15150
+#define IDC_TEXT_INSPOINTGROUP          15160
+#define IDC_TEXT_CAPINSPOINTX           15170
+#define IDC_TEXT_CAPINSPOINTY           15180
+#define IDC_TEXT_DIRANGLEGROUP          15190
+#define IDC_TEXT_CAPANGLE               15200
+#define IDC_TEXT_LENSTRGROUP            15210
+#define IDC_TEXT_LENCAP                 15220
+#define IDC_TEXT_APPROXGROUP            15230
+#define IDC_TEXT_NUMLINECAP             15240
+#define IDC_TEXT_TOLERANCECAP           15250
+
+
 #endif
 

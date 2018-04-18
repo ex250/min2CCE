@@ -48,6 +48,16 @@ bool ModelWindow::line(float xPrev,float yPrev,float x, float y)
   return result;
 }
 
+//*****************************************************************
+//
+//                **1(x,y)
+//              **     *        1 - start point
+//             *   xy   *       2 - end point
+//             *        *       xy - center
+//              **     *        R - radius
+//                *2(x,y)       ArcDir - direction CW/CCW
+//                
+//*****************************************************************
 bool ModelWindow::_arc(float x1, float y1, float x2, float y2,
 			 float x, float y, float R, int ArcDir)
 {

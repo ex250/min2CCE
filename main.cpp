@@ -21,6 +21,7 @@ CommandLine comStr;
 toolbarDraw tbModify,tbDraw,tbStd;
 
 BmpPic bmpPic;
+TextEntities textEntities;
 
 extern Layer* defaultLayer;
 extern Layer* currentLayer;
@@ -751,7 +752,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			MessageBox(hWnd, "Выбран пункт 'ПОЛИГОН'", "Меню Примитив", MB_OK);
 			break;
 		case IDM_TEXT:
-			MessageBox(hWnd, "Выбран пункт 'ТЕКСТ'", "Меню Примитив", MB_OK);
+			textEntities.show();
 			break;
 
 //-----------------MODIFY-------------------------------------------------

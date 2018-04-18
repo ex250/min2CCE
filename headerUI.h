@@ -19,6 +19,9 @@ const int STATE_CONTUR_ARC3=11;
 const int STATE_CONTUR_LINE1=12;
 const int STATE_CONTUR_LINE2=13;
 const int STATE_CONTUR_SELECT=14;
+const int STATE_TEXT_INSPOINT=20;
+const int STATE_TEXT_ANGLE=30;
+const int STATE_TEXT_LEN=40;
 const float PI=3.14159265;
 const int ON=1;
 const int OFF=0;
@@ -35,6 +38,7 @@ const int HCOMSTR=90;
 const int COMBO_SPACE_WIDTH=100;
 const int COMBO_SPACE_HEIGHT=300;
 const int SEPARATOR_WIDTH=20;
+
 
 #if !defined(HEADERUI)
 #define HEADERUI
@@ -150,6 +154,8 @@ class CommandLine:public BaseWindow
     float xc,yc,R; // координаты центра и радиус окружности
     float fia,fib,fid;//angle 3 arc points
     int ArcDirection;
+
+
  public:
 
     CommandLine();
@@ -175,7 +181,7 @@ class CommandLine:public BaseWindow
 
     bool addCommand();
 
-    inline int  addCoordToHistory(float,float,int);
+    int  addCoordToHistory(float,float,int);
 
     int  addTextToHistory(const char *);
 
@@ -276,8 +282,13 @@ class BmpPic{
 		float curPosX;
 		float curPosY;
 		float alfa;
+		float scale;
 		int sizeX;
 		int sizeY;
+		float W;//width source image
+		float H;
+		float WW;//width transform image
+		float HH;
 		bool visible;
 		BITMAP pv;
 		HBITMAP hBitmap;
@@ -290,7 +301,27 @@ class BmpPic{
 		int getWidth();
 		int getHeight();
 		bool setVisible(bool);
-		HBITMAP adaptedBMP();
+		HBITMAP adaptedBMP(const char *);
+};
+
+class TextEntities {
+	private:
+		float insX;
+		float insY;
+		float angle;
+		float len;
+		short numLines;//index in combobox
+		float tau;// tolerance
+		short aproxSwitch;
+		char *ptrStr;
+		static BOOL CALLBACK TextDlgProc(HWND,UINT,WPARAM,LPARAM);
+
+	public:
+
+		TextEntities();
+		void show();
+		bool makeText(LOGFONT *);
 };
 
 #endif
+

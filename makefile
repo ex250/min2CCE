@@ -12,7 +12,7 @@ LIBS        = -luser32 -lgdi32 -lcomdlg32 -lcomctl32
 #-lwinmm -lkernel32  -lwinspool -lshell32 -lole32 -loleaut32 -luuid  -ladvapi32 
 
 
-srcs=baseWindow.cpp main.cpp toolbardraw.cpp commandLine.cpp model.cpp modelWindow.cpp kdib.cpp myCursor.cpp bmppic.cpp
+srcs=baseWindow.cpp main.cpp toolbardraw.cpp commandLine.cpp model.cpp modelWindow.cpp kdib.cpp myCursor.cpp bmppic.cpp text.cpp
 
 objs=$(srcs:.cpp=.o)
 
@@ -37,6 +37,8 @@ myCursor.o: myCursor.cpp headerui.h
 	g++ -c -g  myCursor.cpp
 bmppic.o: bmppic.cpp headerui.h
 	g++ -c -g  bmppic.cpp
+text.o:text.cpp headerUI.h
+	g++ -c -g  text.cpp
 
 #.cpp.o:
 #	g++ -c -g  $(srcs)
@@ -56,3 +58,4 @@ modelWindow.o:modelWindow.cpp
 kdib.o:kdib.cpp kdib.h 
 bmppic.o:bmppic.cpp headerUI.h
 myCursor.o:myCursor.cpp headerUI.h
+text.o:text.cpp headerUI.h
