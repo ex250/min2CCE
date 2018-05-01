@@ -155,8 +155,10 @@ bool Point::move(float dx,float dy){
 
 bool Point::rotate(float angle){
 	float beta=angle*PI/180;
-	x=x*cos(beta)-y*sin(beta);
+	float xt;
+	xt=x*cos(beta)-y*sin(beta);
 	y=x*sin(beta)+y*cos(beta);
+	x=xt;
 	return true;
 }
 
