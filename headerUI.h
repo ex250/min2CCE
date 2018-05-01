@@ -320,6 +320,10 @@ class TextEntities {
 
 		TextEntities();
 		void show();
+		void setXY(float,float);
+		float getInsX();
+		float getInsY();
+		float getAngle();
 		bool makeText(LOGFONT *);
 };
 

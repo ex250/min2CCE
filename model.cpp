@@ -1,6 +1,7 @@
 #include "headerui.h"
 #include "model.h"
 #include <iostream>
+#include <math.h>
 using namespace std;
 
 extern CommandLine comStr;
@@ -143,6 +144,19 @@ bool Point::getInfo(char* infPtr){
 bool Point::scale(float sf ){
 	x*=sf;
 	y*=sf;
+	return true;
+}
+
+bool Point::move(float dx,float dy){
+	x+=dx;
+	y+=dy;
+	return true;
+}
+
+bool Point::rotate(float angle){
+	float beta=angle*PI/180;
+	x=x*cos(beta)-y*sin(beta);
+	y=x*sin(beta)+y*cos(beta);
 	return true;
 }
 

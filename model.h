@@ -98,7 +98,11 @@ class Point:public Entity
 
 	bool getDataFromUser();
 
-	bool scale(float );
+	bool scale(float);
+
+	bool move(float,float);
+
+	bool rotate(float);
 
 	bool hitCursor(int,int,int);
 };

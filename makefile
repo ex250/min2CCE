@@ -40,9 +40,6 @@ bmppic.o: bmppic.cpp headerui.h
 text.o:text.cpp headerUI.h
 	g++ -c -g  text.cpp
 
-#.cpp.o:
-#	g++ -c -g  $(srcs)
-
 resource.res.o:resource.res
 	windres -J res -O coff -i resource.res -o resource.res.o 
 
@@ -58,4 +55,4 @@ modelWindow.o:modelWindow.cpp
 kdib.o:kdib.cpp kdib.h 
 bmppic.o:bmppic.cpp headerUI.h
 myCursor.o:myCursor.cpp headerUI.h
-text.o:text.cpp headerUI.h
+text.o:text.cpp headerUI.h myvector.h

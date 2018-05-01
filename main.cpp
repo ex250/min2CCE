@@ -4,10 +4,13 @@
 #include <string>
 #include "kdib.h"
 #include <zmouse.h>
+#include "myvector.h"
 
 using namespace std;
 
 long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+bool arcBez(vec2,vec2 ,vec2 ,float);
 
 BOOL APIENTRY dlgprc(HWND, UINT, WPARAM, LPARAM);
 HINSTANCE g_hInst;
@@ -538,6 +541,15 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				flagRegen=false;
 				break;
 
+			case STATE_TEXT_INSPOINT:
+				textEntities.setXY(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				comStr.addTextToHistory("Input point");
+				comStr.setState(STATE_WAIT_COMMAND);
+				textEntities.show();
+			break;
+
+
+
 		  }
 		  ReleaseDC(modelWindow.getHWND(),hDC);
 		}
@@ -737,6 +749,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		case IDM_CIRCCENTRDIAM:
 			MessageBox(hWnd, "Выбран пункт 'ОКРУЖНОСТЬ ЦЕНТР ДИАМЕТР'", "Меню Примитив", MB_OK);
 			break;
+
 		case IDM_CIRC3POINTS:
 			MessageBox(hWnd, "Выбран пункт 'ОКРУЖНОСТЬ ПО 3 ТОЧКАМ'", "Меню Примитив", MB_OK);
 			break;
@@ -745,8 +758,40 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			comStr.contur(0,0);
 			break;
 		case IDM_RECTANGLE:
-			//SetCursor(hCursor);
-			MessageBox(hWnd, "Выбран пункт 'ПРЯМОУГОЛЬНИК'", "Меню Примитив", MB_OK);
+			{
+			vec2 B0(100,100);
+			vec2 B1(200,300);
+			vec2 B2(400,100);
+		arcBez(B0, B1, B2, 0.2);
+
+			B0.x=-100;
+			B0.y=100;
+			B1.x=-300;
+			B1.y=200;
+			B2.x=-100;
+			B2.y=400;
+
+		arcBez(B0, B1, B2, 0.2);
+
+			B0.x=-100;
+			B0.y=-100;
+			B1.x=-200;
+			B1.y=-300;
+			B2.x=-400;
+			B2.y=-100;
+
+		arcBez(B0, B1, B2, 0.2);
+
+			B0.x=100;
+			B0.y=-100;
+			B1.x=300;
+			B1.y=-200;
+			B2.x=100;
+			B2.y=-400;
+		arcBez(B0, B1, B2, 0.2);
+		
+		
+			}
 			break;
 		case IDM_POLYGON:
 			MessageBox(hWnd, "Выбран пункт 'ПОЛИГОН'", "Меню Примитив", MB_OK);

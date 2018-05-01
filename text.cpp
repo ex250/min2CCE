@@ -1,10 +1,14 @@
 #include "headerui.h"
 #include "model.h"
+#include "myvector.h"
 
 extern ModelWindow modelWindow;
 extern BaseWindow mainWindow; 
 extern CommandLine comStr;
+extern TextEntities textEntities;
 extern Model myModel;
+extern Layer* currentLayer;
+extern Layer layer[];
 
 enum {LINEAR,BIARC};
 
@@ -12,9 +16,13 @@ float fromFixed(FIXED fixed);
 
 bool lineBez(float,float,float,float,float,float,float,float);
 
-bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau)
+bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau);
 
 bool isRealNumber(char * str);
+
+int getArcDirection(vec2 p1, vec2 p2, vec2 p3, vec2 center);
+
+int getArcDirection(vec2 p1, vec2 p2, vec2 p3);
 
 TextEntities::TextEntities():insX(0.0),insY(0.0),
 	angle(0.0),len(-1),numLines(10),tau(0.5),aproxSwitch(LINEAR)
@@ -24,6 +32,23 @@ void TextEntities::show(){
 	DialogBoxParam(NULL,MAKEINTRESOURCE(IDD_DIALOGTEXT),
 			mainWindow.getHWND(),TextDlgProc,
 			(LPARAM)this);
+}
+
+void TextEntities::setXY(float x,float y){
+	insX=x;
+	insY=y;
+}
+
+float TextEntities::getInsX(){
+	return insX;
+}
+
+float TextEntities::getInsY(){
+	return insY;
+}
+
+float TextEntities::getAngle(){
+	return angle;
 }
 
 BOOL CALLBACK TextEntities::TextDlgProc(HWND hDlg,UINT uMsg,
@@ -514,6 +539,11 @@ BOOL CALLBACK TextEntities::TextDlgProc(HWND hDlg,UINT uMsg,
 					aproxSwitch=BIARC;
 					break;
 
+				case IDC_TEXT_BUTTON_INSPOINT:
+				    comStr.setState(STATE_TEXT_INSPOINT);
+					EndDialog(hDlg,0);
+					break;
+
 				case IDHLPFONT:
 					MessageBox(hDlg,"HELP","Select", MB_OK);
 					break;
@@ -589,8 +619,9 @@ bool TextEntities::makeText(LOGFONT* pLf){
 
 	   error=false;
 
+
 	   while ((DWORD)outlinesData<(DWORD)(((LPSTR)dataStart)+bufferSize)){
-	   comStr.addTextToHistory("FONT:NEW CONTUR");
+	   //comStr.addTextToHistory("FONT:NEW CONTUR");
 		   
 	   x0=fromFixed(outlinesData->pfxStart.x);
 	   y0=fromFixed(outlinesData->pfxStart.y);
@@ -610,8 +641,14 @@ bool TextEntities::makeText(LOGFONT* pLf){
 		   for(WORD i=0;i<curveData->cpfx;i++){
 			   x=fromFixed(curveData->apfx[i].x);
 			   y=fromFixed(curveData->apfx[i].y);
-			   p1.setXY(x0+startPos,y0);
-			   p2.setXY(x+startPos,y);
+			   p1.setXY(x0,y0);
+			   p2.setXY(x,y);
+			   p1.move(startPos,0);
+			   p2.move(startPos,0);
+	   		   p1.rotate(angle);
+	   		   p2.rotate(angle);
+	   		   p1.move(insX,insY);
+	   		   p2.move(insX,insY);
 			   myModel.appendLine(&p1,&p2);
 		   	   x0=x;
 		           y0=y;
@@ -639,7 +676,16 @@ bool TextEntities::makeText(LOGFONT* pLf){
 			   y2=(fromFixed(curveData->apfx[i-1].y)+fromFixed(curveData->apfx[i].y))/2;
 			   }
 
-	   lineBez(x0,y0,x1,y1,x2,y2,startPos,1/((float)numLines));
+	   vec2 B0(x0,y0);
+	   vec2 B1(x1,y1);
+	   vec2 B2(x2,y2);
+
+	   if (aproxSwitch==LINEAR)
+	      lineBez(x0,y0,x1,y1,x2,y2,startPos,1/((float)numLines));
+	   else
+	      arcBez(B0,B1,B2,1.0);
+
+	   myModel.showModel();
 
 			   x0=x2;
 			   y0=y2;
@@ -663,8 +709,16 @@ bool TextEntities::makeText(LOGFONT* pLf){
 		   break;
 	   }
 	   //#############    END POLYGON    ############
-	   p1.setXY(x0+startPos,y0);
-	   p2.setXY(xs+startPos,ys);
+	   
+
+	   p1.setXY(x0,y0);
+	   p2.setXY(xs,ys);
+	   p1.move(startPos,0);
+	   p2.move(startPos,0);
+	   p1.rotate(angle);
+	   p2.rotate(angle);
+	   p1.move(insX,insY);
+	   p2.move(insX,insY);
 	   myModel.appendLine(&p1,&p2);
 
 	   outlinesData=(LPTTPOLYGONHEADER)(((LPSTR)outlinesData)+outlinesData->cb);
@@ -679,10 +733,12 @@ bool TextEntities::makeText(LOGFONT* pLf){
     	   symbol=*(++ptrStr);
 	   startPos+=(lpabc->abcfA+lpabc->abcfB+lpabc->abcfC);
 	   }
+	   startPos=0;
 
 	   myModel.showModel();
 	   DeleteObject(SelectObject(hDC,hOldFont));
 	   ReleaseDC(comStr.getHWND(),hDC);
+	   comStr.addTextToHistory("Text");
 
        return true;
 }       
@@ -702,7 +758,6 @@ bool lineBez(float x0,float y0,
 	float x,y;
    	static Point p1;
    	static Point p2;
-	comStr.addTextToHistory("Font:Bezier");
 	for (u=0;u<1;)
 	{
 		a=(1-u)*(1-u);
@@ -710,7 +765,7 @@ bool lineBez(float x0,float y0,
 		c=u*u;
 		x=x0*a+x1*b+x2*c;
 		y=y0*a+y1*b+y2*c;
-	   	p1.setXY(x+startPos,y);
+	   	p1.setXY(x,y);
 		u+=step;
 
 		a=(1-u)*(1-u);
@@ -718,23 +773,26 @@ bool lineBez(float x0,float y0,
 		c=u*u;
 		x=x0*a+x1*b+x2*c;
 		y=y0*a+y1*b+y2*c;
-	   	p2.setXY(x+startPos,y);
+	   	p2.setXY(x,y);
+
+	 	p1.move(startPos,0);
+	   	p2.move(startPos,0);
+	   	p1.rotate(textEntities.getAngle());
+	        p2.rotate(textEntities.getAngle());
+		p1.move(textEntities.getInsX(),textEntities.getInsY());
+		p2.move(textEntities.getInsX(),textEntities.getInsY());
 
 	   	myModel.appendLine(&p1,&p2);
 	   	//myModel.showModel();
-	comStr.addCoordToHistory(p1.getX(),p1.getY(),1);
-	comStr.addCoordToHistory(p2.getX(),p2.getY(),2);
-		p1=p2;
+		//p1=p2;
 	}
 	return true;
 }
 
-//***************************************************************************
+//************************************************************************
+
 bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau)
 {
-	cout<<"B0["<<B0.x<<","<<B0.y<<"]"<<endl;
-	cout<<"B1["<<B1.x<<","<<B1.y<<"]"<<endl;
-	cout<<"B2["<<B2.x<<","<<B2.y<<"]"<<endl;
 	vec2 b1b0=B1-B0;
 	vec2 b2b1=B2-B1;
 	vec2 b2b0=B2-B0;
@@ -745,27 +803,28 @@ bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau)
 	vec2 T1=b2b1/b;
 	vec2 T=b2b0/d;
 	float cos_theta=dot(T0,T1);
+	int arcDir;
 
-	cout<<"cos_theta="<<cos_theta<<endl;
-	cout<<"angle T0<T1 = "<<acos(cos_theta)*180/PI<<endl;
-	T.show();
-	T0.show();
-	T1.show();
+	//T.show();
+	//T0.show();
+	//T1.show();
 	float A=(1-cos_theta);
 	float B=dot(T1,T0.ort())*dot(T,T0)/dot(T,T0.ort())+
 		dot(T0,T1.ort())*dot(T,T1)/dot(T,T1.ort());
 	float C=-0.5*dot(T0,T1.ort())*dot(T1,T0.ort())/(dot(T,T1.ort())*dot(T,T0.ort()));
 	float D=B*B-4*A*C;
-	cout<<"(1-cos(theta))="<<A<<endl;
-	cout<<"(T1,N0)*(T,T0)/(T,N0)+(T0,N1)*(T,T1)/(T,N1)="<<B<<endl;
-	cout<<"-0.5*(T0,N1)*(T1,N0)/((T,N1)*(T,N0))="<<C<<endl;
-	cout<<"Discrim="<<D<<endl;
 	float s1=(-B+sqrt(D))/(2*A);
 	float s2=(-B-sqrt(D))/(2*A);
 	float s;
-	cout<<"root s1="<<s1<<endl;
-	cout<<"root s2="<<s2<<endl;
+	char buff[256];
 	//***************************************
+	/*
+		sprintf(buff,"s1=%3.3f s2=%3.3f B0(%3.3f,%3.3f)\
+				B1(%3.3f,%3.3f),B2(%3.3f,%3.3f)",s1,s2,
+				B0.x,B0.y,B1.x,B1.y,B2.x,B2.y);
+		MessageBox(comStr.getHWND(),buff,"INFO",MB_OK);
+
+	*/
 	if (s1>=0)
 	{
 		if (s1<=1)
@@ -778,30 +837,26 @@ bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau)
 	}
 	else
 	{
-		cout<<"ERROR"<<endl;
-		exit(-1);
+		sprintf(buff,"s1=%3.3f s2=%3.3f B0(%3.3f,%3.3f)\
+				B1(%3.3f,%3.3f),B2(%3.3f,%3.3f)",s1,s2,
+				B0.x,B0.y,B1.x,B1.y,B2.x,B2.y);
+		MessageBox(comStr.getHWND(),buff,"INFO 1",MB_OK);
+		//exit(-1);
 	}
 	//***************************************
 	float lam=s*d*dot(T,T1.ort())/dot(T0,T1.ort());
 	float mu=s*d*dot(T,T0.ort())/dot(T1,T0.ort());
-	cout<<"s="<<s<<endl;
-	cout<<"lam="<<lam<<endl;
-	cout<<"mu="<<mu<<endl;
 
 	vec2 G=B0+lam*(T0+T);
-	cout<<"G=lam(T0+T)=";
-	G.show();
-	G=B2-mu*(T1+T);
-	cout<<"G=mu(T1+T)=";
-	G.show();
+	//G.show();
+	//G=B2-mu*(T1+T);
+	//G.show();
 	A=d-2*a*dot(T0,T);
 	B=2*a*dot(T0,T);
 	C=-lam*(1+dot(T0,T));
 	D=B*B-4*A*C;
 	s1=(-B+sqrt(D))/(2*A);
 	s2=(-B-sqrt(D))/(2*A);
-	cout<<"u1="<<s1<<endl;
-	cout<<"u2="<<s2<<endl;
 
 	//***************************************
 	if (s1>=0)
@@ -816,19 +871,20 @@ bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau)
 	}
 	else
 	{
-		cout<<"ERROR"<<endl;
-		exit(-1);
+		sprintf(buff,"s1=%3.3f s2=%3.3f B0(%3.3f,%3.3f)\
+				B1(%3.3f,%3.3f),B2(%3.3f,%3.3f)",s1,s2,
+				B0.x,B0.y,B1.x,B1.y,B2.x,B2.y);
+		MessageBox(comStr.getHWND(),buff,"INFO 2",MB_OK);
+		//exit(-1);
 	}
 	//***************************************
-	cout<<"u="<<s<<endl;
 
 	float k=(2*a*s*(1-s)-lam)*sqrt(1-dot(T0,T)*dot(T0,T));
-	cout<<"k(u)="<<k<<endl;
-	cout<<"*****************************************************************"<<endl;
-	auto u=s;
+	float u=s;
 
 	if (k>tau)
 	{
+		//currentLayer=&layer[0];
 		vec2 L0=B0;
 		float AA=B0.y-B2.y;
 		float BB=B2.x-B0.x;
@@ -837,16 +893,301 @@ bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau)
 		float distance=fabs((AA*L2.x+BB*L2.y+CC)/sqrt(AA*AA+BB*BB));
 		float dist=distance/(sqrt(1-dot(T,T0)*dot(T,T0)));
 		vec2 L1=B0+T0*dist;
+		arcBez(L0,L1,L2,tau);
 		//------R I G H T --------------------
+		//currentLayer=&layer[1];
 		distance=fabs((AA*L2.x+BB*L2.y+CC)/sqrt(AA*AA+BB*BB));
 		dist=distance/(sqrt(1-dot(T,T1)*dot(T,T1)));
 		vec2 R0=L2;
 		vec2 R1=B2-dist*T1;
 		vec2 R2=B2;
-		cout<<"------------L E F T -----------------------"<<endl;
-		arcBez(L0,L1,L2,tau);
-		cout<<"------------R I G H T----------------------"<<endl;
 		arcBez(R0,R1,R2,tau);
 	}
+	else 
+	{
+	//-----construct BIARC-------------------------
+	//
+	//  LEFT ARC    RIGHT ARC
+	//
+	//           B1    
+	//            *
+	//
+	//  L1*-----**G**------R1 
+	//    |  *         *  |
+	//    |*  \R1   R2/  *|
+	//  B0*    \     /    *B2 R2   
+	//          c1 c2
+	//  
+	//  construct norm N1_0 for B1-B0
+	//  construct norm N1_G for L1-G
+	//  calculate center as point intersect 
+	currentLayer=&layer[4];
+	
+	vec2 c1b0=b1b0.ort();
+	vec2 c1G=b2b0.ort();
+	vec2 b0G=G-B0;
+	vec2 c1;
+	float R;
+	float k0;
+	float kG;
+	float xC,yC;
+	float b0,b1;
+
+	if (c1b0.x==0){ //C-b0 || OY
+		
+			xC=B0.x;
+			kG=c1G.y/c1G.x;
+			b1=G.y-kG*G.x;
+			yC=kG*xC+b1;
+			c1.x=xC;
+			c1.y=yC;
+			c1-=B0;
+			R=c1.length();
+			
+
+	}
+	else if (c1G.x==0){
+		
+			xC=G.x;
+			k0=c1b0.y/c1b0.x;
+			b0=B0.y-k0*B0.x;
+			yC=k0*xC+b0;
+			c1.x=xC;
+			c1.y=yC;
+			c1-=B0;
+			R=c1.length();
+			
+	}
+	else {
+		k0=c1b0.y/c1b0.x;
+		kG=c1G.y/c1G.x;
+		if (kG==k0){
+			R=b0G.length()/2;
+			xC= (B0.x<G.x)?(B0.x+R):(B0.x-R);
+			yC= (B0.y<G.y)?(B0.y+R):(B0.y-R);
+		}
+		else {
+			b0=B0.y-k0*B0.x;
+			b1=G.y-kG*G.x;
+			xC=(b0-b1)/(kG-k0);
+			yC=kG*xC+b1;
+			c1.x=xC;
+			c1.y=yC;
+			c1-=B0;
+			R=c1.length();
+		}
+	}
+
+	arcDir=getArcDirection(B0,B1,B2);
+/*
+	Point pt1(B0.x,B0.y);
+	Point pt2(B1.x,B1.y);
+	Point pt3(B2.x,B2.y);
+	currentLayer=&layer[0];
+	myModel.appendLine(&pt1,&pt2);
+	currentLayer=&layer[1];
+	myModel.appendLine(&pt2,&pt3);
+	currentLayer=&layer[3];
+	myModel.appendLine(&pt1,&pt3);
+	char buffer[256];
+
+	sprintf(buffer,"B0[%3.3f,%3.3f],B1[%3.3f,%3.3f],B2[%3.3f,%3.3f] ",
+			B0.x,B0.y,B1.x,B1.y,B2.x,B2.y);
+	if (arcDir==AD_CLOCKWISE)
+	{
+		strcat(buffer,"CLOCKWISE");
+	    comStr.addTextToHistory(buffer);
+	}
+	else if (arcDir==AD_COUNTERCLOCKWISE)
+	{
+		strcat(buffer,"COUNTERCLOCKWISE");
+	    comStr.addTextToHistory(buffer);
+	}
+	else 
+	    comStr.addTextToHistory("Error calc ROTATION");
+*/
+
+	myModel.appendArc(B0.x,B0.y,G.x,G.y,xC,yC,R,arcDir);
+	myModel.showModel();
+
+//=============RIGHT PART BI ARC=====================
+	//  LEFT ARC    RIGHT ARC
+	//
+	//           B1    
+	//            *
+	//
+	//  L1*-----**G**------R1 
+	//    |  *         *  |
+	//    |*  \R1   R2/  *|
+	//  B0*    \     /    *B2 R2   
+	//          c1 c2
+	//  
+	//  construct norm N1_0 for B1-B0
+	//  construct norm N1_G for L1-G
+	//  calculate center as point intersect 
+
+        vec2 c2b2=b2b1.ort();
+	vec2 c2G=c1G;
+	vec2 b2G=G-B2;
+	vec2 c2;
+
+	if (c2b2.x==0){
+		
+			xC=B2.x;
+			kG=c1G.y/c1G.x;
+			b1=G.y-kG*G.x;
+			yC=kG*xC+b1;
+			c1.x=xC;
+			c1.y=yC;
+			c1-=B2;
+			R=c1.length();
+		
+	}
+	else if (c1G.x==0){
+		
+			xC=G.x;
+			k0=c1b0.y/c1b0.x;
+			b0=B0.y-k0*B0.x;
+			yC=k0*xC+b0;
+			c1.x=xC;
+			c1.y=yC;
+			c1-=B2;
+			R=c1.length();
+		
+	}
+	else {
+		k0=c2b2.y/c2b2.x;
+		kG=c1G.y/c1G.x;
+		if (kG==k0){
+			R=b2G.length()/2;
+			xC= (B2.x<G.x)?(B2.x+R):(B2.x-R);
+			yC= (B2.y<G.y)?(B2.y+R):(B2.y-R);
+		}
+		else {
+			b0=B2.y-k0*B2.x;
+			b1=G.y-kG*G.x;
+			xC=(b0-b1)/(kG-k0);
+			yC=kG*xC+b1;
+			c1.x=xC;
+			c1.y=yC;
+			c1-=B2;
+			R=c1.length();
+		}
+	}
+
+
+	currentLayer=&layer[3];
+
+	myModel.appendArc(G.x,G.y,B2.x,B2.y,xC,yC,R,arcDir);
+	myModel.showModel();
+
+	}
+
 	return true;
+}
+
+int getArcDirection(vec2 p1, vec2 p2, vec2 p3, vec2 center)
+{
+	vec2 temp;
+	int ArcDirection;
+
+	temp=p1-center;
+	float xap=temp.x;
+	float yap=temp.y;
+	temp=p2-center;
+	float xbp=temp.x;
+	float ybp=temp.y;
+	temp=p3-center;
+	float xdp=temp.x;
+	float ydp=temp.y;
+
+	float fia,fib,fid;
+
+	if (xap==0){
+		if (yap>0)
+			fia=PI/2;
+		else 
+			fia=-PI/2;
+	}
+	else
+	{
+		fia=atan(yap/xap);
+		if (xap<0)
+			fia+=PI;
+		else if (xap>0&&yap<0)
+			fia+=2*PI;
+	}
+
+	if (xbp==0){
+		if (ybp>0)
+			fib=PI/2;
+		else 
+			fib=-PI/2;
+	}
+	else
+	{
+		fib=atan(ybp/xbp);
+		if (xbp<0)
+			fib+=PI;
+		else if (xbp>0&&ybp<0)
+			fib+=2*PI;
+		
+	}
+
+	if (xdp==0){
+		if (ydp>0)
+			fid=PI/2;
+		else 
+			fid=-PI/2;
+	}
+	else
+	{
+		fid=atan(ydp/xdp);
+		if (xdp<0)
+			fid+=PI;
+		else if (xdp>0&&ydp<0)
+			fid+=2*PI;
+	}
+
+	if (fia>fid)
+		if (fib>fid&&fib<fia)
+		ArcDirection=AD_COUNTERCLOCKWISE;
+		else
+		ArcDirection=AD_CLOCKWISE;
+	else 
+		if (fib>fia&&fib<fid)
+			ArcDirection=AD_CLOCKWISE;
+		else
+			ArcDirection=AD_COUNTERCLOCKWISE;
+	return ArcDirection;
+}	
+
+int getArcDirection(vec2 p1, vec2 p2, vec2 p3){
+
+	int ArcDirection;
+	vec2 p1p3=p3-p1;
+	float angle;
+	float cosA;
+	cosA=p1p3.x/p1p3.length();
+	angle=acos(cosA);
+
+	if (p1p3.y<0&&p1p3.x<0)
+		angle=2*PI-angle;
+	else if (p1p3.y<0&&p1p3.x>0)
+		angle=2*PI-angle;
+
+	p2-=p1;
+	p2.rotate(-angle);
+
+	if (p2.y<0)
+	{
+		ArcDirection=AD_CLOCKWISE;
+	}
+	else if (p2.y==0)
+		ArcDirection=ERROR;
+	else
+	{
+		ArcDirection=AD_COUNTERCLOCKWISE;
+	}
+	return ArcDirection;
 }
