@@ -21,25 +21,25 @@ Layer::Layer():
 	case 1:
 		color=0xff;
 		type=PS_SOLID;
-		width=50;
+		width=1;
 	break;
 
 	case 2:
 		color=0xff00;
 		type=PS_DASH;
-		width=20;
+		width=1;
 	break;
 
 	case 3:
                 color=0xff0000;
 		type=PS_DOT;
-		width=12;
+		width=80;
 	break;
 
         default:
                 color=0;
 		type=PS_SOLID;
-		width=80;
+		width=1;
   }
 
   countID++;
@@ -123,6 +123,14 @@ Point::Point(float xx,float yy,Layer* layer):x(xx),y(yy),type(layer->getType()),
 		color(layer->getColor())
 {
   layerID=currentLayer->getID();  
+}
+
+Point::Point(vec2 V):x(V.x),y(V.y),
+	type(currentLayer->getType()),
+		width(currentLayer->getWidth()),
+		color(currentLayer->getColor())
+{
+  layerID=currentLayer->getID();
 }
 
 void Point::show(){
@@ -232,12 +240,20 @@ Line::Line(Point *a,Point *b,Layer* layer):start(*a),end(*b),type(layer->getType
 void Line::show()
 {
   unsigned char R,G,B;
+  HPEN hPen;
+
   R=(color&0xff0000)>>16;
   G=(color&0xff00)>>8;
   B=(color&0xff);
-  HPEN hPen=CreatePen(type, width, RGB(R,G,B));
+
+  if (selected==false)
+  	hPen=CreatePen(type, width, RGB(R,G,B));
+  else
+  	hPen=CreatePen(type, width, RGB(250,0,0));
+
   modelWindow.setPen(&hPen);
   modelWindow.line(start.getX(),start.getY(),end.getX(),end.getY());
+  modelWindow.marker(start.getX(),start.getY());
 }
 
 void Line::getLine()
@@ -275,24 +291,76 @@ bool Line::scale(float sf ){
 
 bool Line::hitCursor(int xPos,int yPos,int size){
 	bool result;
-	int xL=xPos-size;
-	int xR=xPos+size;
-	int yT=yPos-size;
-	int yB=xPos+size;
-	if (start.hitCursor(xPos,yPos,size)||end.hitCursor(xPos,yPos,size)){
-		HDC hDC=GetDC(modelWindow.getHWND());
-		HPEN hOldPen=(HPEN)SelectObject(hDC,CreatePen(PS_SOLID,width,RGB(255,0,0)));
-		SetROP2(hDC,R2_COPYPEN);
-		MoveToEx(hDC,start.getX()*100,start.getY()*100,NULL);
-		LineTo(hDC,end.getX()*100,end.getY()*100);
-		SelectObject(hDC,hOldPen);
-		ReleaseDC(modelWindow.getHWND(),hDC);
-		result=true;
+	HRGN hRgn;
+	int inflate=50;
+	POINT point[2];
+	vec2 a,b,norm;
+	vec2 sum;
+	a.x=start.getX();
+	a.y=start.getY();
+	b.x=end.getX();
+	b.y=end.getY();
+	sum=b-a;
+	norm=sum.ort();
+	norm.normalize();
+	norm*=2;//inflate region
+	//modelWindow.line(0,0,norm.x,norm.y);
+
+	sum=a+norm;
+	//modelWindow.line(0,0,sum.x,sum.y);
+	point[0].x=(int)(sum.x*100);
+	point[0].y=(int)(sum.y*100);
+
+	sum=b+norm;
+	//modelWindow.line(0,0,sum.x,sum.y);
+	point[1].x=(int)(sum.x*100);
+	point[1].y=(int)(sum.y*100);
+
+	norm*=-1;
+	sum=a+norm;
+	//modelWindow.line(0,0,sum.x,sum.y);
+	point[3].x=(int)(sum.x*100);
+	point[3].y=(int)(sum.y*100);
+
+	sum=b+norm;
+	//modelWindow.line(0,0,sum.x,sum.y);
+	point[2].x=(int)(sum.x*100);
+	point[2].y=(int)(sum.y*100);
+
+	if (start.getX()==end.getX())
+		hRgn=CreateRectRgn((int)(start.getX()*100)-inflate,
+				(int)(start.getY()*100),
+				(int)(end.getX()*100)+inflate,
+				(int)(end.getY()*100)
+			);
+	else if (start.getY()==end.getY())
+		hRgn=CreateRectRgn((int)(start.getX()*100),
+				(int)(start.getY()*100)-inflate,
+				(int)(end.getX()*100),
+				(int)(end.getY()*100)+inflate
+			);
+	else
+	{
+		hRgn=CreatePolygonRgn(point,4,ALTERNATE);
+	//	modelWindow.myPolygon(point,4);
 	}
-	else {
-		result=false;
+	result=PtInRegion(hRgn,xPos,yPos);
+	DeleteObject(hRgn);
+	if (selected&&result)
+		return result;
+	else 
+	{
+		selected=result;
+		show();
 	}
+	
 	return result;
+}
+
+bool Line::move(float dx, float dy ){
+	start.move(dx,dy);
+	end.move(dx,dy);
+	return true;
 }
 
 //--------------ARC SECTION------------------------------------------
@@ -601,11 +669,11 @@ int Model::scaleModel(float sf){
 }
 
 bool Model::hitModel(int xPos,int yPos,int size){
-/*   int result=0;
+   int result=0;
    iter=entities.begin();
    if (!entities.empty()&&(entities.size()<entities.max_size()))
    for (iter;iter!=entities.end();++iter)
 	result+=(*iter)->hitCursor(xPos,yPos,size);
-*/
+
 	return false;
 }

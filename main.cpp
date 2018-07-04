@@ -10,7 +10,7 @@ using namespace std;
 
 long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-bool arcBez(vec2,vec2 ,vec2 ,float);
+bool arcBez(vec2,vec2 ,vec2 ,float,float);
 
 BOOL APIENTRY dlgprc(HWND, UINT, WPARAM, LPARAM);
 HINSTANCE g_hInst;
@@ -291,6 +291,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
    static HINSTANCE hInst;
    static HICON hIcon;
 
+   static vec2 tempA,tempB;
+
    LPTOOLTIPTEXT lpTTT;
 
    switch(message)                // Process selected messages
@@ -371,14 +373,10 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		   ScreenToClient(hWnd,lpPoint);
 		   DPtoLP(hDC,lpPoint,1);
 
-		   //mycursor.show(lpPoint->x,lpPoint->y);
-
 		   sprintf(buffer,"Coordinate x=%4.3f y=%4.3f       ",static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 		   strcat(buffer,buf);
       		   statusBar.printText(10,10,buffer);
 
-		   if (comStr.getState()==STATE_WAIT_COMMAND)
- 	           	myModel.hitModel(lpPoint->x,lpPoint->y,mycursor.getSize());
 
 		   switch (comStr.getState()){
 			   case STATE_LINE_POINT2:
@@ -473,6 +471,22 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 		        prevCursPos=*lpPoint;
 			flagRegen=true;
+
+			case STATE_TEXT_ANGLE1:
+				if (flagRegen==true)
+				modelWindow.line(textEntities.getInsX(),
+						textEntities.getInsY(),
+				static_cast<float>(prevCursPos.x)/100,
+				static_cast<float>(prevCursPos.y)/100);
+
+				modelWindow.line(textEntities.getInsX(),
+						textEntities.getInsY(),
+				static_cast<float>(lpPoint->x)/100,
+				static_cast<float>(lpPoint->y)/100);
+
+		        	prevCursPos=*lpPoint;
+				flagRegen=true;
+			break;
 		   }
 		   }
 		   ReleaseDC(modelWindow.getHWND(),hDC);
@@ -494,6 +508,10 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		  ScreenToClient(hWnd,lpPoint);
 		  DPtoLP(hDC,lpPoint,1);
 		  switch (comStr.getState()){
+			case STATE_WAIT_COMMAND:
+ 	           	myModel.hitModel(lpPoint->x,lpPoint->y,
+					mycursor.getSize());
+				break;
 			case STATE_LINE_POINT1:
 			        prevCursPos=*lpPoint;
 				comStr.segLine(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
@@ -548,7 +566,34 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				textEntities.show();
 			break;
 
+			case STATE_TEXT_ANGLE1:
+			{
+				modelWindow.line(textEntities.getInsX(),
+						textEntities.getInsY(),
+				static_cast<float>(prevCursPos.x)/100,
+				static_cast<float>(prevCursPos.y)/100);
 
+			        prevCursPos=*lpPoint;
+
+				tempA.x=textEntities.getInsX();
+				tempA.y=textEntities.getInsY();
+				tempB.x=static_cast<float>(lpPoint->x)/100;
+				tempB.y=static_cast<float>(lpPoint->y)/100;
+				tempB-=tempA;
+				float cosAn=tempB.x/tempB.length();
+				float an=acos(cosAn)*180/PI;
+
+				if (tempB.y<0&&tempB.x<0)
+					an=2*PI-an;
+				else if (tempB.y<0&&tempB.x>0)
+					an=2*PI-an;
+
+				textEntities.setAngle(an);
+				comStr.setState(STATE_WAIT_COMMAND);
+				textEntities.show();
+	    			modelWindow.setROP2(R2_COPYPEN);
+			}
+			break;
 
 		  }
 		  ReleaseDC(modelWindow.getHWND(),hDC);
@@ -557,11 +602,15 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 	case WM_RBUTTONDOWN:
 		
+		if (comStr.getState()==STATE_CONTUR_LINE2||
+			comStr.getState()==STATE_CONTUR_ARC2)
+		{
 		      comStr.enumEnType();
 		      if (comStr.getEnType()==tLine)
 			      comStr.setState(STATE_CONTUR_LINE2);
 		      else
 			      comStr.setState(STATE_CONTUR_ARC2);
+		}
 		break;
 
     case WM_MBUTTONDOWN:
@@ -759,20 +808,21 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			break;
 		case IDM_RECTANGLE:
 			{
-			vec2 B0(100,100);
-			vec2 B1(200,300);
-			vec2 B2(400,100);
-		arcBez(B0, B1, B2, 0.2);
+			vec2 B0(11.5468836,11.3203173);
+			vec2 B1(11.5625086,11.078126);
+			vec2 B2(11.5468836,10.7500114);
+		arcBez(B0, B1, B2, 0.2,0);
 
 			B0.x=-100;
 			B0.y=100;
-			B1.x=-300;
+			B1.x=-100;
 			B1.y=200;
 			B2.x=-100;
 			B2.y=400;
 
-		arcBez(B0, B1, B2, 0.2);
+	//	arcBez(B0, B1, B2, 0.2,0);
 
+		/*
 			B0.x=-100;
 			B0.y=-100;
 			B1.x=-200;
@@ -780,7 +830,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			B2.x=-400;
 			B2.y=-100;
 
-		arcBez(B0, B1, B2, 0.2);
+		arcBez(B0, B1, B2, 0.2,0);
 
 			B0.x=100;
 			B0.y=-100;
@@ -788,8 +838,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			B1.y=-200;
 			B2.x=100;
 			B2.y=-400;
-		arcBez(B0, B1, B2, 0.2);
-		
+		arcBez(B0, B1, B2, 0.2,0);
+	*/	
 		
 			}
 			break;

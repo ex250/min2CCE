@@ -16,11 +16,9 @@ float fromFixed(FIXED fixed);
 
 bool lineBez(float,float,float,float,float,float,float,float);
 
-bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau);
+bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau,float);
 
 bool isRealNumber(char * str);
-
-int getArcDirection(vec2 p1, vec2 p2, vec2 p3, vec2 center);
 
 int getArcDirection(vec2 p1, vec2 p2, vec2 p3);
 
@@ -37,6 +35,10 @@ void TextEntities::show(){
 void TextEntities::setXY(float x,float y){
 	insX=x;
 	insY=y;
+}
+
+void TextEntities::setAngle(float an){
+	angle=an;
 }
 
 float TextEntities::getInsX(){
@@ -108,7 +110,7 @@ BOOL CALLBACK TextEntities::TextDlgProc(HWND hDlg,UINT uMsg,
 	   CLIP_DEFAULT_PRECIS,
 	   DEFAULT_QUALITY,
 	   FF_SWISS|DEFAULT_PITCH,
-	   "Times"
+	   "Arial"
    };
 
    static HFONT hFont;
@@ -541,6 +543,14 @@ BOOL CALLBACK TextEntities::TextDlgProc(HWND hDlg,UINT uMsg,
 
 				case IDC_TEXT_BUTTON_INSPOINT:
 				    comStr.setState(STATE_TEXT_INSPOINT);
+				   	DeleteObject(hFont);
+				   	DeleteObject(hOldFont);
+					EndDialog(hDlg,0);
+					break;
+
+				case IDC_TEXT_BUTTONANGLE:
+				    comStr.setState(STATE_TEXT_ANGLE1);
+	   				modelWindow.setROP2(R2_NOTXORPEN);
 					EndDialog(hDlg,0);
 					break;
 
@@ -595,6 +605,11 @@ bool TextEntities::makeText(LOGFONT* pLf){
 	   DWORD bufferSize=GetGlyphOutline(
 			   hDC,symbol,GGO_NATIVE,
 			   &glyphMetrics,0,0,&matrix);
+	   if (bufferSize==GDI_ERROR){
+		   MessageBox(modelWindow.getHWND(),"invalid font","Error",
+				   MB_OK);
+		   return false;
+	   }
 
 	   ptrToBuffer=new char[bufferSize];
 
@@ -683,9 +698,9 @@ bool TextEntities::makeText(LOGFONT* pLf){
 	   if (aproxSwitch==LINEAR)
 	      lineBez(x0,y0,x1,y1,x2,y2,startPos,1/((float)numLines));
 	   else
-	      arcBez(B0,B1,B2,1.0);
+	      arcBez(B0,B1,B2,0.2,startPos);
 
-	   myModel.showModel();
+	   //myModel.showModel();
 
 			   x0=x2;
 			   y0=y2;
@@ -791,23 +806,57 @@ bool lineBez(float x0,float y0,
 
 //************************************************************************
 
-bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau)
+bool arcBez(vec2 B0, vec2 B1, vec2 B2, 
+		float tau,
+		float startPos
+		)
 {
 	vec2 b1b0=B1-B0;
 	vec2 b2b1=B2-B1;
 	vec2 b2b0=B2-B0;
+	Point ps(B0);
+	Point pe(B2);
+	Point pcenter;
+	vec2 offsetX(startPos,0);
+	currentLayer=&layer[0];
+
 	float a=b1b0.length();
 	float b=b2b1.length();
 	float d=b2b0.length();
+
+	if (a==0||b==0||d==0){
+		currentLayer=&layer[3];
+	 	ps.move(startPos,0);
+	   	pe.move(startPos,0);
+	   	ps.rotate(textEntities.getAngle());
+	        pe.rotate(textEntities.getAngle());
+		ps.move(textEntities.getInsX(),textEntities.getInsY());
+		pe.move(textEntities.getInsX(),textEntities.getInsY());
+		myModel.appendLine(&ps,&pe);
+		currentLayer=&layer[1];
+		return true;
+	}
+
 	vec2 T0=b1b0/a;
 	vec2 T1=b2b1/b;
 	vec2 T=b2b0/d;
 	float cos_theta=dot(T0,T1);
 	int arcDir;
 
-	//T.show();
-	//T0.show();
-	//T1.show();
+// test collinear
+	if (cos_theta>=0.99999||cos_theta<=-0.99999){
+		currentLayer=&layer[3];
+	 	ps.move(startPos,0);
+	   	pe.move(startPos,0);
+	   	ps.rotate(textEntities.getAngle());
+	        pe.rotate(textEntities.getAngle());
+		ps.move(textEntities.getInsX(),textEntities.getInsY());
+		pe.move(textEntities.getInsX(),textEntities.getInsY());
+		myModel.appendLine(&ps,&pe);
+		//MessageBox(comStr.getHWND(),"angle=0","INFO 1",MB_OK);
+		return true;
+	}
+
 	float A=(1-cos_theta);
 	float B=dot(T1,T0.ort())*dot(T,T0)/dot(T,T0.ort())+
 		dot(T0,T1.ort())*dot(T,T1)/dot(T,T1.ort());
@@ -817,14 +866,9 @@ bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau)
 	float s2=(-B-sqrt(D))/(2*A);
 	float s;
 	char buff[256];
+	
 	//***************************************
-	/*
-		sprintf(buff,"s1=%3.3f s2=%3.3f B0(%3.3f,%3.3f)\
-				B1(%3.3f,%3.3f),B2(%3.3f,%3.3f)",s1,s2,
-				B0.x,B0.y,B1.x,B1.y,B2.x,B2.y);
-		MessageBox(comStr.getHWND(),buff,"INFO",MB_OK);
 
-	*/
 	if (s1>=0)
 	{
 		if (s1<=1)
@@ -837,20 +881,20 @@ bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau)
 	}
 	else
 	{
+		//sprintf(buff,"s1=%3.3f s2=%3.3f a=%3.3f",s1,s2,a);
 		sprintf(buff,"s1=%3.3f s2=%3.3f B0(%3.3f,%3.3f)\
-				B1(%3.3f,%3.3f),B2(%3.3f,%3.3f)",s1,s2,
-				B0.x,B0.y,B1.x,B1.y,B2.x,B2.y);
+				B1(%3.3f,%3.3f),B2(%3.3f,%3.3f) a=%3.3f"
+				,s1,s2,B0.x,B0.y,B1.x,B1.y,B2.x,B2.y
+				,cos_theta);
 		MessageBox(comStr.getHWND(),buff,"INFO 1",MB_OK);
-		//exit(-1);
 	}
+	
 	//***************************************
+	
 	float lam=s*d*dot(T,T1.ort())/dot(T0,T1.ort());
 	float mu=s*d*dot(T,T0.ort())/dot(T1,T0.ort());
 
 	vec2 G=B0+lam*(T0+T);
-	//G.show();
-	//G=B2-mu*(T1+T);
-	//G.show();
 	A=d-2*a*dot(T0,T);
 	B=2*a*dot(T0,T);
 	C=-lam*(1+dot(T0,T));
@@ -872,10 +916,13 @@ bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau)
 	else
 	{
 		sprintf(buff,"s1=%3.3f s2=%3.3f B0(%3.3f,%3.3f)\
-				B1(%3.3f,%3.3f),B2(%3.3f,%3.3f)",s1,s2,
-				B0.x,B0.y,B1.x,B1.y,B2.x,B2.y);
+				B1(%3.3f,%3.3f),B2(%3.3f,%3.3f) a=%3.3f"
+				,s1,s2,B0.x,B0.y,B1.x,B1.y,B2.x,B2.y
+				,cos_theta);
+		
+	//	sprintf(buff,"s1=%3.3f s2=%3.3f a=%3.3f",s1,s2,a);
 		MessageBox(comStr.getHWND(),buff,"INFO 2",MB_OK);
-		//exit(-1);
+		//return true;
 	}
 	//***************************************
 
@@ -893,7 +940,9 @@ bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau)
 		float distance=fabs((AA*L2.x+BB*L2.y+CC)/sqrt(AA*AA+BB*BB));
 		float dist=distance/(sqrt(1-dot(T,T0)*dot(T,T0)));
 		vec2 L1=B0+T0*dist;
-		arcBez(L0,L1,L2,tau);
+
+		arcBez(L0,L1,L2,tau,startPos);
+
 		//------R I G H T --------------------
 		//currentLayer=&layer[1];
 		distance=fabs((AA*L2.x+BB*L2.y+CC)/sqrt(AA*AA+BB*BB));
@@ -901,7 +950,7 @@ bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau)
 		vec2 R0=L2;
 		vec2 R1=B2-dist*T1;
 		vec2 R2=B2;
-		arcBez(R0,R1,R2,tau);
+		arcBez(R0,R1,R2,tau,startPos);
 	}
 	else 
 	{
@@ -921,7 +970,7 @@ bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau)
 	//  construct norm N1_0 for B1-B0
 	//  construct norm N1_G for L1-G
 	//  calculate center as point intersect 
-	currentLayer=&layer[4];
+	//currentLayer=&layer[4];
 	
 	vec2 c1b0=b1b0.ort();
 	vec2 c1G=b2b0.ort();
@@ -979,6 +1028,15 @@ bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau)
 	}
 
 	arcDir=getArcDirection(B0,B1,B2);
+
+	if (arcDir==ERROR)
+	{
+		Point pt1(B0.x,B0.y);
+		Point pt3(B2.x,B2.y);
+		myModel.appendLine(&pt1,&pt3);
+		return true;
+	}
+
 /*
 	Point pt1(B0.x,B0.y);
 	Point pt2(B1.x,B1.y);
@@ -1007,8 +1065,23 @@ bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau)
 	    comStr.addTextToHistory("Error calc ROTATION");
 */
 
-	myModel.appendArc(B0.x,B0.y,G.x,G.y,xC,yC,R,arcDir);
-	myModel.showModel();
+	pe=G;
+	pcenter.setXY(xC,yC);
+
+	ps.move(startPos,0);
+	pe.move(startPos,0);
+	pcenter.move(startPos,0);
+	ps.rotate(textEntities.getAngle());
+	pe.rotate(textEntities.getAngle());
+	pcenter.rotate(textEntities.getAngle());
+	ps.move(textEntities.getInsX(),textEntities.getInsY());
+	pe.move(textEntities.getInsX(),textEntities.getInsY());
+	pcenter.move(textEntities.getInsX(),textEntities.getInsY());
+	
+	myModel.appendArc(ps.getX(),ps.getY(),pe.getX(),pe.getY(),
+			pcenter.getX(),pcenter.getY(),R,arcDir);
+
+	//myModel.showModel();
 
 //=============RIGHT PART BI ARC=====================
 	//  LEFT ARC    RIGHT ARC
@@ -1076,100 +1149,77 @@ bool arcBez(vec2 B0, vec2 B1, vec2 B2, float tau)
 	}
 
 
-	currentLayer=&layer[3];
+	currentLayer=&layer[1];
 
-	myModel.appendArc(G.x,G.y,B2.x,B2.y,xC,yC,R,arcDir);
-	myModel.showModel();
+	ps=G;
+	pe=B2;
+	pcenter.setXY(xC,yC);
+
+	ps.move(startPos,0);
+	pe.move(startPos,0);
+	pcenter.move(startPos,0);
+	ps.rotate(textEntities.getAngle());
+	pe.rotate(textEntities.getAngle());
+	pcenter.rotate(textEntities.getAngle());
+	ps.move(textEntities.getInsX(),textEntities.getInsY());
+	pe.move(textEntities.getInsX(),textEntities.getInsY());
+	pcenter.move(textEntities.getInsX(),textEntities.getInsY());
+
+	
+	myModel.appendArc(ps.getX(),ps.getY(),pe.getX(),pe.getY(),
+			pcenter.getX(),pcenter.getY(),R,arcDir);
+	//myModel.showModel();
 
 	}
 
 	return true;
 }
 
-int getArcDirection(vec2 p1, vec2 p2, vec2 p3, vec2 center)
-{
-	vec2 temp;
-	int ArcDirection;
-
-	temp=p1-center;
-	float xap=temp.x;
-	float yap=temp.y;
-	temp=p2-center;
-	float xbp=temp.x;
-	float ybp=temp.y;
-	temp=p3-center;
-	float xdp=temp.x;
-	float ydp=temp.y;
-
-	float fia,fib,fid;
-
-	if (xap==0){
-		if (yap>0)
-			fia=PI/2;
-		else 
-			fia=-PI/2;
-	}
-	else
-	{
-		fia=atan(yap/xap);
-		if (xap<0)
-			fia+=PI;
-		else if (xap>0&&yap<0)
-			fia+=2*PI;
-	}
-
-	if (xbp==0){
-		if (ybp>0)
-			fib=PI/2;
-		else 
-			fib=-PI/2;
-	}
-	else
-	{
-		fib=atan(ybp/xbp);
-		if (xbp<0)
-			fib+=PI;
-		else if (xbp>0&&ybp<0)
-			fib+=2*PI;
-		
-	}
-
-	if (xdp==0){
-		if (ydp>0)
-			fid=PI/2;
-		else 
-			fid=-PI/2;
-	}
-	else
-	{
-		fid=atan(ydp/xdp);
-		if (xdp<0)
-			fid+=PI;
-		else if (xdp>0&&ydp<0)
-			fid+=2*PI;
-	}
-
-	if (fia>fid)
-		if (fib>fid&&fib<fia)
-		ArcDirection=AD_COUNTERCLOCKWISE;
-		else
-		ArcDirection=AD_CLOCKWISE;
-	else 
-		if (fib>fia&&fib<fid)
-			ArcDirection=AD_CLOCKWISE;
-		else
-			ArcDirection=AD_COUNTERCLOCKWISE;
-	return ArcDirection;
-}	
-
 int getArcDirection(vec2 p1, vec2 p2, vec2 p3){
 
 	int ArcDirection;
 	vec2 p1p3=p3-p1;
+	vec2 p1p2=p2-p1;
 	float angle;
 	float cosA;
+	float cosB;
 	cosA=p1p3.x/p1p3.length();
+	cosB=p1p2.x/p1p2.length();
+
+	if (cosA==cosB)
+	{
+		ArcDirection=ERROR;
+		MessageBox(comStr.getHWND(),"ERROR:Point on one line","ArcDirection",MB_OK);
+		return ArcDirection;
+	}
+
 	angle=acos(cosA);
+
+	if (cosA==0) // p1p3||OY
+	{
+		if (p1.y>p3.y){
+			if (p2.x>p1.x)
+			{
+				ArcDirection=AD_COUNTERCLOCKWISE;
+			}
+			else 
+			{
+				ArcDirection=AD_CLOCKWISE;
+			}
+		}
+		else{
+			if (p2.x>p1.x)
+			{
+				ArcDirection=AD_CLOCKWISE;
+			}
+			else 
+			{
+				ArcDirection=AD_COUNTERCLOCKWISE;
+			}
+		}
+	return ArcDirection;
+	}
+
 
 	if (p1p3.y<0&&p1p3.x<0)
 		angle=2*PI-angle;
@@ -1183,8 +1233,10 @@ int getArcDirection(vec2 p1, vec2 p2, vec2 p3){
 	{
 		ArcDirection=AD_CLOCKWISE;
 	}
-	else if (p2.y==0)
+	else if (p2.y==0){
 		ArcDirection=ERROR;
+		MessageBox(comStr.getHWND(),"ERROR:Y=0","ArcDirection",MB_OK);
+	}
 	else
 	{
 		ArcDirection=AD_COUNTERCLOCKWISE;

@@ -6,6 +6,7 @@
 #include <string>
 #include <typeinfo>
 #include <sstream>
+#include "myvector.h"
 
 #define MAXFILENAME	256
 #define OFF	0
@@ -82,6 +83,8 @@ class Point:public Entity
 
 	Point(float,float,Layer*);
 
+	Point(vec2);
+
 	void show();
 
 	bool printInfo();
@@ -123,6 +126,8 @@ class Line:public Entity
 	Line(Point*,Point*,Layer*);
 
 	bool scale(float );
+
+	bool move(float dx, float dy );
 
 	void show();
 

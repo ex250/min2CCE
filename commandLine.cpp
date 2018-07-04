@@ -13,6 +13,7 @@ CommandLine::CommandLine():BaseWindow()
 {
 	pStrCmd="Command";
 	EnType=tLine;
+	countStr=0;
 }
 
 WNDPROC CommandLine::wpOrigEditProc=0;
@@ -201,8 +202,14 @@ int  CommandLine::addCoordToHistory(float x,float y, int index)
 	   return strlen(str);
 }
 int  CommandLine::addTextToHistory(const char * pStr){
-	SendMessage(hwndH,(UINT) LB_ADDSTRING,(WPARAM) 0,(LPARAM) pStr);
+	int maxbuf=strlen(pStr)+10;
+	char *ptrStr=new char[maxbuf];
+	sprintf(ptrStr,"N%d   ",countStr);
+	strcat(ptrStr,pStr);
+	
+	SendMessage(hwndH,(UINT) LB_ADDSTRING,(WPARAM) 0,(LPARAM) ptrStr);
         SendMessage(hwndH,WM_VSCROLL,SB_BOTTOM,(LPARAM)NULL);
+	countStr++;
 	return strlen(pStr);
 }
 

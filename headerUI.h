@@ -20,7 +20,8 @@ const int STATE_CONTUR_LINE1=12;
 const int STATE_CONTUR_LINE2=13;
 const int STATE_CONTUR_SELECT=14;
 const int STATE_TEXT_INSPOINT=20;
-const int STATE_TEXT_ANGLE=30;
+const int STATE_TEXT_ANGLE1=30;
+const int STATE_TEXT_ANGLE2=35;
 const int STATE_TEXT_LEN=40;
 const float PI=3.14159265;
 const int ON=1;
@@ -154,6 +155,7 @@ class CommandLine:public BaseWindow
     float xc,yc,R; // координаты центра и радиус окружности
     float fia,fib,fid;//angle 3 arc points
     int ArcDirection;
+    int countStr;
 
 
  public:
@@ -253,6 +255,10 @@ class ModelWindow:public BaseWindow
 
     bool _arc(float, float, float, float, float, float, float, int );
 
+    bool marker(float,float);
+
+    bool myPolygon(CONST POINT *, int );
+
 };
 
 //----------------class coord system----------------------------------
@@ -321,6 +327,7 @@ class TextEntities {
 		TextEntities();
 		void show();
 		void setXY(float,float);
+		void setAngle(float);
 		float getInsX();
 		float getInsY();
 		float getAngle();

@@ -48,6 +48,37 @@ bool ModelWindow::line(float xPrev,float yPrev,float x, float y)
   return result;
 }
 
+bool ModelWindow::marker(float x,float y)
+{
+  bool result;
+  x*=100;y*=100;
+
+  HPEN hOldPen;
+  HBRUSH hOldBrush;
+  hDC=GetDC(hWnd);
+
+  hOldBrush=(HBRUSH)SelectObject(hDC, hBrush); 
+  hOldPen=(HPEN)SelectObject(hDC, hPen);
+  SetROP2(hDC, ROP2); 
+  //SetBkMode(hDC, TRANSPARENT);      // Set text background mode
+  result=Rectangle(hDC,x-50,y-50,x+50,y+50);
+
+  DeleteObject(SelectObject(hDC,hOldPen));
+  DeleteObject(SelectObject(hDC,hOldBrush));
+  ReleaseDC(hWnd,hDC);
+
+	return result;
+}
+
+bool ModelWindow::myPolygon(CONST POINT * point, int nCount)
+{
+	bool result;
+  hDC=GetDC(hWnd);
+  SetROP2(hDC, ROP2); 
+  result=Polygon(hDC,point,nCount);
+  ReleaseDC(hWnd,hDC);
+	return result;
+}
 //*****************************************************************
 //
 //                **1(x,y)
