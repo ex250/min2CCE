@@ -107,6 +107,8 @@ class Point:public Entity
 
 	bool rotate(float);
 
+	bool rotRad(float);
+
 	bool hitCursor(int,int,int);
 };
 
@@ -166,6 +168,8 @@ class ArcSegment:public Entity
 	bool getDataFromUser();
 
 	bool hitCursor(int,int,int);
+
+	float getAngle();
 };
 
 class Model{

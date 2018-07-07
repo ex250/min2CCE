@@ -259,6 +259,8 @@ class ModelWindow:public BaseWindow
 
     bool myPolygon(CONST POINT *, int );
 
+    bool myRectangle(POINT,POINT );
+
 };
 
 //----------------class coord system----------------------------------

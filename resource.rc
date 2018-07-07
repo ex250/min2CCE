@@ -166,6 +166,18 @@ IDM_FILLET                      "Fillet"
 
 END
 
+IDR_MENU_SHAPE MENU DISCARDABLE
+BEGIN
+	POPUP "shape"
+	BEGIN
+		MENUITEM "MOVE",	IDM_MOVE
+		MENUITEM "rotate",	IDM_ROTATE
+		MENUITEM "scale",	IDM_SCALE
+		MENUITEM "delete",	IDM_ERASE
+		MENUITEM "edit...",	IDM_FILLET
+	END
+END
+
 IDR_TOOLBAR1            BITMAP  DISCARDABLE     "toolbar1.bmp"
 
 IDR_TOOLBAR2            BITMAP  DISCARDABLE     "toolbar2.bmp"
@@ -221,8 +233,8 @@ BEGIN
     LTEXT           "Min2CCE 1.0.1",IDC_HELPABOUTINFO,40,7,52,9
     LTEXT           "Copyright (C) 2017-2018 Зеленовский Николай",
                     IDC_HELPABOUT2,41,18,119,21
-    LTEXT           "Страница проекта: http://min2cce.ru",IDC_HELPABOUT3,41,
-                    47,170,21
+    //LTEXT           "Страница проекта: http://min2cce.ru",IDC_HELPABOUT3,41,
+    //                47,170,21
 END
 
 /////////////////////////////////////////////////////////////////////////////

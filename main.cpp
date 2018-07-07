@@ -263,6 +263,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
    static XFORM xForm;
    static bool flagMiddlePress=false;
    static bool flagRegen=false;
+   static bool bTracking=false;
    int prevMode;
    RECT rect;
    char str[30];
@@ -295,6 +296,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
    LPTOOLTIPTEXT lpTTT;
 
+   static HMENU hMenuShape;
+
    switch(message)                // Process selected messages
    {  
       case WM_CREATE:
@@ -306,6 +309,10 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 	       hInst=GetModuleHandle(NULL);
 	       hIcon=LoadIcon(hInst,MAKEINTRESOURCE(IDI_ICONMIN2C));
 	       SetClassLong(hWnd,GCL_HICON,(LONG)hIcon);
+
+	       hMenuShape=LoadMenu(GetModuleHandle(NULL),
+			       MAKEINTRESOURCE(IDR_MENU_SHAPE));
+	       hMenuShape=GetSubMenu(hMenuShape,0);
 	    }
 
       break;
@@ -373,12 +380,25 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		   ScreenToClient(hWnd,lpPoint);
 		   DPtoLP(hDC,lpPoint,1);
 
+		/*		   if (bTracking)
+				   {
+					   modelWindow.myRectangle(
+							   prevPosition,
+							   cursPos
+							   );
+				   }
+		*/
+
 		   sprintf(buffer,"Coordinate x=%4.3f y=%4.3f       ",static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 		   strcat(buffer,buf);
       		   statusBar.printText(10,10,buffer);
 
 
 		   switch (comStr.getState()){
+			   case STATE_WAIT_COMMAND:
+
+				   break;
+
 			   case STATE_LINE_POINT2:
 		   	if (flagRegen==true)
 				modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
@@ -495,6 +515,13 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		break;
 	
 	case WM_LBUTTONUP:
+		if (bTracking)
+		{
+			bTracking=FALSE;
+			//modelWindow.setROP2(R2_COPYPEN);
+			//GetCursorPos(lpPoint);
+			//modelWindow.myRectangle(prevCursPos,cursPos);
+		}
 
 		break; 
 
@@ -509,8 +536,13 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		  DPtoLP(hDC,lpPoint,1);
 		  switch (comStr.getState()){
 			case STATE_WAIT_COMMAND:
- 	           	myModel.hitModel(lpPoint->x,lpPoint->y,
-					mycursor.getSize());
+ 	           	if (!myModel.hitModel(lpPoint->x,lpPoint->y,
+					mycursor.getSize()))
+			{
+				//modelWindow.setROP2(R2_NOTXORPEN);
+		  		bTracking=TRUE;
+			        //prevCursPos=*lpPoint;
+			}
 				break;
 			case STATE_LINE_POINT1:
 			        prevCursPos=*lpPoint;
@@ -703,6 +735,13 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		SetFocus(comStr.getHWNDC());
 		break;
       }
+      break;
+
+      case WM_CONTEXTMENU:
+		GetCursorPos(&cursPos);
+		if (comStr.getState()==STATE_WAIT_COMMAND)
+		TrackPopupMenuEx(hMenuShape,0,cursPos.x,cursPos.y,hWnd,
+				NULL);
       break;
       case WM_PAINT:                       // Message is to redraw the window
 		//statusBar.printText(10,10,buffer);

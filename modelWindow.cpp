@@ -79,6 +79,16 @@ bool ModelWindow::myPolygon(CONST POINT * point, int nCount)
   ReleaseDC(hWnd,hDC);
 	return result;
 }
+
+bool ModelWindow::myRectangle(POINT pt1, POINT pt2)
+{
+	bool result;
+  hDC=GetDC(hWnd);
+  result=Rectangle(hDC,pt1.x,pt1.y,pt2.x,pt2.y);
+  ReleaseDC(hWnd,hDC);
+	return result;
+}
+
 //*****************************************************************
 //
 //                **1(x,y)

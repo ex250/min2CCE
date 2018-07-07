@@ -87,6 +87,7 @@
 #define IDC_RADIO1		11200
 #define IDC_RADIO2		11300
 
+
 //----курсор и иконка------------------
 #define IDC_CROSSPTR		11400
 #define IDI_ICONMIN2C		11500
@@ -147,6 +148,9 @@
 #define IDC_TEXT_NUMLINECAP             15240
 #define IDC_TEXT_TOLERANCECAP           15250
 
+
+//----context menu------------------
+#define IDR_MENU_SHAPE 			16000
 
 #endif
 

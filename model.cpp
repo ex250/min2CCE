@@ -170,6 +170,14 @@ bool Point::rotate(float angle){
 	return true;
 }
 
+bool Point::rotRad(float beta){
+	float xt;
+	xt=x*cos(beta)-y*sin(beta);
+	y=x*sin(beta)+y*cos(beta);
+	x=xt;
+	return true;
+}
+
 bool Point::setXY(float xx,float yy){
   x=xx;
   y=yy;
@@ -254,6 +262,8 @@ void Line::show()
   modelWindow.setPen(&hPen);
   modelWindow.line(start.getX(),start.getY(),end.getX(),end.getY());
   modelWindow.marker(start.getX(),start.getY());
+  modelWindow.marker(end.getX(),end.getY());
+  DeleteObject(hPen);
 }
 
 void Line::getLine()
@@ -389,12 +399,19 @@ ArcSegment::ArcSegment(float x1, float y1 ,float x2,float y2, float x, float y,
 void ArcSegment::show()
 {
   unsigned char R,G,B;
+  HPEN hPen;
   R=(color&0xff0000)>>16;
   G=(color&0xff00)>>8;
   B=(color&0xff);
-  HPEN hPen=CreatePen(type, width, RGB(R,G,B));
+
+  if (selected==false)
+  	hPen=CreatePen(type, width, RGB(R,G,B));
+  else
+  	hPen=CreatePen(type, width, RGB(250,0,0));
+
   modelWindow.setPen(&hPen);
   modelWindow._arc(xs,ys,xe,ye,xc,yc,radius,direction);
+  DeleteObject(hPen);
 }
 
 
@@ -413,8 +430,10 @@ bool ArcSegment::getInfo(char* infPtr){
 bool ArcSegment::printInfo()
 {
   char buff[2560];
-  sprintf(buff,"x1=%f y1=%f  x2=%f y2=%f Xc=%f Yc=%f R=%f Direction=%d",xs,ys,xe,ye,xc,yc,radius,direction);
+  float angle=getAngle()*180/PI;
+  sprintf(buff,"x1=%f y1=%f  x2=%f y2=%f Xc=%f Yc=%f R=%f Direction=%d angle=%f",xs,ys,xe,ye,xc,yc,radius,direction,angle);
   comStr.addTextToHistory(buff);
+  return hitCursor(10,10,10);
 }
 
 bool ArcSegment::getDataFromUser()
@@ -431,13 +450,122 @@ bool ArcSegment::scale(float sf ){
 	return true;
 }
 
+float ArcSegment::getAngle()
+{
+	vec2 s,e,c;
+	vec2 sc,ec;
+	vec2 ortX(1,0);
+	s.x=xs;
+	s.y=ys;
+	e.x=xe;
+	e.y=ye;
+	c.x=xc;
+	c.y=yc;
+
+	sc=s-c;
+	ec=e-c;
+
+	sc.normalize();
+	ec.normalize();
+
+	float angle;
+	float beta;
+	angle=acos(dot(sc,ec));
+
+	beta=acos(sc.x/sc.length());
+	if (sc.y<0)
+		beta=2*PI-beta;
+
+	beta=-beta;
+	float x,y;
+	x=sc.x*cos(beta)-sc.y*sin(beta);
+	y=sc.x*sin(beta)+sc.y*cos(beta);
+	sc.x=x;
+	sc.y=y;
+	//modelWindow.line(0,0,x*100,y*100);
+	x=ec.x*cos(beta)-ec.y*sin(beta);
+	y=ec.x*sin(beta)+ec.y*cos(beta);
+	//modelWindow.line(0,0,x*100,y*100);
+	if (y<0&&direction==AD_CLOCKWISE)
+		angle=2*PI-angle;
+	else if (y>0&&direction==AD_COUNTERCLOCKWISE)
+		angle=2*PI-angle;
+	return angle;
+}
+
 bool ArcSegment::hitCursor(int xPos,int yPos,int size){
 	bool result;
-	int xL=xPos-size;
-	int xR=xPos+size;
-	int yT=yPos-size;
-	int yB=xPos+size;
-	return false;
+	HRGN hRgn;
+	int inflate=50;
+	int nVertex=20;
+	POINT *lpPoint;
+	POINT *lpBegin;
+	lpPoint=new POINT[nVertex*2];
+	lpBegin=lpPoint;
+	vec2 s,e,c;
+	vec2 sc,res;
+
+	s.x=xs;
+	s.y=ys;
+	e.x=xe;
+	e.y=ye;
+	c.x=xc;
+	c.y=yc;
+	sc=s-c;
+
+	res=sc;
+	res.normalize();
+	res*=2;
+	sc+=res;
+
+	Point ptStart(sc.x,sc.y);
+
+	float delta=getAngle()/(nVertex-1);
+	if (direction==AD_COUNTERCLOCKWISE)
+		delta*=-1;
+
+	while(lpPoint<(lpBegin+nVertex*2))
+	{
+		res.x=ptStart.getX();
+		res.y=ptStart.getY();
+		res+=c;
+
+		lpPoint->x=(int)(res.x*100);
+		lpPoint->y=(int)(res.y*100);
+		//modelWindow.marker(res.x,res.y);
+		//modelWindow.line(xc,yc,res.x,res.y);
+
+		lpPoint++;
+
+		if (lpPoint==(lpBegin+nVertex))
+		{
+			delta=-delta;
+			res.x=ptStart.getX();
+			res.y=ptStart.getY();
+			sc=res;
+			sc.normalize();
+			sc*=4;
+			res-=sc;
+			ptStart.setXY(res.x,res.y);
+			continue;
+		}
+		ptStart.rotRad(delta);
+	}
+		hRgn=CreatePolygonRgn(lpBegin,nVertex*2,ALTERNATE);
+		//modelWindow.myPolygon(lpBegin,nVertex*2);
+
+	result=PtInRegion(hRgn,xPos,yPos);
+	DeleteObject(hRgn);
+
+	if (selected&&result)
+		return result;
+	else 
+	{
+		selected=result;
+		show();
+	}
+
+	return result;
 }
 
 //**************class Model*********************************************
@@ -490,6 +618,7 @@ bool Model::appendArc(float x1, float y1, float x2, float y2,
 		MessageBox(modelWindow.getHWND(),"Model:appendArc:386. NULL pointer","Error", MB_OK);
 		exit(-1);
 	}
+	ptrToArc->printInfo();// comment it
 	entities.push_back(ptrToArc);
 	return TRUE;
 }
@@ -675,5 +804,5 @@ bool Model::hitModel(int xPos,int yPos,int size){
    for (iter;iter!=entities.end();++iter)
 	result+=(*iter)->hitCursor(xPos,yPos,size);
 
-	return false;
+	return result;
 }
