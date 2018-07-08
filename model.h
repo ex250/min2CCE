@@ -57,10 +57,10 @@ class Entity
 	virtual bool printInfo()=0;
 	virtual bool getInfo(char *)=0;
 	virtual bool scale(float)=0;
+	virtual bool move(float,float)=0;
 /*	virtual	unsigned char getLayer()=0;
 	virtual	bool setLayer(unsigned char)=0;	
 	virtual bool rotate()=0;
-	virtual bool move()=0;
 	virtual bool mirror()=0;
 	virtual bool offset()=0;
 	virtual bool trim()=0;
@@ -129,7 +129,11 @@ class Line:public Entity
 
 	bool scale(float );
 
-	bool move(float dx, float dy );
+	bool move(float, float);
+
+	bool setStart(float,float);
+
+	bool setEnd(float,float);
 
 	void show();
 
@@ -159,7 +163,9 @@ class ArcSegment:public Entity
 	ArcSegment(float,float,float,float,float,float,float,int);
 	void show();
 
-	bool scale(float );
+	bool scale(float);
+
+	bool move(float,float);
 
 	bool getInfo(char*);
 

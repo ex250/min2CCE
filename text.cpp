@@ -818,14 +818,14 @@ bool arcBez(vec2 B0, vec2 B1, vec2 B2,
 	Point pe(B2);
 	Point pcenter;
 	vec2 offsetX(startPos,0);
-	currentLayer=&layer[0];
+	//currentLayer=&layer[0];
 
 	float a=b1b0.length();
 	float b=b2b1.length();
 	float d=b2b0.length();
 
 	if (a==0||b==0||d==0){
-		currentLayer=&layer[3];
+		//currentLayer=&layer[3];
 	 	ps.move(startPos,0);
 	   	pe.move(startPos,0);
 	   	ps.rotate(textEntities.getAngle());
@@ -833,7 +833,7 @@ bool arcBez(vec2 B0, vec2 B1, vec2 B2,
 		ps.move(textEntities.getInsX(),textEntities.getInsY());
 		pe.move(textEntities.getInsX(),textEntities.getInsY());
 		myModel.appendLine(&ps,&pe);
-		currentLayer=&layer[1];
+		//currentLayer=&layer[1];
 		return true;
 	}
 
@@ -845,7 +845,7 @@ bool arcBez(vec2 B0, vec2 B1, vec2 B2,
 
 // test collinear
 	if (cos_theta>=0.99999||cos_theta<=-0.99999){
-		currentLayer=&layer[3];
+		//currentLayer=&layer[3];
 	 	ps.move(startPos,0);
 	   	pe.move(startPos,0);
 	   	ps.rotate(textEntities.getAngle());
@@ -1149,7 +1149,7 @@ bool arcBez(vec2 B0, vec2 B1, vec2 B2,
 	}
 
 
-	currentLayer=&layer[1];
+	//currentLayer=&layer[1];
 
 	ps=G;
 	pe=B2;

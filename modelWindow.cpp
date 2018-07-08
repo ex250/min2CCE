@@ -1,6 +1,8 @@
 #include "headerui.h"
 #include <stdio.h>
 
+extern CommandLine comStr;
+
 bool ModelWindow::init(LPCTSTR windowName,
 	 	  DWORD dwStyle,
 		  int x,
@@ -86,6 +88,28 @@ bool ModelWindow::myRectangle(POINT pt1, POINT pt2)
   hDC=GetDC(hWnd);
   result=Rectangle(hDC,pt1.x,pt1.y,pt2.x,pt2.y);
   ReleaseDC(hWnd,hDC);
+	return result;
+}
+
+bool ModelWindow::myRectangle(float xPrev,float yPrev,float x,float y)
+{
+  bool result;
+  x*=100;y*=100;
+  xPrev*=100;yPrev*=100;
+
+  HPEN hOldPen;
+  HBRUSH hOldBrush;
+  hDC=GetDC(hWnd);
+
+  hOldBrush=(HBRUSH)SelectObject(hDC, hBrush); 
+  hOldPen=(HPEN)SelectObject(hDC, hPen);
+  SetROP2(hDC, ROP2); 
+  result=Rectangle(hDC,xPrev,yPrev,x,y);
+
+  DeleteObject(SelectObject(hDC,hOldPen));
+  DeleteObject(SelectObject(hDC,hOldBrush));
+  ReleaseDC(hWnd,hDC);
+
 	return result;
 }
 

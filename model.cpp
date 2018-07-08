@@ -257,12 +257,14 @@ void Line::show()
   if (selected==false)
   	hPen=CreatePen(type, width, RGB(R,G,B));
   else
+  {
   	hPen=CreatePen(type, width, RGB(250,0,0));
+  	modelWindow.marker(start.getX(),start.getY());
+  	modelWindow.marker(end.getX(),end.getY());
+  }
 
   modelWindow.setPen(&hPen);
   modelWindow.line(start.getX(),start.getY(),end.getX(),end.getY());
-  modelWindow.marker(start.getX(),start.getY());
-  modelWindow.marker(end.getX(),end.getY());
   DeleteObject(hPen);
 }
 
@@ -277,6 +279,16 @@ bool Line::getDataFromUser()
   start.getPoint();
   end.getPoint();
   return TRUE;
+}
+
+bool Line::setStart(float x,float y)
+{
+	return 	start.setXY(x,y);
+}
+
+bool Line::setEnd(float x,float y)
+{
+	return 	end.setXY(x,y);
 }
 
 bool Line::getInfo(char* infPtr){
@@ -352,10 +364,15 @@ bool Line::hitCursor(int xPos,int yPos,int size){
 	else
 	{
 		hRgn=CreatePolygonRgn(point,4,ALTERNATE);
-	//	modelWindow.myPolygon(point,4);
+		//modelWindow.myPolygon(point,4);
 	}
 	result=PtInRegion(hRgn,xPos,yPos);
+
+	if (result)
+		comStr.pActivEntity=(int *)this;
+
 	DeleteObject(hRgn);
+
 	if (selected&&result)
 		return result;
 	else 
@@ -450,6 +467,16 @@ bool ArcSegment::scale(float sf ){
 	return true;
 }
 
+bool ArcSegment::move(float x, float y ){
+	xc+=x;
+	yc+=y;
+	xs+=x;
+	ys+=y;
+	xe+=x;
+	ye+=y;
+	return true;
+}
+
 float ArcSegment::getAngle()
 {
 	vec2 s,e,c;
@@ -496,7 +523,6 @@ float ArcSegment::getAngle()
 bool ArcSegment::hitCursor(int xPos,int yPos,int size){
 	bool result;
 	HRGN hRgn;
-	int inflate=50;
 	int nVertex=20;
 	POINT *lpPoint;
 	POINT *lpBegin;
@@ -555,6 +581,10 @@ bool ArcSegment::hitCursor(int xPos,int yPos,int size){
 		//modelWindow.myPolygon(lpBegin,nVertex*2);
 
 	result=PtInRegion(hRgn,xPos,yPos);
+
+	if (result)
+		comStr.pActivEntity=(int *)this;
+
 	DeleteObject(hRgn);
 
 	if (selected&&result)
@@ -564,6 +594,8 @@ bool ArcSegment::hitCursor(int xPos,int yPos,int size){
 		selected=result;
 		show();
 	}
+
+	delete [] lpBegin;
 
 	return result;
 }
@@ -618,7 +650,7 @@ bool Model::appendArc(float x1, float y1, float x2, float y2,
 		MessageBox(modelWindow.getHWND(),"Model:appendArc:386. NULL pointer","Error", MB_OK);
 		exit(-1);
 	}
-	ptrToArc->printInfo();// comment it
+	//ptrToArc->printInfo();
 	entities.push_back(ptrToArc);
 	return TRUE;
 }
@@ -799,10 +831,16 @@ int Model::scaleModel(float sf){
 
 bool Model::hitModel(int xPos,int yPos,int size){
    int result=0;
+   int count=0;
    iter=entities.begin();
    if (!entities.empty()&&(entities.size()<entities.max_size()))
    for (iter;iter!=entities.end();++iter)
-	result+=(*iter)->hitCursor(xPos,yPos,size);
-
-	return result;
+   {
+	result=(*iter)->hitCursor(xPos,yPos,size);
+	if (result)
+		count++;
+   }
+   if (count==0)
+		comStr.pActivEntity=NULL;
+	return count;
 }

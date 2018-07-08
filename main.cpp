@@ -380,14 +380,6 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		   ScreenToClient(hWnd,lpPoint);
 		   DPtoLP(hDC,lpPoint,1);
 
-		/*		   if (bTracking)
-				   {
-					   modelWindow.myRectangle(
-							   prevPosition,
-							   cursPos
-							   );
-				   }
-		*/
 
 		   sprintf(buffer,"Coordinate x=%4.3f y=%4.3f       ",static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 		   strcat(buffer,buf);
@@ -395,8 +387,29 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 
 		   switch (comStr.getState()){
-			   case STATE_WAIT_COMMAND:
+			   case STATE_SELECTRECT:
+			if (flagRegen==true)
+				modelWindow.myRectangle(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+			modelWindow.myRectangle(comStr.getX1(),comStr.getY1(),static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+		        prevCursPos=*lpPoint;
+			flagRegen=true;
+				   break;
 
+			case STATE_RECT_POINT2:
+			if (flagRegen==true)
+				modelWindow.myRectangle(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+			modelWindow.myRectangle(comStr.getX1(),comStr.getY1(),static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+		        prevCursPos=*lpPoint;
+			flagRegen=true;
+				   break;
+
+			case STATE_MOVE_P2:
+			if (flagRegen==true){
+				modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+			}
+			modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+		        prevCursPos=*lpPoint;
+			flagRegen=true;
 				   break;
 
 			   case STATE_LINE_POINT2:
@@ -515,13 +528,6 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		break;
 	
 	case WM_LBUTTONUP:
-		if (bTracking)
-		{
-			bTracking=FALSE;
-			//modelWindow.setROP2(R2_COPYPEN);
-			//GetCursorPos(lpPoint);
-			//modelWindow.myRectangle(prevCursPos,cursPos);
-		}
 
 		break; 
 
@@ -539,11 +545,32 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
  	           	if (!myModel.hitModel(lpPoint->x,lpPoint->y,
 					mycursor.getSize()))
 			{
-				//modelWindow.setROP2(R2_NOTXORPEN);
-		  		bTracking=TRUE;
-			        //prevCursPos=*lpPoint;
+				comStr.selectRect(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 			}
 				break;
+			case STATE_SELECTRECT:
+				comStr.selectRect(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				flagRegen=false;
+				break;
+
+			case STATE_RECT_POINT1:
+				comStr.segRect(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				break;
+
+			case STATE_RECT_POINT2:
+				comStr.segRect(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				flagRegen=false;
+				break;
+
+			case STATE_MOVE_P1:
+				comStr.segMove(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				break;
+
+			case STATE_MOVE_P2:
+				comStr.segMove(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				flagRegen=false;
+				break;
+
 			case STATE_LINE_POINT1:
 			        prevCursPos=*lpPoint;
 				comStr.segLine(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
@@ -738,10 +765,24 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
       break;
 
       case WM_CONTEXTMENU:
-		GetCursorPos(&cursPos);
-		if (comStr.getState()==STATE_WAIT_COMMAND)
-		TrackPopupMenuEx(hMenuShape,0,cursPos.x,cursPos.y,hWnd,
+		  hDC=GetDC(modelWindow.getHWND());
+		  GetCursorPos(lpPoint);
+		  ScreenToClient(hWnd,lpPoint);
+		  DPtoLP(hDC,lpPoint,1);
+		  switch (comStr.getState()){
+			case STATE_WAIT_COMMAND:
+				if (comStr.pActivEntity)
+				if (((Entity *)(comStr.pActivEntity))->
+				hitCursor(lpPoint->x,lpPoint->y,4))
+				{
+		  	GetCursorPos(lpPoint);
+			TrackPopupMenuEx(hMenuShape,0,
+				cursPos.x,cursPos.y,hWnd,
 				NULL);
+				}
+		   ReleaseDC(modelWindow.getHWND(),hDC);
+			break;
+		  }
       break;
       case WM_PAINT:                       // Message is to redraw the window
 		//statusBar.printText(10,10,buffer);
@@ -814,15 +855,10 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			break;
 //-----------------DRAW---------------------------------------------------
 		case IDM_LINE:
-			//modelWindow.moveTo(10,10);
 			comStr.segLine(0,0);
-			//MessageBox(hWnd, "Выбран пункт 'ОТРЕЗОК'", "Меню Примитив", MB_OK);
 			break;
 		case IDM_ARCSTARTENDRADIUS:
 			comStr.segArc(0,0);
-			//SendMessage(hwndCommand, WM_SETTEXT, 0, (LPARAM) "Введите команду");
-			//modelWindow.lineTo(150,150);
-			//MessageBox(hWnd, "Выбран пункт 'ДУГА НАЧАЛЬНАЯ, КОНЕЧНАЯ ТОЧКА, РАДИУС, НАПРАВЛЕНИЕ'", "Меню Примитив", MB_OK);
 			break;
 		case IDM_ARC3POINTS:
 			comStr.setState(STATE_WAIT_COMMAND);
@@ -846,41 +882,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			comStr.contur(0,0);
 			break;
 		case IDM_RECTANGLE:
-			{
-			vec2 B0(11.5468836,11.3203173);
-			vec2 B1(11.5625086,11.078126);
-			vec2 B2(11.5468836,10.7500114);
-		arcBez(B0, B1, B2, 0.2,0);
-
-			B0.x=-100;
-			B0.y=100;
-			B1.x=-100;
-			B1.y=200;
-			B2.x=-100;
-			B2.y=400;
-
-	//	arcBez(B0, B1, B2, 0.2,0);
-
-		/*
-			B0.x=-100;
-			B0.y=-100;
-			B1.x=-200;
-			B1.y=-300;
-			B2.x=-400;
-			B2.y=-100;
-
-		arcBez(B0, B1, B2, 0.2,0);
-
-			B0.x=100;
-			B0.y=-100;
-			B1.x=300;
-			B1.y=-200;
-			B2.x=100;
-			B2.y=-400;
-		arcBez(B0, B1, B2, 0.2,0);
-	*/	
-		
-			}
+			comStr.segRect(0,0);
 			break;
 		case IDM_POLYGON:
 			MessageBox(hWnd, "Выбран пункт 'ПОЛИГОН'", "Меню Примитив", MB_OK);
@@ -911,7 +913,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			break;
 
 		case IDM_MOVE:
-			MessageBox(hWnd, "Выбран пункт 'MOVE'", "Меню Преобразовать", MB_OK);
+			comStr.segMove(0,0);
 			break;
 
 		case IDM_ROTATE:

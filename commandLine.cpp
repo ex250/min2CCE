@@ -14,6 +14,7 @@ CommandLine::CommandLine():BaseWindow()
 	pStrCmd="Command";
 	EnType=tLine;
 	countStr=0;
+	pActivEntity=NULL;
 }
 
 WNDPROC CommandLine::wpOrigEditProc=0;
@@ -213,7 +214,6 @@ int  CommandLine::addTextToHistory(const char * pStr){
 	return strlen(pStr);
 }
 
-
 int CommandLine::getState(){
 	return state;
 }
@@ -236,6 +236,26 @@ int CommandLine::enumEnType(){
 		EnType=tArc;
 	else
 		EnType=tLine;
+}
+
+bool CommandLine::selectRect(float x,float y){
+
+	bool result;
+
+	switch (state){
+		case STATE_WAIT_COMMAND:
+		state=STATE_SELECTRECT;
+		modelWindow.setROP2(R2_NOTXORPEN);
+		x1=x;
+		y1=y;
+		break;
+		case STATE_SELECTRECT:
+		modelWindow.myRectangle(x1,y1,x,y);
+	    	modelWindow.setROP2(R2_COPYPEN);
+	    	state=STATE_WAIT_COMMAND;
+		break;
+	}
+	return true;
 }
 
 bool CommandLine::segLine(float x,float y){
@@ -437,6 +457,100 @@ bool CommandLine::contur(float x, float y)
 	  
 	}
 	return result;
+}
+
+bool CommandLine::segRect(float x,float y){
+	bool result;
+	RECT aRect={0,40,180,80}; 	
+
+	switch (state){
+		case STATE_WAIT_COMMAND:
+           	pStrCmd="координаты x,y: ";
+	   	InvalidateRect(hWnd,&aRect,TRUE);
+	   	addTextToHistory("Rectangle");
+	   	state=STATE_RECT_POINT1;
+	  	break;
+
+		case STATE_RECT_POINT1:
+		x1=x;
+		y1=y;
+	   	modelWindow.setROP2(R2_NOTXORPEN);
+	   	state=STATE_RECT_POINT2;
+		break;
+
+		case STATE_RECT_POINT2:
+		{
+	    	Point start(x1,y1);
+	    	Point end(x,y1);
+	    	myModel.appendLine(&start,&end);
+
+		start=end;
+		end.setXY(x,y);
+	    	myModel.appendLine(&start,&end);
+
+		start=end;
+		end.setXY(x1,y);
+	    	myModel.appendLine(&start,&end);
+
+		start=end;
+		end.setXY(x1,y1);
+	    	myModel.appendLine(&start,&end);
+
+	    	modelWindow.setROP2(R2_COPYPEN);
+	    	state=STATE_WAIT_COMMAND;
+		}
+		break;
+	}
+	return true;
+}
+
+bool CommandLine::segMove(float x,float y){
+	bool result;
+	RECT aRect={0,40,180,80}; 	
+
+	switch (state){
+		case STATE_WAIT_COMMAND:
+           	pStrCmd="Base point x,y: ";
+	   	InvalidateRect(hWnd,&aRect,TRUE);
+	   	addTextToHistory("Move");
+	   	state=STATE_MOVE_P1;
+
+	if (!pActivEntity)
+	{
+           	pStrCmd="Select object: ";
+	   	InvalidateRect(hWnd,&aRect,TRUE);
+		return false;
+	}
+	  	break;
+
+		case STATE_MOVE_P1:
+		x1=x;
+		y1=y;
+	   	modelWindow.setROP2(R2_NOTXORPEN);
+           	pStrCmd="Insert point x,y: ";
+	   	InvalidateRect(hWnd,&aRect,TRUE);
+	   	state=STATE_MOVE_P2;
+		break;
+
+		case STATE_MOVE_P2:
+		{
+		if (pActivEntity)
+		{
+			vec2 s(x1,y1);
+			vec2 e(x,y);
+			vec2 se=e-s;
+			modelWindow.line(x,y,x1,y1);
+			((Entity*)pActivEntity)->show();
+			((Entity*)pActivEntity)->move(se.x,se.y);
+		}
+
+	    	modelWindow.setROP2(R2_COPYPEN);
+		myModel.showModel();
+	    	state=STATE_WAIT_COMMAND;
+		}
+		break;
+	}
+	return true;
 }
 
 

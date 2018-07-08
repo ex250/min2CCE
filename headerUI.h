@@ -23,6 +23,15 @@ const int STATE_TEXT_INSPOINT=20;
 const int STATE_TEXT_ANGLE1=30;
 const int STATE_TEXT_ANGLE2=35;
 const int STATE_TEXT_LEN=40;
+const int STATE_SELECTRECT=50;
+const int STATE_RECT_POINT1=60;
+const int STATE_RECT_POINT2=70;
+const int STATE_MOVE_P1=80;
+const int STATE_MOVE_P2=85;
+const int STATE_ROTATE_CENTER=90;
+const int STATE_ROTATE_P2=95;
+const int STATE_SCALE=100;
+
 const float PI=3.14159265;
 const int ON=1;
 const int OFF=0;
@@ -157,8 +166,9 @@ class CommandLine:public BaseWindow
     int ArcDirection;
     int countStr;
 
-
  public:
+
+    int* pActivEntity;
 
     CommandLine();
 
@@ -192,6 +202,12 @@ class CommandLine:public BaseWindow
     bool segArc(float,float);
 
     bool contur(float,float);
+
+    bool segRect(float,float);
+
+    bool selectRect(float,float);
+
+    bool segMove(float,float);
 
     POINT getStartPOINT();
 
@@ -260,6 +276,8 @@ class ModelWindow:public BaseWindow
     bool myPolygon(CONST POINT *, int );
 
     bool myRectangle(POINT,POINT );
+
+    bool myRectangle(float,float,float,float);
 
 };
 
