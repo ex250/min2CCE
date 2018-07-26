@@ -636,16 +636,21 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 				tempA.x=textEntities.getInsX();
 				tempA.y=textEntities.getInsY();
-				tempB.x=static_cast<float>(lpPoint->x)/100;
-				tempB.y=static_cast<float>(lpPoint->y)/100;
+				tempB.x=((float)(lpPoint->x))/100;
+				tempB.y=((float)(lpPoint->y))/100;
 				tempB-=tempA;
-				float cosAn=tempB.x/tempB.length();
+				tempA.x=1;
+				tempA.y=0;
+				tempB.normalize();
+
+				float cosAn=dot(tempA,tempB);
 				float an=acos(cosAn)*180/PI;
 
 				if (tempB.y<0&&tempB.x<0)
-					an=2*PI-an;
+					an=360-an;
 				else if (tempB.y<0&&tempB.x>0)
-					an=2*PI-an;
+					an=360-an;
+					
 
 				textEntities.setAngle(an);
 				comStr.setState(STATE_WAIT_COMMAND);
