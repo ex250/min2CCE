@@ -646,9 +646,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				float cosAn=dot(tempA,tempB);
 				float an=acos(cosAn)*180/PI;
 
-				if (tempB.y<0&&tempB.x<0)
-					an=360-an;
-				else if (tempB.y<0&&tempB.x>0)
+				if (tempB.y<0)
 					an=360-an;
 					
 

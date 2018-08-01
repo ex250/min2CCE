@@ -146,6 +146,10 @@ class Line:public Entity
 	bool getDataFromUser();
 
 	bool hitCursor(int,int,int);
+
+	Point* getStart();
+
+	Point* getEnd();
 };
 
 
@@ -176,6 +180,14 @@ class ArcSegment:public Entity
 	bool hitCursor(int,int,int);
 
 	float getAngle();
+
+	float getStartX();
+	float getStartY();
+	float getEndX();
+	float getEndY();
+	float getRadius();
+	int getDirection();
+	float getSignRad();
 };
 
 class Model{

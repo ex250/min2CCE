@@ -274,6 +274,18 @@ void Line::getLine()
   end.getPoint();
 }
 
+
+Point* Line::getStart()
+{
+	return &start;
+}
+
+
+Point* Line::getEnd()
+{
+	return &end;
+}
+
 bool Line::getDataFromUser()
 {
   start.getPoint();
@@ -400,8 +412,9 @@ ArcSegment::ArcSegment():
   layerID=currentLayer->getID();
 }
 
-ArcSegment::ArcSegment(float x1, float y1 ,float x2,float y2, float x, float y,
- float R, int ArcDir): color(currentLayer->getColor()),type(currentLayer->getType()),width(currentLayer->getWidth())
+ArcSegment::ArcSegment(float x1, float y1,float x2,float y2,
+       	float x, float y, float R, int ArcDir):
+	color(currentLayer->getColor()),type(currentLayer->getType()),width(currentLayer->getWidth())
 {
   xs=x1;
   ys=y1;
@@ -431,6 +444,61 @@ void ArcSegment::show()
   DeleteObject(hPen);
 }
 
+float ArcSegment::getStartX(){
+	return xs;
+}
+
+float ArcSegment::getStartY(){
+	return ys;
+}
+
+float ArcSegment::getEndX(){
+	return xe;
+}
+
+float ArcSegment::getEndY(){
+	return ye;
+}
+
+float ArcSegment::getRadius(){
+	return radius;
+}
+
+int ArcSegment::getDirection(){
+	return direction;
+}
+
+float ArcSegment::getSignRad(){
+	vec2 start(xs,ys);
+	vec2 end(xe,ye);
+	vec2 center(xc,yc);
+	vec2 ox(1,0);
+	vec2 se;
+	float angle;
+	float tempX,tempY;
+	int signRad;
+	se=end-start;
+	se.normalize();
+	angle=acos(dot(se,ox));
+	center-=start;
+	if (se.y>0)
+		angle=-angle;
+	tempY=center.x*sin(angle)+center.y*cos(angle);
+	if (direction==AD_CLOCKWISE){
+		if (tempY<0)
+			signRad=-1;
+		else 
+			signRad=1;
+	}
+	else{
+		if (tempY<0)
+			signRad=1;
+		else 
+			signRad=-1;
+	}
+
+	return radius*signRad;
+}
 
 bool ArcSegment::getInfo(char* infPtr){
 	char buff[256];
@@ -782,16 +850,154 @@ int  Model::writeModel(const char * fn)
 }
 int Model::saveInfo(const char *fn){
    int j;
+   int numLine;
    char buff[256];
    char tmp[64];
+   float lastX;
+   float lastY;
+   Line * ptrLine;
+   ArcSegment * ptrArc;
    ofstream oufile;
+   entityType etype;
+   float safeDistZ=-1;
+   float workDistZ=2;
+   enum {SAVE_STRING,G0,G1,G2,G3,SAFE_Z};
+   const char *prgFormatCode[]={
+	   "N%i G21 G40 G49 G54 G80 G90\n",
+	   "N%i X%.3f Y%.3f G0\n",
+	   "N%i X%.3f Y%.3f G1\n",
+	   "N%i X%.3f Y%.3f R%.3f G2\n",
+	   "N%i X%.3f Y%.3f R%.3f G3\n",
+	   "N%i Z%.3f G1\n"
+   };
+
    oufile.open(fn);
+
    if (!oufile)
 	MessageBox(modelWindow.getHWND(),"Error open file","SAVE...",MB_OK);
    
+   lastX=0.0;
+   lastY=0.0;
+   numLine=0;
+
    for (j=0;j<entities.size();j++){
-	entities[j]->getInfo(buff);
+
+	etype=entities[j]->getType();
+
+	if (!numLine){
+		numLine+=10;
+		sprintf(tmp,prgFormatCode[SAVE_STRING],numLine);
+		strcpy(buff,tmp);
+		numLine+=10;
+	}
+
+	switch(etype){
+		case tPoint:
+			strcpy(buff,"tPoint\n");
+			break;
+		case tLine:
+			ptrLine=(Line*)(entities[j]);
+			if (lastX==ptrLine->getStart()->getX()&&
+			    lastY==ptrLine->getStart()->getY()){
+			sprintf(tmp,prgFormatCode[G1],numLine,
+				ptrLine->getEnd()->getX(),
+				ptrLine->getEnd()->getY()
+			);
+			strcat(buff,tmp);
+			}
+			else  //move to new point 
+			{
+			sprintf(tmp,prgFormatCode[SAFE_Z],numLine,
+				safeDistZ);
+			strcat(buff,tmp);
+			numLine+=10;
+
+			sprintf(tmp,prgFormatCode[G0],numLine,
+				ptrLine->getStart()->getX(),
+				ptrLine->getStart()->getY()
+			);
+			strcat(buff,tmp);
+			numLine+=10;
+
+			sprintf(tmp,prgFormatCode[SAFE_Z],numLine,
+				workDistZ);
+			strcat(buff,tmp);
+			numLine+=10;
+
+			sprintf(tmp,prgFormatCode[G1],numLine,
+				ptrLine->getEnd()->getX(),
+				ptrLine->getEnd()->getY()
+			);
+			strcat(buff,tmp);
+			}
+			numLine+=10;
+			lastX=ptrLine->getEnd()->getX();
+			lastY=ptrLine->getEnd()->getY();
+
+			break;
+		case tArc:
+			ptrArc=(ArcSegment*)(entities[j]);
+			if (lastX==ptrArc->getStartX()&&
+			    lastY==ptrArc->getStartY()){
+		  	  if (ptrArc->getDirection()==AD_COUNTERCLOCKWISE)
+			    sprintf(tmp,prgFormatCode[G2],numLine,
+				ptrArc->getEndX(),
+				ptrArc->getEndY(),
+				ptrArc->getSignRad()
+				);
+			  else
+			    sprintf(tmp,prgFormatCode[G3],numLine,
+				ptrArc->getEndX(),
+				ptrArc->getEndY(),
+				ptrArc->getSignRad()
+				);
+			strcat(buff,tmp);
+			}
+			else //move to new point 
+			{
+			sprintf(tmp,prgFormatCode[SAFE_Z],numLine,
+				safeDistZ);
+			strcat(buff,tmp);
+			numLine+=10;
+
+			sprintf(tmp,prgFormatCode[G0],numLine,
+				ptrArc->getStartX(),
+				ptrArc->getStartY()
+			);
+			strcat(buff,tmp);
+			numLine+=10;
+
+			sprintf(tmp,prgFormatCode[SAFE_Z],numLine,
+				workDistZ);
+			strcat(buff,tmp);
+			numLine+=10;
+
+			  if (ptrArc->getDirection()==AD_COUNTERCLOCKWISE)
+			     sprintf(tmp,prgFormatCode[G2],numLine,
+				ptrArc->getEndX(),
+				ptrArc->getEndY(),
+				ptrArc->getSignRad()
+				);
+			  else
+			sprintf(tmp,prgFormatCode[G3],numLine,
+				ptrArc->getEndX(),
+				ptrArc->getEndY(),
+				ptrArc->getSignRad()
+				);
+
+			  strcat(buff,tmp);
+			}
+			numLine+=10;
+			lastX=ptrArc->getEndX();
+			lastY=ptrArc->getEndY();
+		
+			break;
+		default:
+				strcpy(buff,"NONE\n");
+		}
+
 	oufile.write(buff,strlen(buff));
+	strcpy(buff,"");
    if (!oufile)
 	MessageBox(modelWindow.getHWND(),"Error write file","SAVE...",MB_OK);
 
