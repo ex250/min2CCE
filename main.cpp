@@ -47,7 +47,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
    mainWindow.init("Min2CCE");
 
    tbDrawWindow.registerClass(TBwin);
-   tbDrawWindow.init("Примитив",
+   tbDrawWindow.init(
+	"Примитив",
 	WS_CHILD|WS_BORDER,
 	0,
 	HTBSTD,
@@ -220,6 +221,115 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	SendMessage(hwndComboWidth, CB_ADDSTRING, 0, (LPARAM)"0.05mm");
 	SendMessage(hwndComboWidth, CB_SETCURSEL, 0, 0);
 
+//combobox for the Z axis
+	HWND hwndComboZAxis;
+	HWND hwndComboZCaption;
+	SendMessage(tbStd.getHWND(), TB_GETITEMRECT, 0, (LPARAM)&rcItem);
+	x = rcItem.left + (24)*4+cx+cx+cx+cx;     y = rcItem.top;
+	cx = COMBO_SPACE_WIDTH;  cy = COMBO_SPACE_HEIGHT;
+
+	hwndComboZCaption = CreateWindowEx(
+			WS_EX_LEFT,
+			"STATIC",
+		       	"Z=",
+		       	WS_CHILD | WS_VISIBLE,
+		       	x+5, y+3, cx, cy, 
+			tbStd.getHWND(),
+		       	(HMENU)IDC_STATIC_Z,
+		GetModuleHandle(NULL), 0);
+
+
+	hwndComboZAxis = CreateWindowEx(
+			WS_EX_LEFT,
+			"COMBOBOX",
+		       	NULL,
+		       	WS_CHILD | WS_VISIBLE | CBS_DROPDOWN,
+		       	x+25, y, cx, cy*2, 
+			tbStd.getHWND(),
+		       	(HMENU)IDC_TBCOMBO_Z,
+		GetModuleHandle(NULL), 0);
+
+        for(int i=-10;i<=10;i++){
+		sprintf(buffer,"%d",i);
+		SendMessage(hwndComboZAxis, CB_ADDSTRING, 0, (LPARAM)buffer);
+	}
+
+	SendMessage(hwndComboZAxis, CB_SETCURSEL, 20, 0);
+	
+//combobox for tools 
+	HWND hwndComboTools;
+	HWND hwndComboToolsCaption;
+	SendMessage(tbStd.getHWND(), TB_GETITEMRECT, 0, (LPARAM)&rcItem);
+	x = rcItem.left + (24)*4+cx+cx+cx+cx+cx;     y = rcItem.top;
+	cx = COMBO_SPACE_WIDTH;  cy = COMBO_SPACE_HEIGHT;
+
+	hwndComboToolsCaption = CreateWindowEx(
+			WS_EX_LEFT,
+			"STATIC",
+		       	"TOOL=",
+		       	WS_CHILD | WS_VISIBLE,
+		       	x+30, y+3, cx, cy, 
+			tbStd.getHWND(),
+		       	(HMENU)IDC_STATIC_TOOL,
+		GetModuleHandle(NULL), 0);
+
+
+	hwndComboTools = CreateWindowEx(
+			WS_EX_LEFT,
+			"COMBOBOX",
+		       	NULL,
+		       	WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST,
+		       	x+85, y, cx, cy*2, 
+			tbStd.getHWND(),
+		       	(HMENU)IDC_TBCOMBO_TOOL,
+		GetModuleHandle(NULL), 0);
+
+        for(int i=0;i<=10;i++){
+		sprintf(buffer,"T%d",i);
+		SendMessage(hwndComboTools, CB_ADDSTRING, 0, (LPARAM)buffer);
+	}
+
+	SendMessage(hwndComboTools, CB_SETCURSEL, 0, 0);
+
+//combobox for speed 
+	HWND hwndComboSpeed;
+	HWND hwndComboSpeedCaption;
+	SendMessage(tbStd.getHWND(), TB_GETITEMRECT, 0, (LPARAM)&rcItem);
+	x = rcItem.left + (24)*4+7*cx;     y = rcItem.top;
+	cx = COMBO_SPACE_WIDTH;  cy = COMBO_SPACE_HEIGHT;
+
+	hwndComboSpeedCaption = CreateWindowEx(
+			WS_EX_LEFT,
+			"STATIC",
+		       	"SPEED=",
+		       	WS_CHILD | WS_VISIBLE,
+		       	x, y+3,
+			60 , cy, 
+			tbStd.getHWND(),
+		       	(HMENU)IDC_STATIC_SPEED,
+		GetModuleHandle(NULL), 0);
+
+	GetWindowRect(hwndComboSpeedCaption,&rcItem);
+	int cellX=rcItem.right-rcItem.left;
+
+	hwndComboSpeed = CreateWindowEx(
+			WS_EX_LEFT,
+			"COMBOBOX",
+		       	NULL,
+		       	WS_CHILD | WS_VISIBLE | CBS_DROPDOWN,
+		       	x+cellX, y, cx, cy*2, 
+			tbStd.getHWND(),
+		       	(HMENU)IDC_TBCOMBO_SPEED,
+		GetModuleHandle(NULL), 0);
+
+        for(int i=10;i<=100;i+=10){
+		sprintf(buffer,"%d mm/min",i);
+		SendMessage(hwndComboSpeed, CB_ADDSTRING, 0, (LPARAM)buffer);
+	}
+
+	SendMessage(hwndComboSpeed, CB_SETCURSEL, 0, 0);
+
+
    mainWindow.SetWindowPosition(XPOSWINDOW,YPOSWINDOW,
 		(HTBSTD+HTBVERT+HSTBAR+HCOMSTR)*1.62,
 		HTBSTD+HTBVERT+HSTBAR+HSTBAR+HCOMSTR);
@@ -282,7 +392,14 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
    BOOL success;
    static OPENFILENAME ofn;
-   char szFile[MAXFILENAME];
+   static char szFile[MAXFILENAME];
+   static char formatFilter[]="All\0*.*\0ISO Gcode\0*.gcode\0DXF\0*.dxf\
+			       \0WMF\0*.wmf\0Biesse NC1000\0*.*";
+   enum indexFileFilter {ALL_FILES=1,
+	   		GCODE_FILES,
+			DXF_FILES,
+			WMF_FILES,
+			NC1000_FILES };
    int dX, dY;
    int ws, hs, wd, hd;
    BOOL isFileLoaded;
@@ -306,6 +423,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 	       ofn.hwndOwner = hWnd;
 	       ofn.lpstrFile = szFile;
 	       ofn.nMaxFile = sizeof(szFile);
+	       ofn.lpstrFilter=formatFilter;
 	       hInst=GetModuleHandle(NULL);
 	       hIcon=LoadIcon(hInst,MAKEINTRESOURCE(IDI_ICONMIN2C));
 	       SetClassLong(hWnd,GCL_HICON,(LONG)hIcon);
@@ -837,15 +955,39 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			break;
 
  		case IDM_SAVE:
-			myModel.saveInfo("info.txt");
-			MessageBox(hWnd, "Выбран пункт 'Save'", "Меню File", MB_OK);
+
+			//myModel.saveGcodeISO("test.gcode");
+			MessageBox(hWnd, "select command SAVE", "Меню File", MB_OK);
+
 			break;
 
  		case IDM_SAVEAS:
 			//strcpy(szFile, "");
 			success = GetSaveFileName(&ofn);
 			if (success){
+				switch (ofn.nFilterIndex)
+				{
+					case GCODE_FILES:
+				strcat(ofn.lpstrFile,".gcode");
+				myModel.saveGcodeISO(ofn.lpstrFile);
+					break;
+					case DXF_FILES:
+				MessageBox(hWnd, "save as DXF",
+				"SAVE AS...", MB_ICONWARNING);
+					break;
+					case WMF_FILES:
+				MessageBox(hWnd, "save as WMF",
+				"SAVE AS...", MB_ICONWARNING);
+					break;
+					case NC1000_FILES:
+				MessageBox(hWnd, "save as Biesse NC1000",
+				"SAVE AS...", MB_ICONWARNING);
+					break;
+					default:
 				myModel.writeModel(ofn.lpstrFile);
+				MessageBox(hWnd, "save as inner format",
+				"SAVE AS...", MB_ICONWARNING);
+				}
 			}
 			else
 				MessageBox(hWnd, "GetSaveFileName",
@@ -861,10 +1003,10 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			comStr.segLine(0,0);
 			break;
 		case IDM_ARCSTARTENDRADIUS:
-			comStr.segArc(0,0);
+			MessageBox(hWnd, "Arc Start/End/Radius ","ARC", MB_OK);
 			break;
 		case IDM_ARC3POINTS:
-			comStr.setState(STATE_WAIT_COMMAND);
+			comStr.segArc(0,0);
 			break;
 		case IDM_ARCCENTREANG1ANG2:
 			MessageBox(hWnd, "Выбран пункт 'ДУГА ЦЕНТР РАДИУС УГОЛ1 УГОЛ2'", "Меню Примитив", MB_OK);
@@ -956,8 +1098,9 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			break;
 		case IDC_TBCOMBO_LAYER:
 			if (HIWORD(wParam)==CBN_SELCHANGE){
-                           ItemIndex = SendMessage((HWND) lParam, (UINT) CB_GETCURSEL, 
-                               (WPARAM) 0, (LPARAM) 0);
+                           ItemIndex = SendMessage((HWND) lParam,
+			 	(UINT) CB_GETCURSEL, 
+                                (WPARAM) 0, (LPARAM) 0);
 			   if (ItemIndex<Layer::getCount()){
 			       currentLayer=&layer[ItemIndex];
 			       hPen=CreatePen(currentLayer->getType(), currentLayer->getWidth(), RGB((currentLayer->getColor()&0xff0000)>>16, (currentLayer->getColor()&0xff00)>>8,currentLayer->getColor()&0xff));
@@ -976,6 +1119,73 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			   }
 			}
 			break;
+
+		case IDC_TBCOMBO_TOOL:
+			if (HIWORD(wParam)==CBN_SELCHANGE){
+                           ItemIndex = SendMessage((HWND) lParam,
+			 	(UINT) CB_GETCURSEL, 
+                                (WPARAM) 0, (LPARAM) 0);
+			   int lenBuffer=SendMessage((HWND)lParam,
+			 	(UINT) CB_GETLBTEXTLEN, 
+                                (WPARAM) ItemIndex, (LPARAM) 0);
+			   char * ptrBuffer=new char[lenBuffer+1];
+			   SendMessage((HWND)lParam,
+					   (UINT) CB_GETLBTEXT,
+					   (WPARAM)ItemIndex,
+					   (LPARAM)ptrBuffer
+				      );
+			   MessageBox(hWnd,ptrBuffer,"TOOL TYPE",MB_OK);
+			   currentLayer->setTool(
+					   (toolType)atoi(++ptrBuffer)
+					   );
+			   delete [] ptrBuffer;
+
+			}
+			break;
+
+		case IDC_TBCOMBO_Z:
+			if (HIWORD(wParam)==CBN_SELCHANGE){
+                           ItemIndex = SendMessage((HWND) lParam,
+			 	(UINT) CB_GETCURSEL, 
+                                (WPARAM) 0, (LPARAM) 0);
+			   int lenBuffer=SendMessage((HWND)lParam,
+			 	(UINT) CB_GETLBTEXTLEN, 
+                                (WPARAM) ItemIndex, (LPARAM) 0);
+			   char * ptrBuffer=new char[lenBuffer+1];
+			   SendMessage((HWND)lParam,
+					   (UINT) CB_GETLBTEXT,
+					   (WPARAM)ItemIndex,
+					   (LPARAM)ptrBuffer
+				      );
+			   MessageBox(hWnd,ptrBuffer,"Axis Z",MB_OK);
+			   currentLayer->setZ(atof(ptrBuffer));
+			   delete [] ptrBuffer;
+
+			}
+			break;
+
+		case IDC_TBCOMBO_SPEED:
+			if (HIWORD(wParam)==CBN_SELCHANGE){
+                           ItemIndex = SendMessage((HWND) lParam,
+			 	(UINT) CB_GETCURSEL, 
+                                (WPARAM) 0, (LPARAM) 0);
+			   int lenBuffer=SendMessage((HWND)lParam,
+			 	(UINT) CB_GETLBTEXTLEN, 
+                                (WPARAM) ItemIndex, (LPARAM) 0);
+			   char * ptrBuffer=new char[lenBuffer+1];
+			   SendMessage((HWND)lParam,
+					   (UINT) CB_GETLBTEXT,
+					   (WPARAM)ItemIndex,
+					   (LPARAM)ptrBuffer
+				      );
+			   MessageBox(hWnd,ptrBuffer,"SPEED",MB_OK);
+			   currentLayer->setSpeed(atof(ptrBuffer));
+			   delete [] ptrBuffer;
+
+			}
+			break;
+
+
 		case IDM_HELPABOUT:
 	   		DialogBox(NULL,MAKEINTRESOURCE(IDD_HELPDIALOG1),
 					hWnd,dlgprc);

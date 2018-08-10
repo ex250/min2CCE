@@ -6,6 +6,12 @@
 #define IDC_TBCOMBO_COLOR    	 201
 #define IDC_TBCOMBO_TYPE    	 202
 #define IDC_TBCOMBO_WIDTH	 203
+#define IDC_TBCOMBO_TOOL	 210
+#define IDC_STATIC_TOOL		 215
+#define IDC_TBCOMBO_SPEED	 220
+#define IDC_STATIC_SPEED	 225
+#define IDC_TBCOMBO_Z		 230
+#define IDC_STATIC_Z		 235
 
 //-----¬¥­î ”€‰‹-----------------------
 #define MYMENU			1000

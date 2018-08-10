@@ -15,7 +15,10 @@ Layer* currentLayer=layer;
 unsigned char Layer::countID=0;
 
 Layer::Layer():
-    hide(OFF),ID(countID)
+       	hide(OFF),ID(countID),
+	speed(DEFAULT_SPEED),
+	tool(DEFAULT_TOOL),
+	Z(DEFAULT_Z)
 {
   switch(countID){
 	case 1:
@@ -67,9 +70,31 @@ int Layer::getColor()const{
   return color;
 }
 
+float Layer::getZ()const{
+  return Z;
+}
+
+float Layer::getSpeed()const{
+  return speed;
+}
+
+toolType Layer::getTool()const{
+  return tool;
+}
+
 void Layer::show()const{
 }
 
+void Layer::setZ(float zCoord){
+	Z=zCoord;
+}
+void Layer::setSpeed(float spd){
+	speed=spd;
+}
+
+void Layer::setTool(toolType tl){
+	tool=tl;
+}
 //**************class Entity********************************************
 
 unsigned char Entity::getLayerID(){
@@ -80,6 +105,31 @@ bool Entity::setLayerID(unsigned char ID){
   layerID=ID;
   return true;
 }	
+
+void Entity::setZ(float zCoord){
+  Z=zCoord;
+}	
+
+float Entity::getZ(){
+	return Z;
+}	
+
+void Entity::setSpeed(float spd){
+  speed=spd;
+}	
+
+float Entity::getSpeed(){
+	return speed;
+}	
+
+void Entity::setTool(toolType tl){
+  tool=tl;
+}	
+
+toolType Entity::getTool(){
+	return tool;
+}	
+
 entityType Entity::getType(){
 	if (typeid(*this)==typeid(Point))
 		return tPoint;
@@ -223,6 +273,9 @@ Line::Line():start(),end(),
 		color(currentLayer->getColor())
 {
   layerID=currentLayer->getID();
+  Z=currentLayer->getZ();
+  speed=currentLayer->getSpeed();
+  tool=currentLayer->getTool();
 }
 
 
@@ -689,6 +742,7 @@ bool Model::appendLine(Point *start,Point *end){
 		MessageBox(modelWindow.getHWND(),"Model:appendLine:360. NULL pointer","Error", MB_OK);
 		exit(-1);
 	}
+
 	if (entities.size()<(entities.max_size()-10))
 		entities.push_back(ptrToLine);
 	else 
@@ -848,7 +902,7 @@ int  Model::writeModel(const char * fn)
 
 	return 0;
 }
-int Model::saveInfo(const char *fn){
+int Model::saveGcodeISO(const char *fn){
    int j;
    int numLine;
    char buff[256];
@@ -859,8 +913,8 @@ int Model::saveInfo(const char *fn){
    ArcSegment * ptrArc;
    ofstream oufile;
    entityType etype;
-   float safeDistZ=-1;
-   float workDistZ=2;
+   float safeDistZ=2;
+   float workDistZ=-2;
    enum {SAVE_STRING,G0,G1,G2,G3,SAFE_Z};
    const char *prgFormatCode[]={
 	   "N%i G21 G40 G49 G54 G80 G90\n",
@@ -871,11 +925,15 @@ int Model::saveInfo(const char *fn){
 	   "N%i Z%.3f G1\n"
    };
 
-   oufile.open(fn);
+	if (FileName!="")
+		oufile.open(fn);
+	else 
+	{
+		sprintf(buff,"empty file name %s",FileName);
+		MessageBox(modelWindow.getHWND(),buff,"Error",MB_OK);
+	       	return -1;
+	}
 
-   if (!oufile)
-	MessageBox(modelWindow.getHWND(),"Error open file","SAVE...",MB_OK);
-   
    lastX=0.0;
    lastY=0.0;
    numLine=0;
@@ -1002,6 +1060,8 @@ int Model::saveInfo(const char *fn){
 	MessageBox(modelWindow.getHWND(),"Error write file","SAVE...",MB_OK);
 
    }
+   sprintf(buff,"N%d M30\n",numLine);
+   oufile.write(buff,strlen(buff));
    oufile.close();
    return 0;
 }

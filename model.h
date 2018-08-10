@@ -20,6 +20,12 @@
 #define TRUE		1
 #define FALSE		0
 
+enum toolType {T0,T1,T2,T3,T4,T5,T6,T7,T8,T9};
+
+const float DEFAULT_SPEED=10.0;//mm/min
+const toolType DEFAULT_TOOL=T0;//T0
+const float DEFAULT_Z=0.0;
+
 enum {ONE,TWO,THREE,FOR,FIFE,SIX,SEVEN,EIGHT,NINE,TEN};
 enum entityType {tPoint,tLine,tArc};
 
@@ -28,6 +34,9 @@ class Layer
   private:
 	bool hide;
 	int type,width,color;
+	float Z;
+	float speed;
+	toolType tool;
 	static unsigned char countID;
 	unsigned char ID;
   public:
@@ -38,7 +47,13 @@ class Layer
 	int getType()const;
 	int getWidth()const;
 	int getColor()const;
+	float getZ()const;
+	float getSpeed()const;
+	toolType getTool()const;
 	void show()const;
+	void setZ(float);
+	void setSpeed(float);
+	void setTool(toolType);
 };
 
 class Entity
@@ -46,6 +61,9 @@ class Entity
   protected:
 	unsigned char layerID;
 	bool selected;
+	float Z;
+	float speed;
+	toolType tool;
   public:
 	virtual void show()=0;
 	virtual bool getDataFromUser()=0;
@@ -54,6 +72,16 @@ class Entity
 
 	unsigned char getLayerID();
 	bool setLayerID(unsigned char);	
+
+	void setZ(float);
+	float getZ();
+
+	void setSpeed(float);
+	float getSpeed();
+
+	void setTool(toolType);
+	toolType getTool();
+
 	virtual bool printInfo()=0;
 	virtual bool getInfo(char *)=0;
 	virtual bool scale(float)=0;
@@ -213,7 +241,7 @@ class Model{
 
 	int readModel(char *);
 	int writeModel(const char *);
-	int saveInfo(const char *);
+	int saveGcodeISO(const char *);
 	int scaleModel(float);
 	void showModel();
 	int printModelInfo()const;
