@@ -249,12 +249,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		       	(HMENU)IDC_TBCOMBO_Z,
 		GetModuleHandle(NULL), 0);
 
-        for(int i=-10;i<=10;i++){
-		sprintf(buffer,"%d",i);
+        for(float zAxis=MIN_Z;zAxis<=MAX_Z;zAxis++){
+		sprintf(buffer,"%3.3f",zAxis);
 		SendMessage(hwndComboZAxis, CB_ADDSTRING, 0, (LPARAM)buffer);
 	}
 
-	SendMessage(hwndComboZAxis, CB_SETCURSEL, 20, 0);
+	SendMessage(hwndComboZAxis, CB_SETCURSEL, 0, 0);
 	
 //combobox for tools 
 	HWND hwndComboTools;
@@ -1157,7 +1157,6 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 					   (WPARAM)ItemIndex,
 					   (LPARAM)ptrBuffer
 				      );
-			   MessageBox(hWnd,ptrBuffer,"Axis Z",MB_OK);
 			   currentLayer->setZ(atof(ptrBuffer));
 			   delete [] ptrBuffer;
 

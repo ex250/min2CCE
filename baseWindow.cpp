@@ -191,8 +191,8 @@ bool BaseWindow::line(int xPrev,int yPrev,int x, int y)
   //SetBkMode(hDC, TRANSPARENT);      // Set text background mode
   MoveToEx(hDC,xPrev,yPrev,NULL);
   result=LineTo(hDC,x,y);
-  //SelectObject(hDC, hOldPen); 
-  //SelectObject(hDC, hOldBrush); 
+  //DeleteObject(hDC,SelectObject(hDC, hOldPen)); 
+  //DeleteObject(hDC,SelectObject(hDC, hOldBrush)); 
   ReleaseDC(hWnd,hDC);
   return result;
 }
@@ -212,6 +212,9 @@ bool BaseWindow::setBrush(HBRUSH*){
   return true;
 }
 bool BaseWindow::setPen(HPEN* phPen){
+
+  if (hPen)
+	  DeleteObject(hPen);
 
   hPen=*phPen;
   return true;

@@ -25,6 +25,8 @@ enum toolType {T0,T1,T2,T3,T4,T5,T6,T7,T8,T9};
 const float DEFAULT_SPEED=10.0;//mm/min
 const toolType DEFAULT_TOOL=T0;//T0
 const float DEFAULT_Z=0.0;
+const float MIN_Z=-10.0;
+const float MAX_Z=10.0;
 
 enum {ONE,TWO,THREE,FOR,FIFE,SIX,SEVEN,EIGHT,NINE,TEN};
 enum entityType {tPoint,tLine,tArc};

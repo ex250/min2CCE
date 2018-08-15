@@ -18,7 +18,7 @@ Layer::Layer():
        	hide(OFF),ID(countID),
 	speed(DEFAULT_SPEED),
 	tool(DEFAULT_TOOL),
-	Z(DEFAULT_Z)
+	Z(MIN_Z)
 {
   switch(countID){
 	case 1:
@@ -743,6 +743,8 @@ bool Model::appendLine(Point *start,Point *end){
 		exit(-1);
 	}
 
+	ptrToLine->setZ(currentLayer->getZ());
+
 	if (entities.size()<(entities.max_size()-10))
 		entities.push_back(ptrToLine);
 	else 
@@ -772,7 +774,7 @@ bool Model::appendArc(float x1, float y1, float x2, float y2,
 		MessageBox(modelWindow.getHWND(),"Model:appendArc:386. NULL pointer","Error", MB_OK);
 		exit(-1);
 	}
-	//ptrToArc->printInfo();
+	ptrToArc->setZ(currentLayer->getZ());
 	entities.push_back(ptrToArc);
 	return TRUE;
 }
@@ -915,7 +917,7 @@ int Model::saveGcodeISO(const char *fn){
    entityType etype;
    float safeDistZ=2;
    float workDistZ=-2;
-   enum {SAVE_STRING,G0,G1,G2,G3,SAFE_Z};
+   enum {SAFE_STRING,G0,G1,G2,G3,SAFE_Z};
    const char *prgFormatCode[]={
 	   "N%i G21 G40 G49 G54 G80 G90\n",
 	   "N%i X%.3f Y%.3f G0\n",
@@ -944,7 +946,7 @@ int Model::saveGcodeISO(const char *fn){
 
 	if (!numLine){
 		numLine+=10;
-		sprintf(tmp,prgFormatCode[SAVE_STRING],numLine);
+		sprintf(tmp,prgFormatCode[SAFE_STRING],numLine);
 		strcpy(buff,tmp);
 		numLine+=10;
 	}
@@ -955,6 +957,9 @@ int Model::saveGcodeISO(const char *fn){
 			break;
 		case tLine:
 			ptrLine=(Line*)(entities[j]);
+
+   			workDistZ=ptrLine->getZ();
+
 			if (lastX==ptrLine->getStart()->getX()&&
 			    lastY==ptrLine->getStart()->getY()){
 			sprintf(tmp,prgFormatCode[G1],numLine,
@@ -995,6 +1000,9 @@ int Model::saveGcodeISO(const char *fn){
 			break;
 		case tArc:
 			ptrArc=(ArcSegment*)(entities[j]);
+
+   			workDistZ=ptrArc->getZ();
+
 			if (lastX==ptrArc->getStartX()&&
 			    lastY==ptrArc->getStartY()){
 		  	  if (ptrArc->getDirection()==AD_COUNTERCLOCKWISE)
