@@ -393,8 +393,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
    BOOL success;
    static OPENFILENAME ofn;
    static char szFile[MAXFILENAME];
-   static char formatFilter[]="All\0*.*\0ISO Gcode\0*.gcode\0DXF\0*.dxf\
-			       \0WMF\0*.wmf\0Biesse NC1000\0*.*";
+   static char formatFilter[]="All\0*.*\0ISO Gcode\0*.gcode\0DXF\0*.dxf\0WMF\0*.wmf\0Biesse NC1000\0*.*";
    enum indexFileFilter {ALL_FILES=1,
 	   		GCODE_FILES,
 			DXF_FILES,
@@ -940,7 +939,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			strcpy(szFile, "");
 			success = GetOpenFileName(&ofn);
 			if (success){
-				myModel.readModel(ofn.lpstrFile);
+				//myModel.readModel(ofn.lpstrFile);
+				myModel.loadDXF(ofn.lpstrFile);
 				myModel.showModel();
 			}
 			else

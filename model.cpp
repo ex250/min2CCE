@@ -1133,6 +1133,7 @@ int Model::loadDXF(const char *fName){
 	int flag=OUTENTITY;
 	float x1,y1,x2,y2,R;
 	float startAngle,endAngle;
+	float xc,yc;
 
 	while(!infile.eof()){
 		infile.getline(buffer,MAX);
@@ -1184,12 +1185,12 @@ int Model::loadDXF(const char *fName){
 				if (streq(buffer," 10")){
 					infile.getline(buffer,MAX);
 					line++;
-					x1=atof(buffer);
+					xc=atof(buffer);
 					}
 				else if (streq(buffer," 20")){
 					infile.getline(buffer,MAX);
 					line++;
-					y1=atof(buffer);
+					yc=atof(buffer);
 					}
 				else if (streq(buffer," 40")){
 					infile.getline(buffer,MAX);
@@ -1209,10 +1210,23 @@ int Model::loadDXF(const char *fName){
 				infile.getline(buffer,MAX);
 					line++;
 			}
-			appendArcCenAngRad(x1,y1,
+			
+			float anSt,anEn;
+			anSt=startAngle*PI/180;
+			anEn=endAngle*PI/180;
+			x1=xc+R*cos(anSt);
+			x2=xc+R*cos(anEn);
+			y1=yc+R*sin(anSt);
+			y2=yc+R*sin(anEn);
+
+			appendArc(x1,y1,x2,y2,xc,yc,R,AD_CLOCKWISE);
+
+			/*
+			  appendArcCenAngRad(xc,yc,
 					startAngle,
 					endAngle,
 					R);
+			*/
 
 			}
 	}
