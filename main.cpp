@@ -1042,7 +1042,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			break;
 
 		case IDM_PCOPY:
-			MessageBox(hWnd, "Выбран пункт 'PCOPY'", "Меню Преобразовать", MB_OK);
+			myModel.loadDXF("ex.dxf");
+			//MessageBox(hWnd, "Выбран пункт 'PCOPY'", "Меню Преобразовать", MB_OK);
 			break;
 
 		case IDM_MIRROR:
@@ -1144,23 +1145,39 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			break;
 
 		case IDC_TBCOMBO_Z:
-			if (HIWORD(wParam)==CBN_SELCHANGE){
+			if (HIWORD(wParam)==CBN_CLOSEUP){
                            ItemIndex = SendMessage((HWND) lParam,
 			 	(UINT) CB_GETCURSEL, 
                                 (WPARAM) 0, (LPARAM) 0);
+
+			   if (ItemIndex==CB_ERR){
+			   ItemIndex=SendMessage((HWND)lParam,
+					   (UINT)CB_GETTOPINDEX,
+					   (WPARAM)NULL,
+					   (LPARAM)NULL);
+			   sprintf(buffer,"TOP index %d",ItemIndex);
+			   MessageBox(hWnd,buffer,"CB_ERR",MB_OK);
+			   //break;
+			   }
+
 			   int lenBuffer=SendMessage((HWND)lParam,
 			 	(UINT) CB_GETLBTEXTLEN, 
-                                (WPARAM) ItemIndex, (LPARAM) 0);
+                                (WPARAM) ItemIndex,
+			       	(LPARAM) 0);
+
 			   char * ptrBuffer=new char[lenBuffer+1];
+
 			   SendMessage((HWND)lParam,
 					   (UINT) CB_GETLBTEXT,
 					   (WPARAM)ItemIndex,
 					   (LPARAM)ptrBuffer
 				      );
+			   MessageBox(hWnd,ptrBuffer,"Z",MB_OK);
 			   currentLayer->setZ(atof(ptrBuffer));
 			   delete [] ptrBuffer;
 
 			}
+			
 			break;
 
 		case IDC_TBCOMBO_SPEED:

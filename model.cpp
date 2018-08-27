@@ -779,6 +779,13 @@ bool Model::appendArc(float x1, float y1, float x2, float y2,
 	return TRUE;
 }
 
+bool Model::appendArcCenAngRad(float xc, float yc, float startAn, 
+		float endAn, float R)
+{
+
+	return 0;
+}	
+
 int  Model::deleteEntity(int selectedEntities[])
 {
 	return 0;
@@ -1117,4 +1124,97 @@ bool Model::hitModel(int xPos,int yPos,int size){
    if (count==0)
 		comStr.pActivEntity=NULL;
 	return count;
+}
+
+int Model::loadDXF(const char *fName){
+	char buffer[MAX];
+	ifstream infile(fName);
+	int line=0;
+	int flag=OUTENTITY;
+	float x1,y1,x2,y2,R;
+	float startAngle,endAngle;
+
+	while(!infile.eof()){
+		infile.getline(buffer,MAX);
+		line++;
+		if (streq(buffer,"ENTITIES"))
+		{
+			flag=INENTITY;
+		}
+		else 
+			if (streq(buffer,"LINE")&&flag)
+			{
+			infile.getline(buffer,MAX);
+			line++;
+			while(strcmp(buffer,"  0"))
+			{
+				if (streq(buffer," 10")){
+					infile.getline(buffer,MAX);
+					line++;
+					x1=atof(buffer);
+					}
+				else if (streq(buffer," 20")){
+					infile.getline(buffer,MAX);
+					line++;
+					y1=atof(buffer);
+					}
+				else if (streq(buffer," 11")){
+					infile.getline(buffer,MAX);
+					line++;
+					x2=atof(buffer);
+					}
+				else if (streq(buffer," 21")){
+					infile.getline(buffer,MAX);
+					line++;
+					y2=atof(buffer);
+					}
+				infile.getline(buffer,MAX);
+					line++;
+			}
+			Point p1(x1,y1);
+			Point p2(x2,y2);
+			appendLine(&p1,&p2);
+			}
+		else 
+			if (streq(buffer,"ARC")&&flag){
+			infile.getline(buffer,MAX);
+			line++;
+			while(strcmp(buffer,"  0"))
+			{
+				if (streq(buffer," 10")){
+					infile.getline(buffer,MAX);
+					line++;
+					x1=atof(buffer);
+					}
+				else if (streq(buffer," 20")){
+					infile.getline(buffer,MAX);
+					line++;
+					y1=atof(buffer);
+					}
+				else if (streq(buffer," 40")){
+					infile.getline(buffer,MAX);
+					line++;
+					R=atof(buffer);
+					}
+				else if (streq(buffer," 50")){
+					infile.getline(buffer,MAX);
+					line++;
+					startAngle=atof(buffer);
+					}
+				else if (streq(buffer," 51")){
+					infile.getline(buffer,MAX);
+					line++;
+					endAngle=atof(buffer);
+					}
+				infile.getline(buffer,MAX);
+					line++;
+			}
+			appendArcCenAngRad(x1,y1,
+					startAngle,
+					endAngle,
+					R);
+
+			}
+	}
+	return 0;
 }

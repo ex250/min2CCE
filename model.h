@@ -7,6 +7,9 @@
 #include <typeinfo>
 #include <sstream>
 #include "myvector.h"
+#include <stdlib.h>
+
+#define streq(a,b)	(!strcmp(a,b))
 
 #define MAXFILENAME	256
 #define OFF	0
@@ -30,6 +33,10 @@ const float MAX_Z=10.0;
 
 enum {ONE,TWO,THREE,FOR,FIFE,SIX,SEVEN,EIGHT,NINE,TEN};
 enum entityType {tPoint,tLine,tArc};
+
+const int MAX=255;
+
+enum {OUTENTITY,INENTITY};
 
 class Layer
 {
@@ -220,7 +227,8 @@ class ArcSegment:public Entity
 	float getSignRad();
 };
 
-class Model{
+class Model
+{
   private:
 	char FileName[256];
 	std::vector<Entity*> entities;
@@ -235,6 +243,7 @@ class Model{
 	bool	appendLine(Point*,Point*);
 	bool	appendPoint();
 	bool	appendArc(float, float, float, float, float, float, float, int);
+	bool	appendArcCenAngRad(float, float, float, float, float);
 
 	bool 	addEntity(Entity*);
 	int	deleteEntity(int[]);
@@ -244,6 +253,7 @@ class Model{
 	int readModel(char *);
 	int writeModel(const char *);
 	int saveGcodeISO(const char *);
+	int loadDXF(const char *fName);
 	int scaleModel(float);
 	void showModel();
 	int printModelInfo()const;
