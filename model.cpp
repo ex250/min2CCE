@@ -15,7 +15,10 @@ Layer* currentLayer=layer;
 unsigned char Layer::countID=0;
 
 Layer::Layer():
-    hide(OFF),ID(countID)
+       	hide(OFF),ID(countID),
+	speed(DEFAULT_SPEED),
+	tool(DEFAULT_TOOL),
+	Z(MIN_Z)
 {
   switch(countID){
 	case 1:
@@ -67,9 +70,31 @@ int Layer::getColor()const{
   return color;
 }
 
+float Layer::getZ()const{
+  return Z;
+}
+
+float Layer::getSpeed()const{
+  return speed;
+}
+
+toolType Layer::getTool()const{
+  return tool;
+}
+
 void Layer::show()const{
 }
 
+void Layer::setZ(float zCoord){
+	Z=zCoord;
+}
+void Layer::setSpeed(float spd){
+	speed=spd;
+}
+
+void Layer::setTool(toolType tl){
+	tool=tl;
+}
 //**************class Entity********************************************
 
 unsigned char Entity::getLayerID(){
@@ -80,6 +105,31 @@ bool Entity::setLayerID(unsigned char ID){
   layerID=ID;
   return true;
 }	
+
+void Entity::setZ(float zCoord){
+  Z=zCoord;
+}	
+
+float Entity::getZ(){
+	return Z;
+}	
+
+void Entity::setSpeed(float spd){
+  speed=spd;
+}	
+
+float Entity::getSpeed(){
+	return speed;
+}	
+
+void Entity::setTool(toolType tl){
+  tool=tl;
+}	
+
+toolType Entity::getTool(){
+	return tool;
+}	
+
 entityType Entity::getType(){
 	if (typeid(*this)==typeid(Point))
 		return tPoint;
@@ -223,6 +273,9 @@ Line::Line():start(),end(),
 		color(currentLayer->getColor())
 {
   layerID=currentLayer->getID();
+  Z=currentLayer->getZ();
+  speed=currentLayer->getSpeed();
+  tool=currentLayer->getTool();
 }
 
 
@@ -689,6 +742,9 @@ bool Model::appendLine(Point *start,Point *end){
 		MessageBox(modelWindow.getHWND(),"Model:appendLine:360. NULL pointer","Error", MB_OK);
 		exit(-1);
 	}
+
+	ptrToLine->setZ(currentLayer->getZ());
+
 	if (entities.size()<(entities.max_size()-10))
 		entities.push_back(ptrToLine);
 	else 
@@ -718,10 +774,17 @@ bool Model::appendArc(float x1, float y1, float x2, float y2,
 		MessageBox(modelWindow.getHWND(),"Model:appendArc:386. NULL pointer","Error", MB_OK);
 		exit(-1);
 	}
-	//ptrToArc->printInfo();
+	ptrToArc->setZ(currentLayer->getZ());
 	entities.push_back(ptrToArc);
 	return TRUE;
 }
+
+bool Model::appendArcCenAngRad(float xc, float yc, float startAn, 
+		float endAn, float R)
+{
+
+	return 0;
+}	
 
 int  Model::deleteEntity(int selectedEntities[])
 {
@@ -848,7 +911,7 @@ int  Model::writeModel(const char * fn)
 
 	return 0;
 }
-int Model::saveInfo(const char *fn){
+int Model::saveGcodeISO(const char *fn){
    int j;
    int numLine;
    char buff[256];
@@ -859,9 +922,9 @@ int Model::saveInfo(const char *fn){
    ArcSegment * ptrArc;
    ofstream oufile;
    entityType etype;
-   float safeDistZ=-1;
-   float workDistZ=2;
-   enum {SAVE_STRING,G0,G1,G2,G3,SAFE_Z};
+   float safeDistZ=2;
+   float workDistZ=-2;
+   enum {SAFE_STRING,G0,G1,G2,G3,SAFE_Z};
    const char *prgFormatCode[]={
 	   "N%i G21 G40 G49 G54 G80 G90\n",
 	   "N%i X%.3f Y%.3f G0\n",
@@ -871,11 +934,15 @@ int Model::saveInfo(const char *fn){
 	   "N%i Z%.3f G1\n"
    };
 
-   oufile.open(fn);
+	if (FileName!="")
+		oufile.open(fn);
+	else 
+	{
+		sprintf(buff,"empty file name %s",FileName);
+		MessageBox(modelWindow.getHWND(),buff,"Error",MB_OK);
+	       	return -1;
+	}
 
-   if (!oufile)
-	MessageBox(modelWindow.getHWND(),"Error open file","SAVE...",MB_OK);
-   
    lastX=0.0;
    lastY=0.0;
    numLine=0;
@@ -886,7 +953,7 @@ int Model::saveInfo(const char *fn){
 
 	if (!numLine){
 		numLine+=10;
-		sprintf(tmp,prgFormatCode[SAVE_STRING],numLine);
+		sprintf(tmp,prgFormatCode[SAFE_STRING],numLine);
 		strcpy(buff,tmp);
 		numLine+=10;
 	}
@@ -897,6 +964,9 @@ int Model::saveInfo(const char *fn){
 			break;
 		case tLine:
 			ptrLine=(Line*)(entities[j]);
+
+   			workDistZ=ptrLine->getZ();
+
 			if (lastX==ptrLine->getStart()->getX()&&
 			    lastY==ptrLine->getStart()->getY()){
 			sprintf(tmp,prgFormatCode[G1],numLine,
@@ -937,6 +1007,9 @@ int Model::saveInfo(const char *fn){
 			break;
 		case tArc:
 			ptrArc=(ArcSegment*)(entities[j]);
+
+   			workDistZ=ptrArc->getZ();
+
 			if (lastX==ptrArc->getStartX()&&
 			    lastY==ptrArc->getStartY()){
 		  	  if (ptrArc->getDirection()==AD_COUNTERCLOCKWISE)
@@ -1002,6 +1075,8 @@ int Model::saveInfo(const char *fn){
 	MessageBox(modelWindow.getHWND(),"Error write file","SAVE...",MB_OK);
 
    }
+   sprintf(buff,"N%d M30\n",numLine);
+   oufile.write(buff,strlen(buff));
    oufile.close();
    return 0;
 }
@@ -1049,4 +1124,111 @@ bool Model::hitModel(int xPos,int yPos,int size){
    if (count==0)
 		comStr.pActivEntity=NULL;
 	return count;
+}
+
+int Model::loadDXF(const char *fName){
+	char buffer[MAX];
+	ifstream infile(fName);
+	int line=0;
+	int flag=OUTENTITY;
+	float x1,y1,x2,y2,R;
+	float startAngle,endAngle;
+	float xc,yc;
+
+	while(!infile.eof()){
+		infile.getline(buffer,MAX);
+		line++;
+		if (streq(buffer,"ENTITIES"))
+		{
+			flag=INENTITY;
+		}
+		else 
+			if (streq(buffer,"LINE")&&flag)
+			{
+			infile.getline(buffer,MAX);
+			line++;
+			while(strcmp(buffer,"  0"))
+			{
+				if (streq(buffer," 10")){
+					infile.getline(buffer,MAX);
+					line++;
+					x1=atof(buffer);
+					}
+				else if (streq(buffer," 20")){
+					infile.getline(buffer,MAX);
+					line++;
+					y1=atof(buffer);
+					}
+				else if (streq(buffer," 11")){
+					infile.getline(buffer,MAX);
+					line++;
+					x2=atof(buffer);
+					}
+				else if (streq(buffer," 21")){
+					infile.getline(buffer,MAX);
+					line++;
+					y2=atof(buffer);
+					}
+				infile.getline(buffer,MAX);
+					line++;
+			}
+			Point p1(x1,y1);
+			Point p2(x2,y2);
+			appendLine(&p1,&p2);
+			}
+		else 
+			if (streq(buffer,"ARC")&&flag){
+			infile.getline(buffer,MAX);
+			line++;
+			while(strcmp(buffer,"  0"))
+			{
+				if (streq(buffer," 10")){
+					infile.getline(buffer,MAX);
+					line++;
+					xc=atof(buffer);
+					}
+				else if (streq(buffer," 20")){
+					infile.getline(buffer,MAX);
+					line++;
+					yc=atof(buffer);
+					}
+				else if (streq(buffer," 40")){
+					infile.getline(buffer,MAX);
+					line++;
+					R=atof(buffer);
+					}
+				else if (streq(buffer," 50")){
+					infile.getline(buffer,MAX);
+					line++;
+					startAngle=atof(buffer);
+					}
+				else if (streq(buffer," 51")){
+					infile.getline(buffer,MAX);
+					line++;
+					endAngle=atof(buffer);
+					}
+				infile.getline(buffer,MAX);
+					line++;
+			}
+			
+			float anSt,anEn;
+			anSt=startAngle*PI/180;
+			anEn=endAngle*PI/180;
+			x1=xc+R*cos(anSt);
+			x2=xc+R*cos(anEn);
+			y1=yc+R*sin(anSt);
+			y2=yc+R*sin(anEn);
+
+			appendArc(x1,y1,x2,y2,xc,yc,R,AD_CLOCKWISE);
+
+			/*
+			  appendArcCenAngRad(xc,yc,
+					startAngle,
+					endAngle,
+					R);
+			*/
+
+			}
+	}
+	return 0;
 }

@@ -35,7 +35,7 @@ const int STATE_SCALE=100;
 const float PI=3.14159265;
 const int ON=1;
 const int OFF=0;
-const int MAXFILENAME=256;
+const int MAXFILENAME=512;
 
 const int HSTBAR=35; 	//высота строки состояния
 const int WTBDRAW=30;   //ширина инстр. панели DRAW
@@ -62,6 +62,7 @@ class BaseWindow
 	HWND hWnd;
 	const WNDCLASS  *WindowClass;	
 	DWORD dwStyle;
+	DWORD exStyle;
 	int xPos;
 	int yPos;
 	int width;
@@ -87,6 +88,18 @@ class BaseWindow
 		  HWND hwndParent,
 		  HMENU hMenu,
 		  HINSTANCE hInst);
+	bool initEx(
+		DWORD exStyle,
+		LPCTSTR windowName,
+	 	  DWORD dwStyle,
+		  int x,
+		  int y,
+		  int cx,
+		  int cy,
+		  HWND hwndParent,
+		  HMENU hMenu,
+		  HINSTANCE hInst);
+
 
 	ATOM registerClass(WNDCLASS&);
 

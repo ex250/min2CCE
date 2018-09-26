@@ -3,6 +3,7 @@
 BaseWindow::BaseWindow()
 {
 	dwStyle=WS_OVERLAPPEDWINDOW;
+	exStyle=WS_EX_LEFT;
 	xPos=CW_USEDEFAULT;
 	yPos=CW_USEDEFAULT;
 	width=CW_USEDEFAULT;
@@ -68,6 +69,40 @@ bool BaseWindow::init(LPCTSTR windowName="New window",
 {
 
    hWnd = CreateWindow(
+          WindowClass->lpszClassName,    // the window class name
+          windowName,   		// The window title
+          dwStyle,          // Window style as overlapped
+          x,         // Default screen position of upper left
+          y,         // corner of our window as x,y...
+          cx,         // Default window size
+          cy,         // .... 
+          hwndParent,                     // No parent window
+          hMenu,                     // No menu
+          hInst,	         // Program Instance handle
+          0                      // No window creation data
+        );
+
+   width=cx;
+   height=cy;
+
+   return (hWnd)?TRUE:FALSE;
+}
+
+bool BaseWindow::initEx(
+		DWORD dwExStyle=WS_EX_LEFT,
+		LPCTSTR windowName="New window",
+			DWORD dwStyle=WS_OVERLAPPEDWINDOW,
+			int x=CW_USEDEFAULT,
+			int y=CW_USEDEFAULT,
+			int cx=CW_USEDEFAULT,
+			int cy=CW_USEDEFAULT,
+			HWND hwndParent=NULL,
+			HMENU hMenu=NULL,
+			HINSTANCE hInst=NULL)
+{
+
+   hWnd = CreateWindowEx(
+	  dwExStyle,
           WindowClass->lpszClassName,    // the window class name
           windowName,   		// The window title
           dwStyle,          // Window style as overlapped
@@ -156,8 +191,8 @@ bool BaseWindow::line(int xPrev,int yPrev,int x, int y)
   //SetBkMode(hDC, TRANSPARENT);      // Set text background mode
   MoveToEx(hDC,xPrev,yPrev,NULL);
   result=LineTo(hDC,x,y);
-  //SelectObject(hDC, hOldPen); 
-  //SelectObject(hDC, hOldBrush); 
+  //DeleteObject(hDC,SelectObject(hDC, hOldPen)); 
+  //DeleteObject(hDC,SelectObject(hDC, hOldBrush)); 
   ReleaseDC(hWnd,hDC);
   return result;
 }
@@ -177,6 +212,9 @@ bool BaseWindow::setBrush(HBRUSH*){
   return true;
 }
 bool BaseWindow::setPen(HPEN* phPen){
+
+  if (hPen)
+	  DeleteObject(hPen);
 
   hPen=*phPen;
   return true;
