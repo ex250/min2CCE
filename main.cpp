@@ -845,7 +845,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
       break;
 
-      case WM_KEYDOWN:
+      case WM_CHAR:
+
       switch(wParam){
 	      case VK_ESCAPE:
 		      comStr.setState(STATE_WAIT_COMMAND);
@@ -853,7 +854,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		      myModel.showModel();
 		      flagRegen=false;
 		break;
-	      case VK_SPACE:
+	      case VK_RETURN:
 		switch(comStr.getState()){
 			case STATE_CONTUR_LINE2:
 				modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
@@ -881,6 +882,23 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 	      case VK_TAB:
 		SetFocus(comStr.getHWNDC());
 		break;
+	      default: 
+		SendMessage(comStr.getHWNDC(),
+				WM_KEYDOWN,
+				wParam,
+				lParam
+			   );
+		SendMessage(comStr.getHWNDC(),
+				WM_CHAR,
+				wParam,
+				lParam
+			   );
+		SendMessage(comStr.getHWNDC(),
+				WM_KEYUP,
+				wParam,
+				lParam
+			   );
+		SetFocus(comStr.getHWNDC());
       }
       break;
 

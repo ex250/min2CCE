@@ -8,6 +8,7 @@ UINT CHANGEWINDOWPROC=(UINT)NULL;
 extern BaseWindow mainWindow;
 extern ModelWindow modelWindow;
 extern Model myModel; 
+extern TextEntities textEntities;
 
 CommandLine::CommandLine():BaseWindow()
 {
@@ -129,6 +130,9 @@ bool CommandLine::addCommand()
 		     }
 		else if(!strcmp(buffer,"contur")){
 		       contur(0,0);
+		     }
+		else if(!strcmp(buffer,"text")){
+		       textEntities.show();
 		     }
 		else {
 		  strcat(buffer,"-unknown command");
