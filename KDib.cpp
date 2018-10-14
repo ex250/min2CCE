@@ -1,4 +1,6 @@
 // KDib.cpp
+// Юрий Щупак "Win32 API. Разработка приложений для Windows"
+// ISBN 978-5-388-00301-0
 #include "KDib.h"
 
 KDib::KDib() {
