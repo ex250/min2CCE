@@ -25,97 +25,33 @@ BmpPic::BmpPic():curPosX(0),curPosY(0),sizeX(100),sizeY(100),
 	scale(1.0),alfa(0.0)
 {}
 
-HBITMAP BmpPic::adaptedBMP(const char * pFileName){
-/*      
- *     y^
- *      |
- * 	------------
- * 	|          |
- *	|          | 
- * 	|          | H
- * 	|          |
- *     O------------ -> x
- *           W
- */
-HBITMAP hBitmap;
-
-/*	float Xs=0;
-	float Ys=0;
-	float XO;
-	float YO;
-
-	alfa*=PI/180;
-
-	hBitmap=(HBITMAP)LoadImage(NULL,
-		  pFileName,IMAGE_BITMAP,0,0,
-		  LR_LOADFROMFILE|
-		  LR_CREATEDIBSECTION);
-
-	if(hBitmap==NULL){
-		return hBitmap;//error
-	}
-
-	GetObject(hBitmap, sizeof(pv),&pv);
-
-	sizeX=static_cast<float>(pv.bmWidth)*(scale*10);
-	sizeY=static_cast<float>(pv.bmHeight)*(scale*10);
-
-	if(alfa!=0)
-	if (alfa>0&&alfa<=PI/2){
-		cout<<"I chetvert"<<endl;
-		HH=H*cos(alfa)+W*sin(alfa);
-		WW=W*cos(alfa)+H*sin(alfa);
-		XO=Xs-H*sin(alfa);
-		YO=Ys+HH;
-	}
-	else if(alfa>PI/2&&alfa<=PI){
-		cout<<"II chetvert"<<endl;
-		HH=-H*cos(alfa)+W*sin(alfa);
-		WW=-W*cos(alfa)+H*sin(alfa);
-		XO=Xs-WW;
-		YO=Ys+W*sin(alfa);
-	}
-	else if(alfa>PI&&alfa<=3*PI/2){
-		cout<<"III chetvert"<<endl;
-		HH=-H*cos(alfa)-W*sin(alfa);
-		WW=-W*cos(alfa)-H*sin(alfa);
-		XO=Xs-W*cos(alfa);
-		YO=Ys;
-	}
-	else if(alfa>3*PI/2&&alfa<=2*PI){
-		cout<<"IV chetvert"<<endl;
-		HH=H*cos(alfa)-W*sin(alfa);
-		WW=W*cos(alfa)-H*sin(alfa);
-		XO=Xs;
-		YO=Ys+H*cos(alfa);
-	}
-
-	XFORM rotMatrix;
-	XFORM curMatrix;
-	HDC hDC=GetDC(modelWindow.getHWND());
-	HDC compDC=CreateCompatibleDC(hDC);
-
-	SelectObject(compDC, hBitmap);
-
-	rotMatrix.eM11=(FLOAT)cos(alfa);
-	rotMatrix.eM12=(FLOAT)sin(alfa);
-	rotMatrix.eM21=(FLOAT)-sin(alfa);
-	rotMatrix.eM22=(FLOAT)cos(alfa);
-	rotMatrix.eDx=curPosX;
-	rotMatrix.eDy=curPosY;
-
-	SetWorldTransform(compDC,&rotMatrix);
-
-	StretchBlt(compDC,0,0,sizeX,-sizeY,
-			compDC,0,0,pv.bmWidth,pv.bmHeight,SRCCOPY);
-	hBitmap=CreateCompatibleBitmap(compDC,WW,HH);
-
-	DeleteDC(compDC);
-	DeleteDC(compDC2);
-	ReleaseDC(modelWindow.getHWND(),hDC);
-	
-*/
+HBITMAP BmpPic::adaptedBMP(const char * pFileName)
+{
 	return hBitmap;
+}
+
+bool BmpPic::loadImage(char * fn)
+{
+	int result;
+
+	hBitmap=(HBITMAP)LoadImage(
+			NULL,
+			fn,
+			IMAGE_BITMAP,
+			0,
+			0,
+			LR_LOADFROMFILE|LR_CREATEDIBSECTION
+			);
+	if (hBitmap)
+	{
+		result=GetObject(hBitmap,sizeof(BITMAP),&pv);
+		sizeX=pv.bmWidth;
+		sizeY=pv.bmHeight;
+	}
+	else
+		return false;
+	return true;
+
 }
 
 void BmpPic::show(){
@@ -123,7 +59,10 @@ void BmpPic::show(){
 	XFORM curMatrix;
 	HDC hDC=GetDC(modelWindow.getHWND());
 	HDC compDC=CreateCompatibleDC(hDC);
-	SelectObject(compDC, hBitmap);
+
+	if (hBitmap)
+		SelectObject(compDC, hBitmap);
+
 	SaveDC(hDC);
 
 	GetWorldTransform(hDC,&curMatrix);
@@ -138,7 +77,7 @@ void BmpPic::show(){
 	SetWorldTransform(hDC,&rotMatrix);
 	ModifyWorldTransform(hDC,&curMatrix,MWT_RIGHTMULTIPLY);
 
-	StretchBlt(hDC,0,0,sizeX,sizeY,
+	StretchBlt(hDC,0,sizeY*100,sizeX*100,-sizeY*100,
 			compDC,0,0,pv.bmWidth,pv.bmHeight,SRCCOPY);
 
 	RestoreDC(hDC,-1);
@@ -148,9 +87,9 @@ void BmpPic::show(){
 
 bool BmpPic::open(){
   	BOOL success;
-   	char szFile[MAXFILENAME];
-	char strFilter[]="BMP file\0*.bmp\0";
-	char *pStrFilter=strFilter;
+   	static char szFile[MAXFILENAME];
+	static char strFilter[]="BMP file\0*.bmp\0";
+	static char *pStrFilter=strFilter;
 
 	if (hBitmap)
 		DeleteObject((HBITMAP)hBitmap);
@@ -173,7 +112,7 @@ bool BmpPic::open(){
         else
         {
 				MessageBox(mainWindow.getHWND(),
-				"GetOpenFileName",
+				"bmpPic::176 GetOpenFileName return FALSE",
 				"Отказ от выбора или ошибка",
 			       	MB_ICONWARNING);
 				return false;
@@ -477,15 +416,12 @@ BOOL CALLBACK BmpPic::PicDlgProc(HWND hDlg,UINT uMsg,
 						IDC_PICCOMBOPATH,
 						CB_GETLBTEXT,
 						(WPARAM)picIndex,
-						(LPARAM)temp
+						(LPARAM)szFile
 					);
 
-				//bmp->adaptedBMP(temp);
+					bmp->loadImage(szFile);
 
-
-					
-
-				//	bmp->show();
+					bmp->show();
 
 					EndDialog(hDlg,0);
 

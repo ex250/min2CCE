@@ -253,6 +253,7 @@ class Model
 	int readModel(char *);
 	int writeModel(const char *);
 	int saveGcodeISO(const char *);
+	//int saveNC1000(const char *);
 	int loadDXF(const char *fName);
 	int scaleModel(float);
 	void showModel();
