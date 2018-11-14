@@ -336,6 +336,7 @@ class BmpPic{
 
 		BmpPic();
 		bool open();
+		bool loadImage(char *);
 		void show();
 		int getWidth();
 		int getHeight();
