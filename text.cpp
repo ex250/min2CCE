@@ -698,7 +698,7 @@ bool TextEntities::makeText(LOGFONT* pLf){
 	   if (aproxSwitch==LINEAR)
 	      lineBez(x0,y0,x1,y1,x2,y2,startPos,1/((float)numLines));
 	   else
-	      arcBez(B0,B1,B2,0.2,startPos);
+	      arcBez(B0,B1,B2,0.5,startPos);
 
 	   //myModel.showModel();
 

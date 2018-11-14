@@ -998,8 +998,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				"SAVE AS...", MB_ICONWARNING);
 					break;
 					case NC1000_FILES:
-				MessageBox(hWnd, "save as Biesse NC1000",
-				"SAVE AS...", MB_ICONWARNING);
+				myModel.saveNC1000(ofn.lpstrFile);
 					break;
 					default:
 				myModel.writeModel(ofn.lpstrFile);
@@ -1027,7 +1026,19 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			comStr.segArc(0,0);
 			break;
 		case IDM_ARCCENTREANG1ANG2:
-			MessageBox(hWnd, "Выбран пункт 'ДУГА ЦЕНТР РАДИУС УГОЛ1 УГОЛ2'", "Меню Примитив", MB_OK);
+			{
+			Point p1(0,0);
+			Point p2(0,100);
+			myModel.appendLine(&p1,&p2);
+			p1.setXY(100,100);
+			p2.setXY(100,0);
+			myModel.appendLine(&p1,&p2);
+			p1.setXY(500,500);
+			p2.setXY(500,0);
+			myModel.appendLine(&p1,&p2);
+			myModel.saveNC1000("d:/model/nc1000");
+			//MessageBox(hWnd, "Выбран пункт 'ДУГА ЦЕНТР РАДИУС УГОЛ1 УГОЛ2'", "Меню Примитив", MB_OK);
+			}
 			break;
 
 		case IDM_CIRCCENTRRAD:

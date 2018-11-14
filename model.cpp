@@ -911,7 +911,8 @@ int  Model::writeModel(const char * fn)
 
 	return 0;
 }
-int Model::saveGcodeISO(const char *fn){
+int Model::saveGcodeISO(const char *fn)
+{
    int j;
    int numLine;
    char buff[256];
@@ -1081,6 +1082,342 @@ int Model::saveGcodeISO(const char *fn){
    return 0;
 }
 
+int Model::saveNC1000(const char *fn)
+{
+	float maxDistForTransition=300;//if distance>300mm use L=PSU
+
+	int commentoSize;
+	int centroSize;
+	int parametriSize;
+	int utensiliSize;
+	int labelfSize;
+	int labelcSize;
+	int foraturaSize;
+	int contornaturaSize;
+	int tabelleforiSize;
+	int confassistSize;
+	int attrezzaggioSize;
+	int customsezSize;
+
+	string commento("[COMMENTO]\x0a");
+       	string centro("[CENTRO01]\x0a");
+       	string parametri("[PARAMETRI01]\x0a");
+       	string utensili("[UTENSILI01]\x0a");
+       	string contornatura("[CONTORNATURA01]\x0a");
+       	string foratura("[FORATURA01]\x0a");
+       	string tabellefori("[TABELLEFORI01]\x0a");
+       	string labelc("[LABELC01]\x0a");
+       	string labelf("[LABELF01]\x0a");
+       	string confassist("[CONFASSIST01]\x0a");
+       	string attrezzaggio("[ATTREZZAGGIO01]\x0a");
+       	string customsez("[CUSTOMSEZ01]\x0a");
+
+	string parametriValue("N10 G71 HC=1 LY=500.00 PLPZ=18 PCSG=0 PDM=0 PUOS=0 NFIL=0 BLO=0 ADAC=0 ACC=0 RUO=0 PRS=1 PRL=1 LZ=18.00 FIL1=0.000 FIL2=0.000 FIL=0 PPWQ=0.000 VAL1=0.000 VAL2=0.000 VAL3=0.000 KA=0 PVER=1.000 LX=478.00 POAY=0.00                   \x0a");
+
+	int lenSection;
+
+   	int j;
+   	int numLine;
+   	string codeLineBuffer;//buffer for code line
+   	string programmBuffer;//pointer to buffer for program code
+	char tmp[1024];//for convert num to string
+
+   	float lastX;
+   	float lastY;
+	float nextX;
+	float nextY;
+
+   	Line * ptrLine;
+   	ArcSegment * ptrArc;
+   	ofstream oufile;
+   	entityType etype;
+   	float safeDistZ=2;
+   	float workDistZ=-2;
+   	float LPY=500;// invert coordinate
+   	float LPZ=18;
+
+   	enum {SELECT_TOOL,POSITIONING,G1,G2,G3,LPSU,G1Z};
+   	const char *prgFormatCode[]=
+   {
+	   "N%i PAN=1 ST1=\"FR4\" ST3=\"NULL\" ST4=\"NULL\" L=PCUA\x0a",
+	   "N%i X%.3f Y%.3f Z=PRK TP=1 PRF=%3.3f F=3 VF=3 AX=X,Y,Z G40 PFLO=0 PUL=1 M40 WBY(0)=1 L=PON TRZ=0\x0a",
+	   "N%i X%.3f Y%.3f G1\x0a",
+	   "N%i X%.3f Y%.3f R%.3f G5\x0a",
+	   "N%i X%.3f Y%.3f R%.3f G4\x0a",
+	   "N%i L=PSU\x0a",
+	   "N%i Z%.3f G1\x0a"
+   };
+
+	if (FileName!="")
+		oufile.open(fn,ios::binary);
+	else 
+	{
+		sprintf(tmp,"empty file name %s",FileName);
+		MessageBox(modelWindow.getHWND(),tmp,"Error",MB_OK);
+	       	return -1;
+	}
+
+   	lastX=0.0;
+   	lastY=0.0;
+   	numLine=0;
+
+
+   for (j=0;j<entities.size();j++)
+   {
+	etype=entities[j]->getType();
+
+	if (etype==tLine)
+	{
+			ptrLine=(Line*)(entities[j]);
+			ptrArc=NULL;
+			nextX=ptrLine->getStart()->getX();
+			nextY=ptrLine->getStart()->getY();
+   			workDistZ=ptrLine->getZ();
+	}
+		else if (etype==tArc)
+	{
+			ptrArc=(ArcSegment*)(entities[j]);
+			ptrLine=NULL;
+			nextX=ptrArc->getStartX();
+			nextY=ptrArc->getStartY();
+   			workDistZ=ptrArc->getZ();
+	}
+
+	if (!numLine){
+		numLine+=10;
+		sprintf(tmp,prgFormatCode[SELECT_TOOL],numLine);
+		programmBuffer=tmp;
+		numLine+=10;
+
+		sprintf(tmp,prgFormatCode[POSITIONING],numLine,
+				nextX,
+				LPY-nextY,
+				workDistZ
+			);
+		
+
+		programmBuffer+=tmp;
+		numLine+=10;
+	}
+	else
+	{
+		if (lastX!=nextX&&lastY!=nextY)
+		{
+			//move to new point 
+		   	float dist=getDistance(
+					lastX,
+					lastY,
+					nextX,
+					nextY
+					);
+
+			if(dist>maxDistForTransition)
+			{	
+			  sprintf(tmp,prgFormatCode[LPSU],numLine);
+			  programmBuffer+=tmp;
+			  numLine+=10;
+
+			  sprintf(tmp,prgFormatCode[POSITIONING],numLine,
+				nextX,
+				LPY-nextY,
+				workDistZ);
+			  programmBuffer+=tmp;
+
+			  numLine+=10; //far transition
+			}
+			else//short transition
+			{
+			  sprintf(tmp,prgFormatCode[G1Z],numLine,
+				-LPZ-safeDistZ
+			       );
+			  programmBuffer+=tmp;
+			  numLine+=10;
+
+			  sprintf(tmp,prgFormatCode[G1],numLine,
+				nextX,
+				LPY-nextY
+			       );
+			  programmBuffer+=tmp;
+			  numLine+=10;
+
+			  sprintf(tmp,prgFormatCode[G1Z],numLine,
+				-LPZ+workDistZ
+			       );
+			  programmBuffer+=tmp;
+			  numLine+=10;
+			}
+		}
+	}
+
+
+	switch(etype){
+		case tPoint:
+			strcpy(tmp,"tPoint\x0a");
+			break;
+		case tLine:
+
+			sprintf(tmp,prgFormatCode[G1],numLine,
+				ptrLine->getEnd()->getX(),
+				LPY-ptrLine->getEnd()->getY()
+			);
+			programmBuffer+=tmp;
+
+			numLine+=10;
+			lastX=ptrLine->getEnd()->getX();
+			lastY=ptrLine->getEnd()->getY();
+
+			break;
+		case tArc:
+
+			if (ptrArc->getDirection()==AD_COUNTERCLOCKWISE)
+			     sprintf(tmp,prgFormatCode[G2],numLine,
+				ptrArc->getEndX(),
+				LPY-ptrArc->getEndY(),
+				-ptrArc->getSignRad()
+				);
+			else
+			     sprintf(tmp,prgFormatCode[G3],numLine,
+				ptrArc->getEndX(),
+				LPY-ptrArc->getEndY(),
+				ptrArc->getSignRad()
+				);
+
+			programmBuffer+=tmp;
+
+			numLine+=10;
+			lastX=ptrArc->getEndX();
+			lastY=ptrArc->getEndY();
+		
+			break;
+		default:
+				strcpy(tmp,"NONE\x0a");
+		}
+   }
+   
+   	sprintf(tmp,"N%d L=POFF\x0a",numLine);
+	programmBuffer+=tmp;
+
+   //[COMMENTO]
+   	commento+=" \x0a\x0a";
+	commentoSize=commento.length();
+
+   //[PARAMETRI01]
+   	parametriValue+="\%\x0a";
+	parametri+=parametriValue;
+	parametriSize=parametri.length();
+
+   //[UTENSILI01]
+	utensili+="FR4\n\%\x0a";
+	utensiliSize=utensili.length();
+
+   //[CONTORNATURA01]
+   	programmBuffer+="\%\x0a";
+	contornatura+=programmBuffer;
+	contornaturaSize=contornatura.length();
+	
+   //[FORATURA01]
+   	foratura+="\%\x0a";
+	foraturaSize=foratura.length();
+
+   //[TABELLEFORI]
+   	tabellefori+="\%\x0a";
+	tabelleforiSize=tabellefori.length();
+
+   //[LABELC01]
+   	labelc+="\%\x0a";
+	labelcSize=labelc.length();
+
+   //[LABELF01]
+   	labelf+="\%\x0a";
+	labelfSize=labelf.length();
+
+
+   //[CONFASSIST01]
+   	confassist+="\%\x0a";
+	confassistSize=confassist.length();
+
+   //[ATTREZZAGGIO01]
+   	attrezzaggio+="\%\x0a";
+	attrezzaggioSize=attrezzaggio.length();
+
+   //[CUSTOMSEZ01]
+   	customsez+="\%\x0a\[]";
+	customsezSize=customsez.length();
+
+   //[CENTRO01]
+	sprintf(tmp,
+"\x0a\
+PARAMETRI=%09d\x0a\
+UTENSILI=%09d\x0a\
+LABELF=%09d\x0a\
+LABELC=%09d\x0a\
+FORATURA=%09d\x0a\
+CONTORNATURA=%09d\x0a\
+TABELLEFORI=%09d\x0a\
+CONFASSIST=%09d\x0a\
+ATTREZZAGGIO=%09d\x0a\
+CUSTOMSEZ=%09d\x0a\x0a",
+0,
+0,
+0,
+0,
+0,
+0,
+0,
+0,
+0,
+0
+);
+
+	centroSize=centro.size()+strlen(tmp);
+
+	int parametriOffset=commentoSize+centroSize+5;
+	int utensiliOffset=parametriOffset+parametriSize;
+	int contornaturaOffset=utensiliOffset+utensiliSize;
+	int foraturaOffset=contornaturaOffset+contornaturaSize;
+	int tabelleforiOffset=foraturaOffset+foraturaSize;
+	int labelcOffset=tabelleforiOffset+tabelleforiSize;
+	int labelfOffset=labelcOffset+labelcSize;
+	int confassistOffset=labelfOffset+labelfSize;
+	int attrezzaggioOffset=confassistOffset+confassistSize;
+	int customsezOffset=attrezzaggioOffset+attrezzaggioSize;
+
+
+	sprintf(tmp,"\x0a");
+	centro+=tmp;
+	sprintf(tmp, "PARAMETRI=%09d\x0a",parametriOffset);
+	centro+=tmp;
+	sprintf(tmp,"UTENSILI=%09d\x0a",utensiliOffset);
+	centro+=tmp;
+	sprintf(tmp,"LABELF=%09d\x0a",labelfOffset);
+	centro+=tmp;
+	sprintf(tmp,"LABELC=%09d\x0a",labelcOffset);
+	centro+=tmp;
+	sprintf(tmp,"FORATURA=%09d\x0a",foraturaOffset);
+	centro+=tmp;
+	sprintf(tmp,"CONTORNATURA=%09d\x0a",contornaturaOffset);
+	centro+=tmp;
+	sprintf(tmp,"TABELLEFORI=%09d\x0a",tabelleforiOffset);
+	centro+=tmp;
+	sprintf(tmp,"CONFASSIST=%09d\x0a",confassistOffset);
+	centro+=tmp;
+	sprintf(tmp,"ATTREZZAGGIO=%09d\x0a",attrezzaggioOffset);
+	centro+=tmp;
+	sprintf(tmp,"CUSTOMSEZ=%09d\x0a\x0a",customsezOffset);
+
+	centro+=tmp;
+	
+	oufile<<commento<<centro<<parametri<<utensili<<contornatura;
+	oufile<<foratura<<tabellefori<<labelc<<labelf<<confassist;
+	oufile<<attrezzaggio<<customsez;
+
+   if (!oufile)
+	MessageBox(modelWindow.getHWND(),
+			"Error write file","SAVE...",MB_OK);
+   oufile.close();
+
+}
+
 void Model::showModel()
 {
    iter=entities.begin();
@@ -1103,7 +1440,8 @@ int Model::deleteAll()
 	}
 	return result;
 }
-int Model::scaleModel(float sf){
+int Model::scaleModel(float sf)
+{
    int j;
    for (j=0;j<entities.size();j++)
 	entities[j]->scale(sf);
@@ -1231,4 +1569,10 @@ int Model::loadDXF(const char *fName){
 			}
 	}
 	return 0;
+}
+
+float Model::getDistance(float xs, float ys, float xe, float ye)
+{
+	float res=sqrt((xe-xs)*(xe-xs)+(ye-ys)*(ye-ys));
+	return res;
 }
