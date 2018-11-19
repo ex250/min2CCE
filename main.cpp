@@ -2,7 +2,6 @@
 #include "wndclass.h"
 #include "model.h"
 #include <string>
-#include "kdib.h"
 #include <zmouse.h>
 #include "myvector.h"
 

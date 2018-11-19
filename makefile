@@ -12,7 +12,7 @@ LIBS        = -luser32 -lgdi32 -lcomdlg32 -lcomctl32
 #-lwinmm -lkernel32  -lwinspool -lshell32 -lole32 -loleaut32 -luuid  -ladvapi32 
 
 
-srcs=baseWindow.cpp main.cpp toolbardraw.cpp commandLine.cpp model.cpp modelWindow.cpp kdib.cpp myCursor.cpp bmppic.cpp text.cpp
+srcs=baseWindow.cpp main.cpp toolbardraw.cpp commandLine.cpp model.cpp modelWindow.cpp myCursor.cpp bmppic.cpp text.cpp
 
 objs=$(srcs:.cpp=.o)
 
@@ -31,8 +31,6 @@ model.o: model.cpp model.h headerui.h
 	g++ -c -g  model.cpp
 modelWindow.o: modelWindow.cpp headerui.h
 	g++ -c -g  modelWindow.cpp
-kdib.o: kdib.cpp
-	g++ -c -g  kdib.cpp
 myCursor.o: myCursor.cpp headerui.h
 	g++ -c -g  myCursor.cpp
 bmppic.o: bmppic.cpp headerui.h
@@ -46,13 +44,12 @@ resource.res.o:resource.res
 resource.res:resource.rc resource.h
 	windres -O res -i resource.rc -o resource.res 
 
-main.o:main.cpp headerui.h wndclass.h kdib.h kdib.cpp
+main.o:main.cpp headerui.h wndclass.h 
 baseWindow.o:baseWindow.cpp headerui.h wndclass.h
 toolbardraw.o:toolbardraw.cpp
 commandLine.o:commandLine.cpp
 model.o:model.cpp  
 modelWindow.o:modelWindow.cpp
-kdib.o:kdib.cpp kdib.h 
 bmppic.o:bmppic.cpp headerUI.h
 myCursor.o:myCursor.cpp headerUI.h
 text.o:text.cpp headerUI.h myvector.h
