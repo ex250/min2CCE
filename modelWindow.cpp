@@ -54,16 +54,21 @@ bool ModelWindow::marker(float x,float y)
 {
   bool result;
   x*=100;y*=100;
+  float size=80;//marker size
+  XFORM transform;
 
   HPEN hOldPen;
   HBRUSH hOldBrush;
   hDC=GetDC(hWnd);
 
+  if (GetWorldTransform(hDC,&transform))
+	  size/=transform.eM11;
+
   hOldBrush=(HBRUSH)SelectObject(hDC, hBrush); 
   hOldPen=(HPEN)SelectObject(hDC, hPen);
   SetROP2(hDC, ROP2); 
   //SetBkMode(hDC, TRANSPARENT);      // Set text background mode
-  result=Rectangle(hDC,x-50,y-50,x+50,y+50);
+  result=Rectangle(hDC,x-size,y-size,x+size,y+size);
 
   DeleteObject(SelectObject(hDC,hOldPen));
   DeleteObject(SelectObject(hDC,hOldBrush));
@@ -175,6 +180,16 @@ bool ModelWindow::setScale(float sf)
   //InvalidateRect(hWnd,&aRect,true); 
   ReleaseDC(hWnd,hDC);
   return true;
+}
+
+float ModelWindow::getScale()
+{
+  XFORM transform;
+  bool result;
+  hDC=GetDC(hWnd);
+  result=GetWorldTransform(hDC,&transform);
+  ReleaseDC(hWnd,hDC);
+  return result?transform.eM11:-1;
 }
 
 bool ModelWindow::setWOrg(float dx, float dy){

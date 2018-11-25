@@ -379,7 +379,12 @@ bool Line::scale(float sf ){
 bool Line::hitCursor(int xPos,int yPos,int size){
 	bool result;
 	HRGN hRgn;
-	int inflate=50;
+	int inflate;
+
+	float inflateMul=modelWindow.getScale();
+	if (inflateMul<=0)
+		inflateMul=1;
+
 	POINT point[2];
 	vec2 a,b,norm;
 	vec2 sum;
@@ -390,7 +395,8 @@ bool Line::hitCursor(int xPos,int yPos,int size){
 	sum=b-a;
 	norm=sum.ort();
 	norm.normalize();
-	norm*=2;//inflate region
+	norm*=2.3/inflateMul;//inflate region
+	inflate=(int)(norm.length()*100);
 	//modelWindow.line(0,0,norm.x,norm.y);
 
 	sum=a+norm;
@@ -414,23 +420,50 @@ bool Line::hitCursor(int xPos,int yPos,int size){
 	point[2].x=(int)(sum.x*100);
 	point[2].y=(int)(sum.y*100);
 
-	if (start.getX()==end.getX())
+	if (start.getX()==end.getX()) //line parallel OY
+	{
 		hRgn=CreateRectRgn((int)(start.getX()*100)-inflate,
 				(int)(start.getY()*100),
 				(int)(end.getX()*100)+inflate,
 				(int)(end.getY()*100)
 			);
-	else if (start.getY()==end.getY())
+		/*
+	point[0].x=(int)(start.getX()*100)-inflate;
+	point[0].y=(int)(start.getY()*100);
+	point[1].x=(int)(start.getX()*100)+inflate;
+	point[1].y=(int)(start.getY()*100);
+	point[2].x=(int)(end.getX()*100)+inflate;
+	point[2].y=(int)(end.getY()*100);
+	point[3].x=(int)(end.getX()*100)-inflate;
+	point[3].y=(int)(end.getY()*100);
+		modelWindow.myPolygon(point,4);
+		*/
+	}
+	else if (start.getY()==end.getY()) //line parallel OX
+	{
 		hRgn=CreateRectRgn((int)(start.getX()*100),
 				(int)(start.getY()*100)-inflate,
 				(int)(end.getX()*100),
 				(int)(end.getY()*100)+inflate
 			);
+		/*
+	point[0].x=(int)(start.getX()*100);
+	point[0].y=(int)(start.getY()*100)-inflate;
+	point[1].x=(int)(start.getX()*100);
+	point[1].y=(int)(start.getY()*100)+inflate;
+	point[2].x=(int)(end.getX()*100);
+	point[2].y=(int)(end.getY()*100)+inflate;
+	point[3].x=(int)(end.getX()*100);
+	point[3].y=(int)(end.getY()*100)-inflate;
+		modelWindow.myPolygon(point,4);
+		*/
+	}
 	else
 	{
 		hRgn=CreatePolygonRgn(point,4,ALTERNATE);
 		//modelWindow.myPolygon(point,4);
 	}
+
 	result=PtInRegion(hRgn,xPos,yPos);
 
 	if (result)
@@ -645,6 +678,11 @@ bool ArcSegment::hitCursor(int xPos,int yPos,int size){
 	bool result;
 	HRGN hRgn;
 	int nVertex=20;
+
+	float inflateMul=modelWindow.getScale();
+	if (inflateMul<=0)
+		inflateMul=1;
+
 	POINT *lpPoint;
 	POINT *lpBegin;
 	lpPoint=new POINT[nVertex*2];
@@ -662,7 +700,7 @@ bool ArcSegment::hitCursor(int xPos,int yPos,int size){
 
 	res=sc;
 	res.normalize();
-	res*=2;
+	res*=2/inflateMul;
 	sc+=res;
 
 	Point ptStart(sc.x,sc.y);
@@ -691,7 +729,7 @@ bool ArcSegment::hitCursor(int xPos,int yPos,int size){
 			res.y=ptStart.getY();
 			sc=res;
 			sc.normalize();
-			sc*=4;
+			sc*=4/inflateMul;
 			res-=sc;
 			ptStart.setXY(res.x,res.y);
 			continue;
@@ -704,7 +742,12 @@ bool ArcSegment::hitCursor(int xPos,int yPos,int size){
 	result=PtInRegion(hRgn,xPos,yPos);
 
 	if (result)
+	{
 		comStr.pActivEntity=(int *)this;
+		modelWindow.marker(s.x,s.y);
+		modelWindow.marker(e.x,e.y);
+		modelWindow.marker(c.x,c.y);
+	}
 
 	DeleteObject(hRgn);
 
@@ -727,6 +770,7 @@ Model::Model()
 ptrToDefaultLayer=defaultLayer;
 ptrToCurrentLayer=currentLayer;
 iter=entities.begin();
+selectedCount=0;
 }
 
 bool Model::addEntity(Entity* entity)
@@ -1461,6 +1505,9 @@ bool Model::hitModel(int xPos,int yPos,int size){
    }
    if (count==0)
 		comStr.pActivEntity=NULL;
+
+   selectedCount=count;
+
 	return count;
 }
 

@@ -373,6 +373,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
    static bool flagMiddlePress=false;
    static bool flagRegen=false;
    static bool bTracking=false;
+   static bool flagBusyState=false;
    int prevMode;
    RECT rect;
    char str[30];
@@ -645,23 +646,32 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 	
 	case WM_LBUTTONUP:
 
+		ReleaseCapture();
+
 		break; 
 
 
 	case WM_LBUTTONDOWN:
 		SetFocus(modelWindow.getHWND());
 		if (hWnd==modelWindow.getHWND()){
+
+		  SetCapture(hWnd);
+
 		  hDC=GetDC(modelWindow.getHWND());
 
 		  GetCursorPos(lpPoint);
 		  ScreenToClient(hWnd,lpPoint);
 		  DPtoLP(hDC,lpPoint,1);
+
+		  flagBusyState=comStr.pActivEntity;
+
 		  switch (comStr.getState()){
 			case STATE_WAIT_COMMAND:
  	           	if (!myModel.hitModel(lpPoint->x,lpPoint->y,
 					mycursor.getSize()))
 			{
-				comStr.selectRect(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				if (!flagBusyState)
+				   comStr.selectRect(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 			}
 				break;
 			case STATE_SELECTRECT:
@@ -794,6 +804,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
     case WM_MBUTTONDOWN:
 		if (hWnd==modelWindow.getHWND()){
 
+		  	SetCapture(hWnd);
 			hDC=GetDC(modelWindow.getHWND());
 			flagMiddlePress=true;
 		   	GetCursorPos(&prevPosition);
@@ -804,6 +815,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
     case WM_MBUTTONUP:
 		if (flagMiddlePress==true){
+		   ReleaseCapture();
 		   flagMiddlePress=false;
       		   aRect=modelWindow.getRect();
       		   InvalidateRect(modelWindow.getHWND(),&aRect,TRUE);
@@ -1070,8 +1082,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			break;
 
 		case IDM_PCOPY:
-			myModel.loadDXF("ex.dxf");
-			//MessageBox(hWnd, "Выбран пункт 'PCOPY'", "Меню Преобразовать", MB_OK);
+			MessageBox(hWnd, "Выбран пункт 'PCOPY'", "Меню Преобразовать", MB_OK);
 			break;
 
 		case IDM_MIRROR:

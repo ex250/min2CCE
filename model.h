@@ -235,6 +235,7 @@ class Model
 	std::vector<Entity*>::iterator iter;
 	Layer *ptrToDefaultLayer;
 	Layer *ptrToCurrentLayer;
+	int selectedCount;
   public:
 	Model();
 

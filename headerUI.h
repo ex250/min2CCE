@@ -31,6 +31,7 @@ const int STATE_MOVE_P2=85;
 const int STATE_ROTATE_CENTER=90;
 const int STATE_ROTATE_P2=95;
 const int STATE_SCALE=100;
+const int STATE_BUSY=200;
 
 const float PI=3.14159265;
 const int ON=1;
@@ -279,6 +280,8 @@ class ModelWindow:public BaseWindow
     bool setScale(float);
 
     bool setROP2(int);
+
+    float getScale();
     
     bool line(float ,float, float, float );
 
