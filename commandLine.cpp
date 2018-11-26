@@ -583,6 +583,106 @@ float CommandLine::getR()
 { return R;}
 int CommandLine::getDirection()
 { return ArcDirection;}
+
+int CommandLine::selEntity(int x,int y)
+{
+	Entity* ptrEntity;
+	Line* ptrLine;
+	ArcSegment* ptrArc;
+	bool result=false;
+	int marker=300;
+	int xPt,yPt;
+	POINT pt1,pt2;
+	pt1.x=x-marker;
+	pt1.y=y-marker;
+	pt2.x=x+marker;
+	pt2.y=y+marker;
+
+	modelWindow.myRectangle(pt1,pt2);
+
+	ptrEntity=(Entity*)pActivEntity;
+	if (ptrEntity)
+		result=ptrEntity->hitCursor(x,y,marker);
+
+	if (result)
+	{
+	   switch(ptrEntity->getType())
+	   {
+		case tLine:
+			ptrLine=(Line*)ptrEntity;
+			xPt=(int)(ptrLine->getStart()->getX()*100);
+			yPt=(int)(ptrLine->getStart()->getY()*100);
+			result=(x-marker)<=xPt&&(x+marker)>=xPt&&
+				(y-marker)<=yPt&&(y+marker)>=yPt;
+			if (result)
+				selItem=START;
+			else
+			{
+			xPt=(int)(ptrLine->getEnd()->getX()*100);
+			yPt=(int)(ptrLine->getEnd()->getY()*100);
+			result=(x-marker)<=xPt&&(x+marker)>=xPt&&
+				(y-marker)<=yPt&&(y+marker)>=yPt;
+			if (result)
+				selItem=END;
+			else
+				selItem=NONE;
+			}
+			
+			break;
+		case tArc:
+			ptrArc=(ArcSegment*)ptrEntity;
+			break;
+	   }
+	   state=STATE_SEL_VERTEX;
+	}
+	else
+		state=STATE_WAIT_COMMAND;
+	return result;
+}
+
+
+int CommandLine::selVertex(int x,int y)
+{
+	Entity* ptrEntity;
+	Line* ptrLine;
+	ArcSegment* ptrArc;
+	bool result=false;
+	int marker=80;
+	float xPt,yPt;
+	xPt=((float)x)/100;
+	yPt=((float)y)/100;
+
+	modelWindow.setROP2(R2_NOTXORPEN);
+	ptrEntity=(Entity*)pActivEntity;
+	if (ptrEntity)
+	   switch(ptrEntity->getType())
+	   {
+		case tLine:
+			ptrLine=(Line*)ptrEntity;
+			ptrLine->show();
+			if (selItem==START)
+			{
+			ptrLine->setStart(xPt,yPt);
+			}
+			else if (selItem==END)
+			{
+			ptrLine->setEnd(xPt,yPt);
+			}
+			ptrLine->show();
+			
+			break;
+		case tArc:
+			ptrArc=(ArcSegment*)ptrEntity;
+			break;
+	   }
+
+	modelWindow.setROP2(R2_COPYPEN);
+
+	return 0;
+}
+
+
+	
 //**********************************************************************
 
 LRESULT CALLBACK CommandLine::cmdProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

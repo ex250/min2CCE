@@ -504,6 +504,9 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 
 		   switch (comStr.getState()){
+			case STATE_SEL_VERTEX:
+				comStr.selVertex(lpPoint->x,lpPoint->y);
+				break;
 			   case STATE_SELECTRECT:
 			if (flagRegen==true)
 				modelWindow.myRectangle(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
@@ -645,6 +648,16 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		break;
 	
 	case WM_LBUTTONUP:
+		switch(comStr.getState())
+		{
+			case STATE_SEL_VERTEX:
+			comStr.setState(STATE_SEL_ENTITY);
+			break;
+			case STATE_SEL_ENTITY:
+			//comStr.setState(STATE_WAIT_COMMAND);
+			break;
+		}
+			myModel.showModel();
 
 		ReleaseCapture();
 
@@ -673,6 +686,11 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				if (!flagBusyState)
 				   comStr.selectRect(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 			}
+			else 
+				comStr.setState(STATE_SEL_ENTITY);
+				break;
+			case STATE_SEL_ENTITY:
+				comStr.selEntity(lpPoint->x,lpPoint->y);
 				break;
 			case STATE_SELECTRECT:
 				comStr.selectRect(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);

@@ -207,6 +207,16 @@ bool BaseWindow::moveTo(int x,int y)
   return result;
 }	
 
+bool BaseWindow::hitCursor(int x, int y, int marker)
+{
+	RECT rt;
+	POINT point;
+	point.x=x;
+	point.y=y;
+	SetRect(&rt,x-marker,y-marker,x+marker,y+marker);
+	return PtInRect(&rt,point);
+}
+
 bool BaseWindow::setBrush(HBRUSH*){
 
   return true;

@@ -32,6 +32,8 @@ const int STATE_ROTATE_CENTER=90;
 const int STATE_ROTATE_P2=95;
 const int STATE_SCALE=100;
 const int STATE_BUSY=200;
+const int STATE_SEL_ENTITY=300;
+const int STATE_SEL_VERTEX=350;
 
 const float PI=3.14159265;
 const int ON=1;
@@ -50,6 +52,7 @@ const int COMBO_SPACE_WIDTH=100;
 const int COMBO_SPACE_HEIGHT=300;
 const int SEPARATOR_WIDTH=20;
 
+enum entityVertex {NONE,START,END,CENTER};
 
 #if !defined(HEADERUI)
 #define HEADERUI
@@ -121,6 +124,8 @@ class BaseWindow
 
 	RECT getRect();
 
+	bool hitCursor(int,int,int);//x,y,rect size
+
 };
 
 //---------------------TOOLBAR-----------------------------
@@ -179,6 +184,7 @@ class CommandLine:public BaseWindow
     float fia,fib,fid;//angle 3 arc points
     int ArcDirection;
     int countStr;
+    entityVertex selItem;
 
  public:
 
@@ -195,6 +201,10 @@ class CommandLine:public BaseWindow
 	  HINSTANCE hInst);
 
     int getText(LPTSTR buffer, int maxChar);
+
+    int selEntity(int,int);
+
+    int selVertex(int,int);
 
     int getState();
 
