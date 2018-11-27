@@ -690,9 +690,15 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			else 
 				comStr.setState(STATE_SEL_ENTITY);
 				break;
+
 			case STATE_SEL_ENTITY:
 				comStr.selEntity(lpPoint->x,lpPoint->y);
 				break;
+
+			case STATE_DELETE_ENTITY:
+				comStr.deleteEntity(lpPoint->x,lpPoint->y);
+				break;
+
 			case STATE_SELECTRECT:
 				comStr.selectRect(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 				flagRegen=false;
@@ -1097,7 +1103,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 //-----------------MODIFY-------------------------------------------------
 		case IDM_ERASE:
-			myModel.deleteAll();	
+			comStr.deleteEntity(0,0);
 			break;
 
 		case IDM_PCOPY:

@@ -1,6 +1,7 @@
 #ifndef MODELH
 #define MODELH
 #include <vector>
+#include <algorithm>
 #include <process.h>
 #include <fstream>
 #include <string>
@@ -247,7 +248,7 @@ class Model
 	bool	appendArcCenAngRad(float, float, float, float, float);
 
 	bool 	addEntity(Entity*);
-	int	deleteEntity(int[]);
+	int	deleteEntity(Entity*);
 	int	transformEntity(int[]);
 	bool	hitModel(int,int,int);
 

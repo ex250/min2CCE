@@ -153,6 +153,7 @@ Point::Point():	type(currentLayer->getType()),
 		color(currentLayer->getColor())
 {
   layerID=currentLayer->getID();
+  selected=false;
 }
 
 
@@ -160,12 +161,14 @@ Point::Point(Layer* layer):x(0.0),y(0.0),type(layer->getType()),width(layer->get
 		color(layer->getColor())
 {
   layerID=layer->getID();  
+  selected=false;
 }
 
 Point::Point(float xx,float yy):x(xx),y(yy),
 		type(DEFAULTTYPE),width(DEFAULTWIDTH),color(DEFAULTCOLOR)
 {
   layerID=currentLayer->getID();  
+  selected=false;
 }
 
 
@@ -173,6 +176,7 @@ Point::Point(float xx,float yy,Layer* layer):x(xx),y(yy),type(layer->getType()),
 		color(layer->getColor())
 {
   layerID=currentLayer->getID();  
+  selected=false;
 }
 
 Point::Point(vec2 V):x(V.x),y(V.y),
@@ -181,6 +185,7 @@ Point::Point(vec2 V):x(V.x),y(V.y),
 		color(currentLayer->getColor())
 {
   layerID=currentLayer->getID();
+  selected=false;
 }
 
 void Point::show(){
@@ -272,6 +277,7 @@ Line::Line():start(),end(),
 		width(currentLayer->getWidth()),
 		color(currentLayer->getColor())
 {
+  selected=false;
   layerID=currentLayer->getID();
   Z=currentLayer->getZ();
   speed=currentLayer->getSpeed();
@@ -279,22 +285,30 @@ Line::Line():start(),end(),
 }
 
 
-Line::Line(Layer* layer):start(0.0,0.0,layer),end(10.0,10.0,layer),type(layer->getType()),width(layer->getWidth()),
+Line::Line(Layer* layer):start(0.0,0.0,layer),end(10.0,10.0,layer),
+		type(layer->getType()),width(layer->getWidth()),
 		color(layer->getColor())
 {
+ selected=false;
  layerID=layer->getID();
 }
 
-Line::Line(Point *a,Point *b):start(*a),end(*b),type(currentLayer->getType()),width(currentLayer->getWidth()),
+Line::Line(Point *a,Point *b):start(*a),end(*b),
+		type(currentLayer->getType()),
+		width(currentLayer->getWidth()),
 		color(currentLayer->getColor())
 {
+ selected=false;
  layerID=currentLayer->getID();
 }
 
 
-Line::Line(Point *a,Point *b,Layer* layer):start(*a),end(*b),type(layer->getType()),width(layer->getWidth()),
+Line::Line(Point *a,Point *b,Layer* layer):start(*a),end(*b),
+		type(layer->getType()),
+		width(layer->getWidth()),
 		color(layer->getColor())
 {
+ selected=false;
  layerID=layer->getID();
 }
 
@@ -498,13 +512,16 @@ ArcSegment::ArcSegment():
 		width(currentLayer->getWidth()),
 		color(currentLayer->getColor())
 {
+  selected=false;
   layerID=currentLayer->getID();
 }
 
 ArcSegment::ArcSegment(float x1, float y1,float x2,float y2,
        	float x, float y, float R, int ArcDir):
-	color(currentLayer->getColor()),type(currentLayer->getType()),width(currentLayer->getWidth())
+	color(currentLayer->getColor()),type(currentLayer->getType()),
+	width(currentLayer->getWidth())
 {
+  selected=false;
   xs=x1;
   ys=y1;
   xe=x2;
@@ -833,8 +850,10 @@ bool Model::appendArcCenAngRad(float xc, float yc, float startAn,
 	return 0;
 }	
 
-int  Model::deleteEntity(int selectedEntities[])
+int  Model::deleteEntity(Entity* ptrEntity)
 {
+	iter=find(entities.begin(),entities.end(),ptrEntity);
+	entities.erase(iter);
 	return 0;
 }
 int  Model::transformEntity(int selectedEntities[])

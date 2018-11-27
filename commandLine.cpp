@@ -9,6 +9,7 @@ extern BaseWindow mainWindow;
 extern ModelWindow modelWindow;
 extern Model myModel; 
 extern TextEntities textEntities;
+extern myCursor mycursor;
 
 CommandLine::CommandLine():BaseWindow()
 {
@@ -508,7 +509,49 @@ bool CommandLine::segRect(float x,float y){
 	return true;
 }
 
-bool CommandLine::segMove(float x,float y){
+bool CommandLine::deleteEntity(int x,int y)
+{
+	bool result;
+	RECT aRect={0,40,180,80}; 	
+	Entity* ptrEntity;
+
+	switch (state){
+		case STATE_WAIT_COMMAND:
+           	pStrCmd="Command: ";
+	   	InvalidateRect(hWnd,&aRect,TRUE);
+	   	addTextToHistory("Delete: select entity for delete");
+	   	state=STATE_DELETE_ENTITY;
+	  	break;
+
+		case STATE_DELETE_ENTITY:
+		if (myModel.hitModel(x,y,mycursor.getSize()))
+		{
+			ptrEntity=(Entity*)pActivEntity;
+			modelWindow.setROP2(R2_NOTXORPEN);
+			ptrEntity->show();
+			myModel.deleteEntity(ptrEntity);
+	    		state=STATE_WAIT_COMMAND;
+		}
+			
+		break;
+
+		case STATE_SEL_ENTITY:
+		{
+			ptrEntity=(Entity*)pActivEntity;
+			modelWindow.setROP2(R2_NOTXORPEN);
+			ptrEntity->show();
+			myModel.deleteEntity(ptrEntity);
+	    		state=STATE_WAIT_COMMAND;
+		}
+			
+		break;
+	}
+	modelWindow.setROP2(R2_COPYPEN);
+	return true;
+}
+
+bool CommandLine::segMove(float x,float y)
+{
 	bool result;
 	RECT aRect={0,40,180,80}; 	
 

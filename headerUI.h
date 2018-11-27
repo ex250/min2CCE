@@ -34,6 +34,7 @@ const int STATE_SCALE=100;
 const int STATE_BUSY=200;
 const int STATE_SEL_ENTITY=300;
 const int STATE_SEL_VERTEX=350;
+const int STATE_DELETE_ENTITY=400;
 
 const float PI=3.14159265;
 const int ON=1;
@@ -234,6 +235,8 @@ class CommandLine:public BaseWindow
     bool selectRect(float,float);
 
     bool segMove(float,float);
+
+    bool deleteEntity(int,int);
 
     POINT getStartPOINT();
 
