@@ -308,15 +308,18 @@ void Line::show()
   B=(color&0xff);
 
   if (selected==false)
+  {
   	hPen=CreatePen(type, width, RGB(R,G,B));
+  	modelWindow.setPen(&hPen);
+  }
   else
   {
-  	hPen=CreatePen(type, width, RGB(250,0,0));
+  	hPen=CreatePen(type, width*2, RGB(250,0,0));
+  	modelWindow.setPen(&hPen);
   	modelWindow.marker(start.getX(),start.getY());
   	modelWindow.marker(end.getX(),end.getY());
   }
 
-  modelWindow.setPen(&hPen);
   modelWindow.line(start.getX(),start.getY(),end.getX(),end.getY());
   DeleteObject(hPen);
 }

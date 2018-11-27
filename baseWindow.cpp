@@ -217,6 +217,11 @@ bool BaseWindow::hitCursor(int x, int y, int marker)
 	return PtInRect(&rt,point);
 }
 
+bool BaseWindow::refreshWindow()
+{
+	return InvalidateRect(hWnd,NULL,FALSE);
+}
+
 bool BaseWindow::setBrush(HBRUSH*){
 
   return true;

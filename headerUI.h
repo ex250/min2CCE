@@ -126,6 +126,8 @@ class BaseWindow
 
 	bool hitCursor(int,int,int);//x,y,rect size
 
+	bool refreshWindow();
+
 };
 
 //---------------------TOOLBAR-----------------------------

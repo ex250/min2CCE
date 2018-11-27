@@ -590,8 +590,12 @@ int CommandLine::selEntity(int x,int y)
 	Line* ptrLine;
 	ArcSegment* ptrArc;
 	bool result=false;
-	int marker=300;
+	float scaleFactor=modelWindow.getScale();
+	int marker=int(300/scaleFactor);
+	if (marker<=1)
+		marker=2;
 	int xPt,yPt;
+/*
 	POINT pt1,pt2;
 	pt1.x=x-marker;
 	pt1.y=y-marker;
@@ -599,7 +603,7 @@ int CommandLine::selEntity(int x,int y)
 	pt2.y=y+marker;
 
 	modelWindow.myRectangle(pt1,pt2);
-
+*/
 	ptrEntity=(Entity*)pActivEntity;
 	if (ptrEntity)
 		result=ptrEntity->hitCursor(x,y,marker);
@@ -659,7 +663,8 @@ int CommandLine::selVertex(int x,int y)
 	   {
 		case tLine:
 			ptrLine=(Line*)ptrEntity;
-			ptrLine->show();
+			ptrLine->show();//clear
+
 			if (selItem==START)
 			{
 			ptrLine->setStart(xPt,yPt);

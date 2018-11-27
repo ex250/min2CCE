@@ -655,9 +655,10 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			break;
 			case STATE_SEL_ENTITY:
 			//comStr.setState(STATE_WAIT_COMMAND);
+			case STATE_WAIT_COMMAND:
+			modelWindow.refreshWindow();
 			break;
 		}
-			myModel.showModel();
 
 		ReleaseCapture();
 
