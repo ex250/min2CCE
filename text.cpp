@@ -58,6 +58,7 @@ BOOL CALLBACK TextEntities::TextDlgProc(HWND hDlg,UINT uMsg,
 {
 	static TextEntities *pText;
 	static char sentence[256];
+	static HWND hwndEditText;
 	static HWND hwndEditX;
 	static HWND hwndEditY;
 	static HWND hwndEditAngle;
@@ -170,6 +171,11 @@ BOOL CALLBACK TextEntities::TextDlgProc(HWND hDlg,UINT uMsg,
 			hwndEditTolerance=GetDlgItem(
 					hDlg,
 					IDC_TEXT_NUMBLINES
+					);
+
+			hwndEditText=GetDlgItem(
+					hDlg,
+					IDC_TEXTINPUT
 					);
 
 			if (strlen(sentence)>=1)
@@ -314,9 +320,11 @@ BOOL CALLBACK TextEntities::TextDlgProc(HWND hDlg,UINT uMsg,
 					(WPARAM)NULL,
 					(LPARAM)temp
 					);
-			}
 
-			return TRUE;
+			SetFocus(hwndEditText);
+			}
+			
+			return FALSE;
 
 		case WM_COMMAND:
 

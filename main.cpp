@@ -836,6 +836,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			      SetClassLong(modelWindow.getHWND(),GCL_HCURSOR,(LONG)hCursorArc);
 		      }
 		}
+			
 		break;
 
     case WM_MBUTTONDOWN:
@@ -962,19 +963,14 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		  ScreenToClient(hWnd,lpPoint);
 		  DPtoLP(hDC,lpPoint,1);
 		  switch (comStr.getState()){
-			case STATE_WAIT_COMMAND:
-				if (comStr.pActivEntity)
-				if (((Entity *)(comStr.pActivEntity))->
-				hitCursor(lpPoint->x,lpPoint->y,4))
-				{
+			case STATE_SEL_ENTITY:
 		  	GetCursorPos(lpPoint);
 			TrackPopupMenuEx(hMenuShape,0,
 				cursPos.x,cursPos.y,hWnd,
 				NULL);
-				}
-		   ReleaseDC(modelWindow.getHWND(),hDC);
 			break;
 		  }
+		  ReleaseDC(modelWindow.getHWND(),hDC);
       break;
       case WM_PAINT:                       // Message is to redraw the window
 		//statusBar.printText(10,10,buffer);
