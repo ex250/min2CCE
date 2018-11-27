@@ -414,6 +414,9 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
    static HMENU hMenuShape;
 
+   static HCURSOR hCursorArc;
+   static HCURSOR hCursorCross;
+
    switch(message)                // Process selected messages
    {  
       case WM_CREATE:
@@ -430,6 +433,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 	       hMenuShape=LoadMenu(GetModuleHandle(NULL),
 			       MAKEINTRESOURCE(IDR_MENU_SHAPE));
 	       hMenuShape=GetSubMenu(hMenuShape,0);
+	       hCursorArc=LoadCursor(hInst,MAKEINTRESOURCE(IDC_ARC));
+	       hCursorCross=LoadCursor(hInst,MAKEINTRESOURCE(IDC_CROSSPTR));
 	    }
 
       break;
@@ -820,9 +825,16 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		{
 		      comStr.enumEnType();
 		      if (comStr.getEnType()==tLine)
+		      {
 			      comStr.setState(STATE_CONTUR_LINE2);
+			      SetClassLong(modelWindow.getHWND(),
+					  GCL_HCURSOR,(LONG)hCursorCross);
+		      }
 		      else
+		      {
 			      comStr.setState(STATE_CONTUR_ARC2);
+			      SetClassLong(modelWindow.getHWND(),GCL_HCURSOR,(LONG)hCursorArc);
+		      }
 		}
 		break;
 
@@ -881,6 +893,14 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
       break;
 
+      case WM_KEYDOWN:
+      	switch(wParam){
+	      case VK_DELETE:
+		      comStr.deleteEntity(0,0);
+		break;
+      	}
+	      break;
+
       case WM_CHAR:
 
       switch(wParam){
@@ -915,9 +935,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		comStr.setState(STATE_WAIT_COMMAND);
 
 		break;
-	      case VK_TAB:
-		SetFocus(comStr.getHWNDC());
-		break;
+
 	      default: 
 		SendMessage(comStr.getHWNDC(),
 				WM_KEYDOWN,

@@ -98,7 +98,7 @@
 #define IDC_CROSSPTR		11400
 #define IDI_ICONMIN2C		11500
 #define IDI_ICONMIN3C		11600
-
+#define IDC_ARC			11700
 
 //----------─Диалоговое окно Растровое изображение ---------
 #define IDD_PICDIALOG1                  12000
