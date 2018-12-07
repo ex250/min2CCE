@@ -230,8 +230,8 @@ BEGIN
     PUSHBUTTON      "Закрыть",IDCANCEL,165,7,50,14
     CONTROL         "icon",IDI_ICONMIN3C,"static", SS_ICON | 
 				SS_SUNKEN | WS_BORDER,7,7,39,39
-    LTEXT           "Min2CCE 1.0.1",IDC_HELPABOUTINFO,40,7,52,9
-    LTEXT           "Copyright (C) 2017-2018 Зеленовский Николай",
+    LTEXT           "Min2CCE 0.4",IDC_HELPABOUTINFO,40,7,52,9
+    LTEXT           "Copyright (C) 2017-2018 EX250",
                     IDC_HELPABOUT2,41,18,119,21
     //LTEXT           "Страница проекта: http://min2cce.ru",IDC_HELPABOUT3,41,
     //                47,170,21

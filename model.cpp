@@ -130,7 +130,7 @@ toolType Entity::getTool(){
 	return tool;
 }	
 
-entityType Entity::getType(){
+entityType Entity::getType()const{
 	if (typeid(*this)==typeid(Point))
 		return tPoint;
 	else if (typeid(*this)==typeid(Line))
@@ -144,6 +144,107 @@ entityType Entity::getType(){
 	       	exit(-1);
 	}
 	return tPoint;
+}
+
+bool operator==(const Entity& entity1,const Entity& entity2)
+{
+	const Entity* p1;
+	const Entity* p2;
+	Line* ptrLine;
+	Line* ptrLine2;
+	Point* ptrPoint;
+	Point* ptrPoint2;
+	ArcSegment* ptrArc;
+	ArcSegment* ptrArc2;
+	bool result=false;
+	float x1,y1;
+	float x2,y2;
+	p1=&entity1;
+	p2=&entity2;
+
+	if (p1&&p2)
+	   switch(p1->getType())
+	   {
+		case tPoint:
+			ptrPoint=(Point*)p1;
+			x1=ptrPoint->getX();
+			y1=ptrPoint->getY();
+		switch(p2->getType())
+		{
+			case tPoint:
+				ptrPoint2=(Point*)p2;
+				x2=ptrPoint2->getX();
+				y2=ptrPoint2->getY();
+				if (x1==x2&&y1==y2)
+					result=true;
+				else 
+					result=false;
+				break;
+			case tLine:
+				ptrLine2=(Line*)p2;
+				x2=ptrLine2->getStart()->getX();
+				y2=ptrLine2->getStart()->getY();
+				if (x1==x2&&y1==y2)
+					result=true;
+				else 
+				{
+				x2=ptrLine2->getEnd()->getX();
+				y2=ptrLine2->getEnd()->getY();
+				if (x1==x2&&y1==y2)
+					result=true;
+				else
+					result=false;
+				}
+				break;
+		}
+		break;
+
+		case tLine:
+			ptrLine=(Line*)p1;
+		switch(p2->getType())
+		{
+			case tPoint:
+				ptrPoint=(Point*)p2;
+				x1=ptrLine->getStart()->getX();
+				y1=ptrLine->getStart()->getY();
+				x2=ptrPoint->getX();
+				y2=ptrPoint->getY();
+				if (x1==x2&&y1==y2)
+					result=true;
+				else 
+				{
+				x1=ptrLine->getEnd()->getX();
+				y1=ptrLine->getEnd()->getY();
+				if (x1==x2&&y1==y2)
+					result=true;
+				else 
+					result=false;
+				}
+				break;
+			case tLine:
+				ptrLine2=(Line*)p2;
+				x1=ptrLine->getStart()->getX();
+				y1=ptrLine->getStart()->getY();
+				x2=ptrLine2->getStart()->getX();
+				y2=ptrLine2->getStart()->getY();
+				if (x1==x2&&y1==y2)
+				{
+				x1=ptrLine->getEnd()->getX();
+				y1=ptrLine->getEnd()->getY();
+				x2=ptrLine2->getEnd()->getX();
+				y2=ptrLine2->getEnd()->getY();
+				  if (x1==x2&&y1==y2)
+					result=true;
+				else 
+					result=false;
+				}
+				else 
+					result=false;
+				break;
+		}
+		break;
+	   }
+	return result;
 }
 
 //**************class Point*********************************************
@@ -1644,4 +1745,16 @@ float Model::getDistance(float xs, float ys, float xe, float ye)
 {
 	float res=sqrt((xe-xs)*(xe-xs)+(ye-ys)*(ye-ys));
 	return res;
+}
+
+bool Model::hitOsnap(int x, int y)const
+{
+	int osnapSize=80;
+	bool result=false;
+	auto iterFind=find_if(entities.begin(),entities.end(),
+			[&osnapSize,&x,&y](Entity* ptrP) 
+			{return ptrP->hitCursor(x,y,osnapSize);});
+	if (iterFind!=entities.end())
+		MessageBox(modelWindow.getHWND(),"HIT","OSNAP",MB_OK);
+	return result;
 }

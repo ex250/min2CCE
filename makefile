@@ -28,7 +28,7 @@ toolbardraw.o:toolbardraw.cpp headerui.h
 commandLine.o: commandLine.cpp model.h headerui.h
 	g++ -c -g  commandLine.cpp
 model.o: model.cpp model.h headerui.h
-	g++ -c -g  model.cpp
+	g++ -c -std=c++11 -g  model.cpp
 modelWindow.o: modelWindow.cpp headerui.h
 	g++ -c -g  modelWindow.cpp
 myCursor.o: myCursor.cpp headerui.h

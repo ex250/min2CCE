@@ -77,7 +77,7 @@ class Entity
   public:
 	virtual void show()=0;
 	virtual bool getDataFromUser()=0;
-	virtual entityType getType();
+	virtual entityType getType()const;
 	virtual bool hitCursor(int,int,int)=0;
 
 	unsigned char getLayerID();
@@ -104,6 +104,7 @@ class Entity
 	virtual bool trim()=0;
 	virtual bool lenghten()=0;
 */
+	friend bool operator==(const Entity&,const Entity&);
 };
 
 class Point:public Entity
@@ -252,6 +253,8 @@ class Model
 	int	transformEntity(int[]);
 	bool	hitModel(int,int,int);
 
+	bool	hitOsnap(int,int)const;
+
 	int readModel(char *);
 	int writeModel(const char *);
 	int saveGcodeISO(const char *);
@@ -262,6 +265,16 @@ class Model
 	int printModelInfo()const;
 	int deleteAll();
 	float getDistance(float,float,float,float);
+};
+
+class HitOsnap
+{
+	public:
+		bool operator()(const Entity* ptrE1,
+				const Entity* ptrE2)const
+		{
+			return *ptrE1==*ptrE2;
+		}
 };
 
 #endif

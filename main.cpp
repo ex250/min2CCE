@@ -506,7 +506,12 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		   sprintf(buffer,"Coordinate x=%4.3f y=%4.3f       ",static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
 		   strcat(buffer,buf);
       		   statusBar.printText(10,10,buffer);
+		   
+		   float xCoord,yCoord;
+		   xCoord=static_cast<float>(lpPoint->x)/100;
+		   yCoord=static_cast<float>(lpPoint->y)/100;
 
+		   myModel.hitOsnap(lpPoint->x,lpPoint->y);
 
 		   switch (comStr.getState()){
 			case STATE_SEL_VERTEX:
@@ -1019,7 +1024,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 		case IDM_NEW:
 			
-			MessageBox(hWnd, "Выбран пункт 'New'", "Меню File", MB_OK);
+		   	myModel.hitOsnap(0,10);
+			//MessageBox(hWnd, "Выбран пункт 'New'", "Меню File", MB_OK);
 			break;
 
  		case IDM_SAVE:
