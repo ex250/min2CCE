@@ -77,6 +77,35 @@ bool ModelWindow::marker(float x,float y)
 	return result;
 }
 
+bool ModelWindow::markerOsnap(float x,float y)
+{
+  bool result;
+  x*=100;y*=100;
+  float size=140;//marker size
+  XFORM transform;
+
+  HPEN hOldPen;
+  HBRUSH hOldBrush;
+  hDC=GetDC(hWnd);
+
+  if (GetWorldTransform(hDC,&transform))
+	  size/=transform.eM11;
+
+  //hOldBrush=(HBRUSH)SelectObject(hDC, hBrush); 
+  hBrush=CreateSolidBrush(RGB(255,0,128)); 
+  hOldBrush=(HBRUSH)SelectObject(hDC,hBrush);
+  hOldPen=(HPEN)SelectObject(hDC, hPen);
+  SetROP2(hDC, ROP2); 
+  //SetBkMode(hDC, TRANSPARENT);      // Set text background mode
+  result=Rectangle(hDC,x-size,y-size,x+size,y+size);
+
+  DeleteObject(SelectObject(hDC,hOldPen));
+  DeleteObject(SelectObject(hDC,hOldBrush));
+  ReleaseDC(hWnd,hDC);
+
+	return result;
+}
+
 bool ModelWindow::myPolygon(CONST POINT * point, int nCount)
 {
 	bool result;
@@ -154,7 +183,8 @@ bool ModelWindow::_arc(float x1, float y1, float x2, float y2,
 HDC ModelWindow::getHDC(){
   return hDC;
 }
-bool ModelWindow::setROP2(int rop2){
+
+int ModelWindow::setROP2(int rop2){
 	ROP2=rop2;
 	return ROP2;
 }

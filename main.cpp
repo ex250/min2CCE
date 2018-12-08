@@ -417,6 +417,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
    static HCURSOR hCursorArc;
    static HCURSOR hCursorCross;
 
+   float xCoord,yCoord;
+
    switch(message)                // Process selected messages
    {  
       case WM_CREATE:
@@ -507,11 +509,19 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		   strcat(buffer,buf);
       		   statusBar.printText(10,10,buffer);
 		   
-		   float xCoord,yCoord;
-		   xCoord=static_cast<float>(lpPoint->x)/100;
-		   yCoord=static_cast<float>(lpPoint->y)/100;
 
-		   myModel.hitOsnap(lpPoint->x,lpPoint->y);
+		   if (myModel.stateOsnap()&&comStr.getState()!=
+				   STATE_SEL_VERTEX)
+		   	if (myModel.hitOsnap(lpPoint->x,lpPoint->y))
+			{
+				xCoord=myModel.getOsnapX();
+				yCoord=myModel.getOsnapY();
+			}
+			else
+			{
+		   		xCoord=static_cast<float>(lpPoint->x)/100;
+		   		yCoord=static_cast<float>(lpPoint->y)/100;
+			}
 
 		   switch (comStr.getState()){
 			case STATE_SEL_VERTEX:
@@ -666,7 +676,11 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			case STATE_SEL_ENTITY:
 			//comStr.setState(STATE_WAIT_COMMAND);
 			case STATE_WAIT_COMMAND:
-			modelWindow.refreshWindow();
+			{
+			int prevROP=modelWindow.setROP2(R2_COPYPEN);
+			myModel.showModel();
+			modelWindow.setROP2(prevROP);
+			}
 			break;
 		}
 
@@ -689,13 +703,32 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 		  flagBusyState=comStr.pActivEntity;
 
+		  if (myModel.stateOsnap())
+		  {
+			  if (myModel.hitOsnap(lpPoint->x,lpPoint->y))
+			  {
+			  xCoord=myModel.getOsnapX();
+			  yCoord=myModel.getOsnapY();
+			  }
+		  	  else
+		  	  {
+		  	  xCoord=static_cast<float>(lpPoint->x)/100;
+		  	  yCoord=static_cast<float>(lpPoint->y)/100;
+		  	  }
+		  }
+		  else
+		  {
+		  xCoord=static_cast<float>(lpPoint->x)/100;
+		  yCoord=static_cast<float>(lpPoint->y)/100;
+		  }
+
 		  switch (comStr.getState()){
 			case STATE_WAIT_COMMAND:
  	           	if (!myModel.hitModel(lpPoint->x,lpPoint->y,
 					mycursor.getSize()))
 			{
 				if (!flagBusyState)
-				   comStr.selectRect(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				   comStr.selectRect(xCoord,yCoord);
 			}
 			else 
 				comStr.setState(STATE_SEL_ENTITY);
@@ -710,77 +743,77 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				break;
 
 			case STATE_SELECTRECT:
-				comStr.selectRect(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				comStr.selectRect(xCoord,yCoord);
 				flagRegen=false;
 				break;
 
 			case STATE_RECT_POINT1:
-				comStr.segRect(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				comStr.segRect(xCoord,yCoord);
 				break;
 
 			case STATE_RECT_POINT2:
-				comStr.segRect(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				comStr.segRect(xCoord,yCoord);
 				flagRegen=false;
 				break;
 
 			case STATE_MOVE_P1:
-				comStr.segMove(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				comStr.segMove(xCoord,yCoord);
 				break;
 
 			case STATE_MOVE_P2:
-				comStr.segMove(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				comStr.segMove(xCoord,yCoord);
 				flagRegen=false;
 				break;
 
 			case STATE_LINE_POINT1:
 			        prevCursPos=*lpPoint;
-				comStr.segLine(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				comStr.segLine(xCoord,yCoord);
 				break;
 			case STATE_LINE_POINT2:
-				comStr.segLine(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				comStr.segLine(xCoord,yCoord);
 				myModel.showModel();
 				flagRegen=false;
 				break;
 			case STATE_ARC_POINT1:
-				comStr.segArc(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				comStr.segArc(xCoord,yCoord);
 				break;
 			case STATE_ARC_POINT2:
-				comStr.segArc(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				comStr.segArc(xCoord,yCoord);
 			modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
 				flagRegen=false;
 				break;
 			case STATE_ARC_POINT3:
-				comStr.segArc(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				comStr.segArc(xCoord,yCoord);
 				myModel.showModel();
 				flagRegen=false;
 				break;
 				
 			case STATE_CONTUR_LINE1:
 			        prevCursPos=*lpPoint;
-				comStr.contur(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				comStr.contur(xCoord,yCoord);
 				break;
 			case STATE_CONTUR_LINE2:
-				comStr.contur(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				comStr.contur(xCoord,yCoord);
 				flagRegen=false;
 				break;
 
 			case STATE_CONTUR_ARC1:
-				comStr.contur(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				comStr.contur(xCoord,yCoord);
 				break;
 
 			case STATE_CONTUR_ARC2:
-				comStr.contur(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				comStr.contur(xCoord,yCoord);
 			modelWindow.line(comStr.getX1(),comStr.getY1(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
 				flagRegen=false;
 				break;
 
 			case STATE_CONTUR_ARC3:
-				comStr.contur(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				comStr.contur(xCoord,yCoord);
 				flagRegen=false;
 				break;
 
 			case STATE_TEXT_INSPOINT:
-				textEntities.setXY(static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+				textEntities.setXY(xCoord,yCoord);
 				comStr.addTextToHistory("Input point");
 				comStr.setState(STATE_WAIT_COMMAND);
 				textEntities.show();
@@ -790,15 +823,16 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			{
 				modelWindow.line(textEntities.getInsX(),
 						textEntities.getInsY(),
-				static_cast<float>(prevCursPos.x)/100,
-				static_cast<float>(prevCursPos.y)/100);
+				xCoord,
+				yCoord
+				);
 
 			        prevCursPos=*lpPoint;
 
 				tempA.x=textEntities.getInsX();
 				tempA.y=textEntities.getInsY();
-				tempB.x=((float)(lpPoint->x))/100;
-				tempB.y=((float)(lpPoint->y))/100;
+				tempB.x=xCoord;
+				tempB.y=yCoord;
 				tempB-=tempA;
 				tempA.x=1;
 				tempA.y=0;
@@ -893,7 +927,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 	      InvalidateRect(hWnd,&aRect,true);
 	}
 
-      sprintf(buf,"Scale:%3.3f       ",xForm.eM11);
+      sprintf(buffer,"Scale:%3.3f       ",xForm.eM11);
 
       statusBar.printText(10,10,buffer);
 
@@ -901,6 +935,9 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
       case WM_KEYDOWN:
       	switch(wParam){
+	      case VK_F3:
+		      myModel.switchOsnap();
+		break;
 	      case VK_DELETE:
 		      comStr.deleteEntity(0,0);
 		break;
@@ -1024,8 +1061,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 		case IDM_NEW:
 			
-		   	myModel.hitOsnap(0,10);
-			//MessageBox(hWnd, "Выбран пункт 'New'", "Меню File", MB_OK);
+			MessageBox(hWnd, "Выбран пункт 'New'", "Меню File", MB_OK);
 			break;
 
  		case IDM_SAVE:

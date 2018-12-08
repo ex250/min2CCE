@@ -83,6 +83,8 @@ class Entity
 	unsigned char getLayerID();
 	bool setLayerID(unsigned char);	
 
+	bool getState();	
+
 	void setZ(float);
 	float getZ();
 
@@ -235,9 +237,13 @@ class Model
 	char FileName[256];
 	std::vector<Entity*> entities;
 	std::vector<Entity*>::iterator iter;
+	std::vector<Entity*>::iterator iterFind;
 	Layer *ptrToDefaultLayer;
 	Layer *ptrToCurrentLayer;
 	int selectedCount;
+	float osnapX,osnapY;
+	bool flagOsnap;
+	bool markerOsnap;
   public:
 	Model();
 
@@ -253,7 +259,13 @@ class Model
 	int	transformEntity(int[]);
 	bool	hitModel(int,int,int);
 
-	bool	hitOsnap(int,int)const;
+	bool	hitOsnap(int,int);
+	bool	setOsnapXY(std::vector<Entity*>::iterator&,int,int);
+	bool	stateOsnap();
+	bool	switchOsnap();
+	float	getOsnapX();
+	float	getOsnapY();
+	bool	markerOsnapVisible();
 
 	int readModel(char *);
 	int writeModel(const char *);

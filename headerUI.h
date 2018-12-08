@@ -294,7 +294,7 @@ class ModelWindow:public BaseWindow
 
     bool setScale(float);
 
-    bool setROP2(int);
+    int setROP2(int);
 
     float getScale();
     
@@ -303,6 +303,8 @@ class ModelWindow:public BaseWindow
     bool _arc(float, float, float, float, float, float, float, int );
 
     bool marker(float,float);
+
+    bool markerOsnap(float,float);
 
     bool myPolygon(CONST POINT *, int );
 

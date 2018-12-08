@@ -114,6 +114,11 @@ float Entity::getZ(){
 	return Z;
 }	
 
+bool	Entity::getState()
+{
+	return selected;
+}
+
 void Entity::setSpeed(float spd){
   speed=spd;
 }	
@@ -590,11 +595,13 @@ bool Line::hitCursor(int xPos,int yPos,int size){
 	DeleteObject(hRgn);
 
 	if (selected&&result)
+	{
 		return result;
+	}
 	else 
 	{
+	//show();
 		selected=result;
-		show();
 	}
 	
 	return result;
@@ -877,7 +884,6 @@ bool ArcSegment::hitCursor(int xPos,int yPos,int size){
 	else 
 	{
 		selected=result;
-		show();
 	}
 
 	delete [] lpBegin;
@@ -892,6 +898,7 @@ ptrToDefaultLayer=defaultLayer;
 ptrToCurrentLayer=currentLayer;
 iter=entities.begin();
 selectedCount=0;
+flagOsnap=false;
 }
 
 bool Model::addEntity(Entity* entity)
@@ -1747,14 +1754,127 @@ float Model::getDistance(float xs, float ys, float xe, float ye)
 	return res;
 }
 
-bool Model::hitOsnap(int x, int y)const
+bool Model::stateOsnap()
 {
-	int osnapSize=80;
+	return flagOsnap;
+}
+
+bool Model::switchOsnap()
+{
+	flagOsnap=flagOsnap?false:true;
+	return flagOsnap;
+}
+
+float Model::getOsnapX()
+{
+	return osnapX;
+}
+
+float Model::getOsnapY()
+{
+	return osnapY;
+}
+
+bool	Model::markerOsnapVisible()
+{
+	return markerOsnap;
+}
+
+
+bool Model::hitOsnap(int x, int y)
+{
+	int osnapSize=180;
 	bool result=false;
-	auto iterFind=find_if(entities.begin(),entities.end(),
+
+	iterFind=find_if(entities.begin(),entities.end(),
 			[&osnapSize,&x,&y](Entity* ptrP) 
 			{return ptrP->hitCursor(x,y,osnapSize);});
+
+	if (markerOsnap)//clear old marker
+	{
+		int prevROP2=modelWindow.setROP2(R2_NOTXORPEN);
+		modelWindow.markerOsnap(osnapX,osnapY);
+		modelWindow.setROP2(prevROP2);
+		markerOsnap=false;
+	}
+
 	if (iterFind!=entities.end())
-		MessageBox(modelWindow.getHWND(),"HIT","OSNAP",MB_OK);
+	{
+		result=setOsnapXY(iterFind,x,y);
+
+		if (result)
+		{
+			if (!markerOsnap){//show marker
+				modelWindow.markerOsnap(osnapX,osnapY);
+				markerOsnap=true;
+			}
+		}
+	}
+	else
+		markerOsnap=false;
+	return result;
+}
+
+bool Model::setOsnapXY(vector<Entity*>::iterator &it,int x,int y)
+{
+	Entity* ptrEntity;
+	Line* ptrLine;
+	ArcSegment* ptrArc;
+	ptrEntity=*it;
+	bool result=false;
+	float scaleFactor=modelWindow.getScale();
+	int marker=int(300/scaleFactor);
+	if (marker<=1)
+		marker=2;
+	int xPt,yPt;
+	entityType enType=(*it)->getType();
+	switch(enType)
+	   {
+		case tLine:
+			ptrLine=(Line*)ptrEntity;
+			xPt=(int)(ptrLine->getStart()->getX()*100);
+			yPt=(int)(ptrLine->getStart()->getY()*100);
+			result=(x-marker)<=xPt&&(x+marker)>=xPt&&
+				(y-marker)<=yPt&&(y+marker)>=yPt;
+			if (result)
+			{
+				osnapX=ptrLine->getStart()->getX();
+				osnapY=ptrLine->getStart()->getY();
+			}
+			else
+			{
+			xPt=(int)(ptrLine->getEnd()->getX()*100);
+			yPt=(int)(ptrLine->getEnd()->getY()*100);
+			result=(x-marker)<=xPt&&(x+marker)>=xPt&&
+				(y-marker)<=yPt&&(y+marker)>=yPt;
+			if (result)
+			{
+				osnapX=ptrLine->getEnd()->getX();
+				osnapY=ptrLine->getEnd()->getY();
+			}
+			else//middle point
+			{
+				xPt=(int)((ptrLine->getEnd()->getX()+
+					ptrLine->getStart()->getX())*50);
+				yPt=(int)((ptrLine->getEnd()->getY()+
+					ptrLine->getStart()->getY())*50);
+			result=(x-marker)<=xPt&&(x+marker)>=xPt&&
+				(y-marker)<=yPt&&(y+marker)>=yPt;
+			if (result)
+			{
+				osnapX=(ptrLine->getEnd()->getX()+
+					ptrLine->getStart()->getX())/2;
+				osnapY=(ptrLine->getEnd()->getY()+
+					ptrLine->getStart()->getY())/2;
+			}
+			}
+			}
+			
+			break;
+		case tArc:
+			ptrArc=(ArcSegment*)ptrEntity;
+			break;
+	   }
+
 	return result;
 }
