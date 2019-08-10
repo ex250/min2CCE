@@ -1049,8 +1049,29 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			strcpy(szFile, "");
 			success = GetOpenFileName(&ofn);
 			if (success){
-				//myModel.readModel(ofn.lpstrFile);
+				switch (ofn.nFilterIndex)
+				{
+					case GCODE_FILES:
+				MessageBox(hWnd, "open GCODE.",
+				"OPEN", MB_ICONWARNING);
+					break;
+
+					case DXF_FILES:
 				myModel.loadDXF(ofn.lpstrFile);
+				MessageBox(hWnd, "open DXF",
+				"OPEN", MB_ICONWARNING);
+					break;
+					case WMF_FILES:
+				MessageBox(hWnd, "open WMF",
+				"OPEN", MB_ICONWARNING);
+					break;
+					case NC1000_FILES:
+				MessageBox(hWnd, "open NC1000",
+				"OPEN", MB_ICONWARNING);
+					break;
+					default:
+				myModel.readModel(ofn.lpstrFile);
+				}
 				myModel.showModel();
 			}
 			else

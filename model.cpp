@@ -1346,7 +1346,7 @@ int Model::saveNC1000(const char *fn)
 			ptrArc=NULL;
 			nextX=ptrLine->getStart()->getX();
 			nextY=ptrLine->getStart()->getY();
-   			workDistZ=ptrLine->getZ();
+   			workDistZ=-ptrLine->getZ();
 	}
 		else if (etype==tArc)
 	{
@@ -1354,7 +1354,7 @@ int Model::saveNC1000(const char *fn)
 			ptrLine=NULL;
 			nextX=ptrArc->getStartX();
 			nextY=ptrArc->getStartY();
-   			workDistZ=ptrArc->getZ();
+   			workDistZ=-ptrArc->getZ();
 	}
 
 	if (!numLine){
@@ -1366,7 +1366,7 @@ int Model::saveNC1000(const char *fn)
 		sprintf(tmp,prgFormatCode[POSITIONING],numLine,
 				nextX,
 				LPY-nextY,
-				workDistZ
+				workDistZ+LPZ
 			);
 		
 
@@ -1394,7 +1394,7 @@ int Model::saveNC1000(const char *fn)
 			  sprintf(tmp,prgFormatCode[POSITIONING],numLine,
 				nextX,
 				LPY-nextY,
-				workDistZ);
+				workDistZ+LPZ);
 			  programmBuffer+=tmp;
 
 			  numLine+=10; //far transition
@@ -1415,7 +1415,7 @@ int Model::saveNC1000(const char *fn)
 			  numLine+=10;
 
 			  sprintf(tmp,prgFormatCode[G1Z],numLine,
-				-LPZ+workDistZ
+				workDistZ
 			       );
 			  programmBuffer+=tmp;
 			  numLine+=10;
@@ -1742,6 +1742,42 @@ int Model::loadDXF(const char *fName){
 					endAngle,
 					R);
 			*/
+			}
+			else if (streq(buffer,"CIRCLE")&&flag){
+			infile.getline(buffer,MAX);
+			line++;
+			while(strcmp(buffer,"  0"))
+			{
+				if (streq(buffer," 10")){
+					infile.getline(buffer,MAX);
+					line++;
+					xc=atof(buffer);
+					}
+				else if (streq(buffer," 20")){
+					infile.getline(buffer,MAX);
+					line++;
+					yc=atof(buffer);
+					}
+				else if (streq(buffer," 40")){
+					infile.getline(buffer,MAX);
+					line++;
+					R=atof(buffer);
+					}
+				infile.getline(buffer,MAX);
+					line++;
+			}
+			
+			x1=xc+R;
+			x2=xc-R;
+			y1=yc;
+			y2=yc;
+
+			appendArc(x1,y1,x2,y2,xc,yc,R,AD_CLOCKWISE);
+
+			x1=xc-R;
+			x2=xc+R;
+
+			appendArc(x1,y1,x2,y2,xc,yc,R,AD_CLOCKWISE);
 
 			}
 	}
