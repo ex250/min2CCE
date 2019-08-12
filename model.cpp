@@ -674,6 +674,14 @@ float ArcSegment::getEndY(){
 	return ye;
 }
 
+float ArcSegment::getCenterX(){
+	return xc;
+}
+
+float ArcSegment::getCenterY(){
+	return yc;
+}
+
 float ArcSegment::getRadius(){
 	return radius;
 }
@@ -1589,6 +1597,122 @@ CUSTOMSEZ=%09d\x0a\x0a",
 	MessageBox(modelWindow.getHWND(),
 			"Error write file","SAVE...",MB_OK);
    oufile.close();
+
+}
+
+int Model::saveDXF(const char *fn)
+{
+   int j;
+   float workDistZ;
+   int countElements=0;
+
+   char buff[4098];
+   char tmp[1024];
+   float xc,yc,xs,ys,xe,ye;
+   float startAngle;
+   float endAngle;
+   float temp;
+   Line * ptrLine;
+   ArcSegment * ptrArc;
+   ofstream oufile;
+   entityType etype;
+   vec2 startArc,endArc;
+
+	if (FileName!="")
+		oufile.open(fn);
+	else 
+	{
+		sprintf(buff,"empty file name %s",FileName);
+		MessageBox(modelWindow.getHWND(),buff,"Error",MB_OK);
+	       	return -1;
+	}
+
+
+   strcpy(buff,"  0\nSECTION\n  2\nENTITIES\n");
+
+   for (j=0;j<entities.size();j++){
+
+	etype=entities[j]->getType();
+
+	switch(etype){
+		case tPoint:
+			break;
+		case tLine:
+			countElements++;
+
+			ptrLine=(Line*)(entities[j]);
+
+   			workDistZ=ptrLine->getZ();
+
+			sprintf(tmp,"  0\nLINE\n  8\n0\n 10\n%f\n 20\n%f\n 30\n%f\n 11\n%f\n 21\n%f\n",
+				ptrLine->getStart()->getX(),
+				ptrLine->getStart()->getY(),
+				workDistZ,
+				ptrLine->getEnd()->getX(),
+				ptrLine->getEnd()->getY()
+			);
+
+			strcat(buff,tmp);
+
+			break;
+		case tArc:
+			countElements++;
+
+			ptrArc=(ArcSegment*)(entities[j]);
+
+			xc=ptrArc->getCenterX();
+			yc=ptrArc->getCenterY();
+			xs=ptrArc->getStartX();
+			ys=ptrArc->getStartY();
+			xe=ptrArc->getEndX();
+			ye=ptrArc->getEndY();
+
+			startArc=vec2(xs-xc,ys-yc);
+			endArc=vec2(xe-xc,ye-yc);
+
+			startArc.normalize();
+			endArc.normalize();
+
+			startAngle=acos(startArc.x)*180/PI;
+			endAngle=acos(endArc.x)*180/PI;
+
+			if ((ys-yc)<0)
+				startAngle=360-startAngle;
+
+			if ((ye-yc)<0)
+				endAngle=360-endAngle;
+
+			if (ptrArc->getDirection()==AD_COUNTERCLOCKWISE)
+			{
+				float temp=startAngle;
+				startAngle=endAngle;
+				endAngle=temp;
+			}
+
+			sprintf(tmp,"  0\nARC\n  8\n0\n 10\n%f\n 20\n%f\n 40\n%f\n 50\n%f\n 51\n%f\n",
+			xc,yc,ptrArc->getRadius(),startAngle,endAngle);
+
+			strcat(buff,tmp);
+		
+			break;
+		default:
+				strcpy(buff,"NONE\n");
+		}
+
+	oufile.write(buff,strlen(buff));
+   if (!oufile)
+	MessageBox(modelWindow.getHWND(),"Error write file","SAVE as DXF",MB_OK);
+	strcpy(buff,"");
+
+   }
+	strcat(buff,"  0\nENDSEC\n  0\nEOF");
+
+	oufile.write(buff,strlen(buff));
+   if (!oufile)
+	MessageBox(modelWindow.getHWND(),"Error write file","SAVE...",MB_OK);
+
+   oufile.close();
+   return 0;
 
 }
 

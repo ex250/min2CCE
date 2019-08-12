@@ -1103,6 +1103,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				myModel.saveGcodeISO(ofn.lpstrFile);
 					break;
 					case DXF_FILES:
+				myModel.saveDXF(ofn.lpstrFile);
 				MessageBox(hWnd, "save as DXF",
 				"SAVE AS...", MB_ICONWARNING);
 					break;

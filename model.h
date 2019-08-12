@@ -226,6 +226,8 @@ class ArcSegment:public Entity
 	float getStartY();
 	float getEndX();
 	float getEndY();
+	float getCenterX();
+	float getCenterY();
 	float getRadius();
 	int getDirection();
 	float getSignRad();
@@ -271,7 +273,8 @@ class Model
 	int writeModel(const char *);
 	int saveGcodeISO(const char *);
 	int saveNC1000(const char *);
-	int loadDXF(const char *fName);
+	int saveDXF(const char *);
+	int loadDXF(const char *);
 	int scaleModel(float);
 	void showModel();
 	int printModelInfo()const;
