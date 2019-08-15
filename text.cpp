@@ -23,7 +23,7 @@ bool isRealNumber(char * str);
 int getArcDirection(vec2 p1, vec2 p2, vec2 p3);
 
 TextEntities::TextEntities():insX(0.0),insY(0.0),
-	angle(0.0),len(-1),numLines(10),tau(0.5),aproxSwitch(LINEAR)
+	angle(0.0),len(1.0),numLines(10),tau(0.5),aproxSwitch(LINEAR)
 {}
 
 void TextEntities::show(){
@@ -270,10 +270,7 @@ BOOL CALLBACK TextEntities::TextDlgProc(HWND hDlg,UINT uMsg,
 					(LPARAM)temp
 					);
 
-			if (len<=0)
-				strcpy(temp,"default");
-			else 
-				sprintf(temp,"%4.2f",len);
+			sprintf(temp,"%4.2f",len);
 
 			SendDlgItemMessage(
 					hDlg,
@@ -439,7 +436,17 @@ BOOL CALLBACK TextEntities::TextDlgProc(HWND hDlg,UINT uMsg,
 					   );
 					   flagNumber=isRealNumber(temp);
 					   if (flagNumber)
+					   {
 						   len=atof(temp);
+						   if (len==0)
+						   {
+						       len=1;
+						MessageBox(hDlg,
+						"Invalid value: 0","Error",
+						MB_OK);
+						   }
+						   pText->len=len;
+					   }
 					   else {
 						MessageBox(hDlg,
 						"Invalid value Lenght","Error",
@@ -510,7 +517,6 @@ BOOL CALLBACK TextEntities::TextDlgProc(HWND hDlg,UINT uMsg,
 					pText->insX=xPos;
 					pText->insY=yPos;
 					pText->angle=angle;
-					pText->len=len;
 					pText->ptrStr=sentence;
 
 					nLines=SendDlgItemMessage(
@@ -583,7 +589,27 @@ bool TextEntities::makeText(LOGFONT* pLf){
    static char buffer[128];
    static char bufHeader[128];
    static char bufCurve[128];
-   static MAT2 matrix={{0,1},{0,0},{0,0},{0,1}};
+   double fract,value,tempFract;
+
+   fract=fabs(modf(len,&value));
+   tempFract=fract*65535;
+   modf(tempFract,&fract);
+   WORD fractW,valueW;
+   fractW=(WORD)(fract);
+   valueW=(WORD)(value);
+
+   static MAT2 matrix;
+
+   matrix.eM11.fract=fractW;
+   matrix.eM11.value=valueW;
+   matrix.eM12.fract=0;
+   matrix.eM12.value=0;
+   matrix.eM21.fract=0;
+   matrix.eM21.value=0;
+   matrix.eM22.fract=0;
+   matrix.eM22.value=1;
+
+
    static GLYPHMETRICS glyphMetrics;
    static HFONT hFont;
    static HFONT hOldFont;
@@ -754,7 +780,7 @@ bool TextEntities::makeText(LOGFONT* pLf){
 	   //MessageBox(modelWindow.getHWND(),bufCurve,"info",MB_OK);
 
     	   symbol=*(++ptrStr);
-	   startPos+=(lpabc->abcfA+lpabc->abcfB+lpabc->abcfC);
+	   startPos+=((float)(lpabc->abcfA+lpabc->abcfB+lpabc->abcfC))*len;
 	   }
 	   startPos=0;
 
