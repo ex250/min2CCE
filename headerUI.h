@@ -35,6 +35,8 @@ const int STATE_BUSY=200;
 const int STATE_SEL_ENTITY=300;
 const int STATE_SEL_VERTEX=350;
 const int STATE_DELETE_ENTITY=400;
+const int STATE_CIRCLE_CENTER=500;
+const int STATE_CIRCLE_RADIUS=510;
 
 const float PI=3.14159265;
 const int ON=1;
@@ -227,6 +229,8 @@ class CommandLine:public BaseWindow
     bool segLine(float,float);
 
     bool segArc(float,float);
+
+    bool circleCR(float,float);
 
     bool contur(float,float);
 

@@ -356,6 +356,66 @@ bool CommandLine::segArc(float x,float y){
 	return result;
 }
 
+bool CommandLine::circleCR(float x,float y){
+	bool result;
+	RECT aRect={0,40,180,80}; 	
+        char str[256];
+	switch (state){
+		case STATE_WAIT_COMMAND:
+           pStrCmd="координаты x,y: ";
+	   InvalidateRect(hWnd,&aRect,TRUE);
+	   addTextToHistory("Circle center radius");
+	   modelWindow.setROP2(R2_NOTXORPEN);
+	   state=STATE_CIRCLE_CENTER;
+	  break;
+
+		case STATE_CIRCLE_CENTER:
+	    xc=x;
+	    yc=y;
+	    addCoordToHistory(x,y,1);
+	    state=STATE_CIRCLE_RADIUS;
+	  break;
+
+		case STATE_CIRCLE_RADIUS:
+	   x2=x;
+	   y2=y;
+	   addCoordToHistory(x,y,3);
+	   ArcDirection=AD_COUNTERCLOCKWISE;
+	   R=sqrt((x-xc)*(x-xc)+(y-yc)*(y-yc));
+	    if (R!=0){
+		    x1=xc-R;
+		    x3=xc+R;
+		    y1=y3=yc;
+		    myModel.appendArc(x1,y1,x3,y3,xc,yc,R,ArcDirection);
+		    x1=xc+R;
+		    x3=xc-R;
+		    myModel.appendArc(x1,y1,x3,y3,xc,yc,R,ArcDirection);
+	    }
+
+            sprintf(str,"R=%4.2f, Xc=%4.2f, Yc=%4.2f",R,xc,yc);
+	    
+	    if (ArcDirection==AD_COUNTERCLOCKWISE)
+		    strcat(str," rotation: CCW");
+	    else
+		    strcat(str," rotation: CW");
+
+	    addTextToHistory(str);
+	    //modelWindow.setROP2(R2_COPYPEN);
+            pStrCmd="команда: ";
+	    InvalidateRect(hWnd,&aRect,TRUE);	
+	    state=STATE_WAIT_COMMAND;
+	  break;
+		default:
+            pStrCmd="Do not known STATE: ";
+	    InvalidateRect(hWnd,&aRect,TRUE);	
+	    state=STATE_WAIT_COMMAND;
+
+	}
+	result = true; 
+	return result;
+}
+
+
 bool CommandLine::contur(float x, float y)
 {
 	bool result;

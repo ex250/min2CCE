@@ -559,6 +559,55 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 		        prevCursPos=*lpPoint;
 			flagRegen=true;
 			break;
+
+			   case STATE_CIRCLE_CENTER:
+		        prevCursPos=*lpPoint;
+			break;
+
+			   case STATE_CIRCLE_RADIUS:
+		   	if (flagRegen==true)
+			{
+				modelWindow.line(comStr.getXc(),comStr.getYc(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+			float x=((float)(prevCursPos.x))/100;
+			float y=((float)(prevCursPos.y))/100;
+			float xc=comStr.getXc();
+			float yc=comStr.getYc();
+			float radius=sqrt((xc-x)*(xc-x)+(yc-y)*(yc-y));
+			float x1=xc-radius;
+			float x3=xc+radius;
+			float y1,y3;
+			y1=y3=yc;
+			modelWindow._arc(x1,y1,x3,y3,xc,yc,
+					radius,AD_COUNTERCLOCKWISE
+			);
+			modelWindow._arc(x3,y3,x1,y1,xc,yc,
+					radius,AD_COUNTERCLOCKWISE
+			);
+			}
+
+			{
+			float x=((float)(lpPoint->x))/100;
+			float y=((float)(lpPoint->y))/100;
+			float xc=comStr.getXc();
+			float yc=comStr.getYc();
+			float radius=sqrt((xc-x)*(xc-x)+(yc-y)*(yc-y));
+			float x1=xc-radius;
+			float x3=xc+radius;
+			float y1,y3;
+			y1=y3=yc;
+			modelWindow._arc(x1,y1,x3,y3,xc,yc,
+					radius,AD_COUNTERCLOCKWISE
+			);
+			modelWindow._arc(x3,y3,x1,y1,xc,yc,
+					radius,AD_COUNTERCLOCKWISE
+			);
+			}
+
+			modelWindow.line(comStr.getXc(),comStr.getYc(),static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+		        prevCursPos=*lpPoint;
+			flagRegen=true;
+			break;
+
 			   case STATE_ARC_POINT1:
 		        prevCursPos=*lpPoint;
 			break;
@@ -774,6 +823,19 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				myModel.showModel();
 				flagRegen=false;
 				break;
+
+			case STATE_CIRCLE_CENTER:
+			        prevCursPos=*lpPoint;
+				comStr.circleCR(xCoord,yCoord);
+				break;
+			case STATE_CIRCLE_RADIUS:
+				comStr.circleCR(xCoord,yCoord);
+			modelWindow.line(comStr.getXc(),comStr.getYc(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+				flagRegen=false;
+				modelWindow.setROP2(R2_COPYPEN);
+				myModel.showModel();
+				break;
+
 			case STATE_ARC_POINT1:
 				comStr.segArc(xCoord,yCoord);
 				break;
@@ -1058,8 +1120,6 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 					case DXF_FILES:
 				myModel.loadDXF(ofn.lpstrFile);
-				MessageBox(hWnd, "open DXF",
-				"OPEN", MB_ICONWARNING);
 					break;
 					case WMF_FILES:
 				MessageBox(hWnd, "open WMF",
@@ -1070,7 +1130,7 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				"OPEN", MB_ICONWARNING);
 					break;
 					default:
-				myModel.readModel(ofn.lpstrFile);
+				myModel.loadDXF(ofn.lpstrFile);
 				}
 				myModel.showModel();
 			}
@@ -1103,9 +1163,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				myModel.saveGcodeISO(ofn.lpstrFile);
 					break;
 					case DXF_FILES:
+				strcat(ofn.lpstrFile,".dxf");
 				myModel.saveDXF(ofn.lpstrFile);
-				MessageBox(hWnd, "save as DXF",
-				"SAVE AS...", MB_ICONWARNING);
 					break;
 					case WMF_FILES:
 				MessageBox(hWnd, "save as WMF",
@@ -1115,9 +1174,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				myModel.saveNC1000(ofn.lpstrFile);
 					break;
 					default:
-				myModel.writeModel(ofn.lpstrFile);
-				MessageBox(hWnd, "save as inner format",
-				"SAVE AS...", MB_ICONWARNING);
+				strcat(ofn.lpstrFile,".dxf");
+				myModel.saveDXF(ofn.lpstrFile);
 				}
 			}
 			else
@@ -1156,7 +1214,8 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			break;
 
 		case IDM_CIRCCENTRRAD:
-			MessageBox(hWnd, "Выбран пункт 'ОКРУЖНОСТЬ ЦЕНТР РАДИУС'", "Меню Примитив", MB_OK);
+			comStr.circleCR(0,0);
+			//MessageBox(hWnd, "Выбран пункт 'ОКРУЖНОСТЬ ЦЕНТР РАДИУС'", "Меню Примитив", MB_OK);
 			break;
 		case IDM_CIRCCENTRDIAM:
 			MessageBox(hWnd, "Выбран пункт 'ОКРУЖНОСТЬ ЦЕНТР ДИАМЕТР'", "Меню Примитив", MB_OK);
