@@ -123,17 +123,25 @@ bool CommandLine::addCommand()
 	result=GetWindowText(hwndC,buffer,50);
 	switch(state){
           case STATE_WAIT_COMMAND:
-		if (!strcmp(buffer,"line")){
+		if (!strcmp(buffer,"line")||
+			!strcmp(buffer,"l")){
 			segLine(0,0);
         	}
-		else if(!strcmp(buffer,"arc")){
+		else if(!strcmp(buffer,"arc")||
+				!strcmp(buffer,"a")){
 		       segArc(0,0);
 		     }
-		else if(!strcmp(buffer,"contur")){
+		else if(!strcmp(buffer,"polyline")||
+				!strcmp(buffer,"p")){
 		       contur(0,0);
 		     }
-		else if(!strcmp(buffer,"text")){
+		else if(!strcmp(buffer,"text")||
+				!strcmp(buffer,"t")){
 		       textEntities.show();
+		     }
+		else if(!strcmp(buffer,"circle")||
+				!strcmp(buffer,"c")){
+		       circleCR(0,0);
 		     }
 		else {
 		  strcat(buffer,"-unknown command");
@@ -192,6 +200,26 @@ bool CommandLine::addCommand()
 		segArc(x3,y3);
 		myModel.showModel();
 	  break;
+	  case STATE_CIRCLE_CENTER:
+	  	ptrChar=strtok(ptrChar,",");
+		if (ptrChar!=NULL)
+			xc=atof(ptrChar);
+		ptrChar=NULL;
+	  	ptrChar=strtok(ptrChar,"\0");
+		if (ptrChar!=NULL)
+			yc=atof(ptrChar);
+		circleCR(xc,yc);
+	  break;
+	  case STATE_CIRCLE_RADIUS:
+	  	ptrChar=strtok(ptrChar,",");
+		if (ptrChar!=NULL)
+			R=atof(ptrChar);
+		ptrChar=NULL;
+		circleCR(xc+R,yc);
+	    	modelWindow.setROP2(R2_COPYPEN);
+		myModel.showModel();
+	  break;
+
 	}
 	
 	SetWindowText(hwndC,"");
@@ -370,6 +398,8 @@ bool CommandLine::circleCR(float x,float y){
 	  break;
 
 		case STATE_CIRCLE_CENTER:
+           pStrCmd="RADIUS: ";
+	   InvalidateRect(hWnd,&aRect,TRUE);
 	    xc=x;
 	    yc=y;
 	    addCoordToHistory(x,y,1);

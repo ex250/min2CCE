@@ -230,8 +230,8 @@ BEGIN
     PUSHBUTTON      "Закрыть",IDCANCEL,165,7,50,14
     CONTROL         "icon",IDI_ICONMIN3C,"static", SS_ICON | 
 				SS_SUNKEN | WS_BORDER,7,7,39,39
-    LTEXT           "Min2CCE 0.4",IDC_HELPABOUTINFO,40,7,52,9
-    LTEXT           "Copyright (C) 2017-2018 EX250",
+    LTEXT           "Min2CCE 0.45",IDC_HELPABOUTINFO,40,7,52,9
+    LTEXT           "2017-2019 EX250",
                     IDC_HELPABOUT2,41,18,119,21
     //LTEXT           "Страница проекта: http://min2cce.ru",IDC_HELPABOUT3,41,
     //                47,170,21
@@ -292,8 +292,8 @@ IDC_CROSSPTR CURSOR DISCARDABLE "new.cur"
 IDC_ARC CURSOR DISCARDABLE "arc.cur"
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 0,0,0,5
+ PRODUCTVERSION 0,0,0,5
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -311,14 +311,14 @@ BEGIN
             VALUE "Comments", "Векторный 2D CAD/CAM редактор\0"
             VALUE "CompanyName", "MiniCAD\0"
             VALUE "FileDescription", "Min2CCE\0"
-            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "FileVersion", "0, 0, 0, 5\0"
             VALUE "InternalName", "Min2CCE\0"
             VALUE "LegalCopyright", "Copyright й 2018\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "Min2CCE\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "Minimal 2D CAD/CAM Editor\0"
-            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "ProductVersion", "0, 0, 0, 5\0"
             VALUE "SpecialBuild", "\0"
         END
     END
