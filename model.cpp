@@ -18,7 +18,7 @@ Layer::Layer():
        	hide(OFF),ID(countID),
 	speed(DEFAULT_SPEED),
 	tool(DEFAULT_TOOL),
-	Z(MIN_Z)
+	Z(DEFAULT_Z)
 {
   switch(countID){
 	case 1:
@@ -1354,7 +1354,7 @@ int Model::saveNC1000(const char *fn)
 			ptrArc=NULL;
 			nextX=ptrLine->getStart()->getX();
 			nextY=ptrLine->getStart()->getY();
-   			workDistZ=-ptrLine->getZ();
+   			workDistZ=ptrLine->getZ();
 	}
 		else if (etype==tArc)
 	{
@@ -1362,7 +1362,7 @@ int Model::saveNC1000(const char *fn)
 			ptrLine=NULL;
 			nextX=ptrArc->getStartX();
 			nextY=ptrArc->getStartY();
-   			workDistZ=-ptrArc->getZ();
+   			workDistZ=ptrArc->getZ();
 	}
 
 	if (!numLine){
@@ -1373,8 +1373,8 @@ int Model::saveNC1000(const char *fn)
 
 		sprintf(tmp,prgFormatCode[POSITIONING],numLine,
 				nextX,
-				LPY-nextY,
-				workDistZ+LPZ
+				nextY,
+				workDistZ
 			);
 		
 
@@ -1401,8 +1401,8 @@ int Model::saveNC1000(const char *fn)
 
 			  sprintf(tmp,prgFormatCode[POSITIONING],numLine,
 				nextX,
-				LPY-nextY,
-				workDistZ+LPZ);
+				nextY,
+				workDistZ);
 			  programmBuffer+=tmp;
 
 			  numLine+=10; //far transition
@@ -1410,14 +1410,14 @@ int Model::saveNC1000(const char *fn)
 			else//short transition
 			{
 			  sprintf(tmp,prgFormatCode[G1Z],numLine,
-				-LPZ-safeDistZ
+				safeDistZ
 			       );
 			  programmBuffer+=tmp;
 			  numLine+=10;
 
 			  sprintf(tmp,prgFormatCode[G1],numLine,
 				nextX,
-				LPY-nextY
+				nextY
 			       );
 			  programmBuffer+=tmp;
 			  numLine+=10;
@@ -1440,7 +1440,7 @@ int Model::saveNC1000(const char *fn)
 
 			sprintf(tmp,prgFormatCode[G1],numLine,
 				ptrLine->getEnd()->getX(),
-				LPY-ptrLine->getEnd()->getY()
+				ptrLine->getEnd()->getY()
 			);
 			programmBuffer+=tmp;
 
@@ -1454,13 +1454,13 @@ int Model::saveNC1000(const char *fn)
 			if (ptrArc->getDirection()==AD_COUNTERCLOCKWISE)
 			     sprintf(tmp,prgFormatCode[G2],numLine,
 				ptrArc->getEndX(),
-				LPY-ptrArc->getEndY(),
+				ptrArc->getEndY(),
 				-ptrArc->getSignRad()
 				);
 			else
 			     sprintf(tmp,prgFormatCode[G3],numLine,
 				ptrArc->getEndX(),
-				LPY-ptrArc->getEndY(),
+				ptrArc->getEndY(),
 				ptrArc->getSignRad()
 				);
 
@@ -1474,6 +1474,7 @@ int Model::saveNC1000(const char *fn)
 		default:
 				strcpy(tmp,"NONE\x0a");
 		}
+
    }
    
    	sprintf(tmp,"N%d L=POFF\x0a",numLine);
@@ -1644,12 +1645,13 @@ int Model::saveDXF(const char *fn)
 
    			workDistZ=ptrLine->getZ();
 
-			sprintf(tmp,"  0\nLINE\n  8\n0\n 10\n%f\n 20\n%f\n 30\n%f\n 11\n%f\n 21\n%f\n",
+			sprintf(tmp,"  0\nLINE\n  8\n0\n 10\n%f\n 20\n%f\n 30\n%f\n 11\n%f\n 21\n%f\n 31\n%f\n",
 				ptrLine->getStart()->getX(),
 				ptrLine->getStart()->getY(),
 				workDistZ,
 				ptrLine->getEnd()->getX(),
-				ptrLine->getEnd()->getY()
+				ptrLine->getEnd()->getY(),
+				workDistZ
 			);
 
 			strcat(buff,tmp);
@@ -1659,6 +1661,8 @@ int Model::saveDXF(const char *fn)
 			countElements++;
 
 			ptrArc=(ArcSegment*)(entities[j]);
+
+   			workDistZ=ptrArc->getZ();
 
 			xc=ptrArc->getCenterX();
 			yc=ptrArc->getCenterY();
@@ -1689,8 +1693,11 @@ int Model::saveDXF(const char *fn)
 				endAngle=temp;
 			}
 
-			sprintf(tmp,"  0\nARC\n  8\n0\n 10\n%f\n 20\n%f\n 40\n%f\n 50\n%f\n 51\n%f\n",
-			xc,yc,ptrArc->getRadius(),startAngle,endAngle);
+			sprintf(tmp,"  0\nARC\n  8\n0\n 10\n%f\n 20\n%f\n 30\n%f\n 40\n%f\n 50\n%f\n 51\n%f\n",
+			xc,yc,
+			workDistZ,
+			ptrArc->getRadius(),
+			startAngle,endAngle);
 
 			strcat(buff,tmp);
 		

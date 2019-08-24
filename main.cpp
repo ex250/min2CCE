@@ -253,7 +253,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		SendMessage(hwndComboZAxis, CB_ADDSTRING, 0, (LPARAM)buffer);
 	}
 
-	SendMessage(hwndComboZAxis, CB_SETCURSEL, 0, 0);
+	SendMessage(hwndComboZAxis, CB_SETCURSEL, 10, 0);
 	
 //combobox for tools 
 	HWND hwndComboTools;

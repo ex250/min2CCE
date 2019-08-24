@@ -143,6 +143,10 @@ bool CommandLine::addCommand()
 				!strcmp(buffer,"c")){
 		       circleCR(0,0);
 		     }
+		else if(!strcmp(buffer,"rectangle")||
+				!strcmp(buffer,"r")){
+		       segRect(0,0);
+		     }
 		else {
 		  strcat(buffer,"-unknown command");
 		  addTextToHistory(buffer);
@@ -219,6 +223,28 @@ bool CommandLine::addCommand()
 	    	modelWindow.setROP2(R2_COPYPEN);
 		myModel.showModel();
 	  break;
+	  case STATE_RECT_POINT1:
+	  	ptrChar=strtok(ptrChar,",");
+		if (ptrChar!=NULL)
+			x1=atof(ptrChar);
+		ptrChar=NULL;
+	  	ptrChar=strtok(ptrChar,"\0");
+		if (ptrChar!=NULL)
+			y1=atof(ptrChar);
+		segRect(x1,y1);
+	  break;
+	  case STATE_RECT_POINT2:
+	  	ptrChar=strtok(ptrChar,",");
+		if (ptrChar!=NULL)
+			x2=atof(ptrChar);
+		ptrChar=NULL;
+	  	ptrChar=strtok(ptrChar,"\0");
+		if (ptrChar!=NULL)
+			y2=atof(ptrChar);
+		segRect(x2,y2);
+		myModel.showModel();
+	  break;
+
 
 	}
 	
@@ -592,6 +618,8 @@ bool CommandLine::segRect(float x,float y){
 	    	myModel.appendLine(&start,&end);
 
 	    	modelWindow.setROP2(R2_COPYPEN);
+            	pStrCmd="команда: ";
+	    	InvalidateRect(hWnd,&aRect,TRUE);	
 	    	state=STATE_WAIT_COMMAND;
 		}
 		break;
