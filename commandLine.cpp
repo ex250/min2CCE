@@ -143,6 +143,10 @@ bool CommandLine::addCommand()
 				!strcmp(buffer,"c")){
 		       circleCR(0,0);
 		     }
+		else if(!strcmp(buffer,"cd")||
+				!strcmp(buffer,"d")){
+		       circleDR(0,0);
+		     }
 		else if(!strcmp(buffer,"rectangle")||
 				!strcmp(buffer,"r")){
 		       segRect(0,0);
@@ -223,6 +227,26 @@ bool CommandLine::addCommand()
 	    	modelWindow.setROP2(R2_COPYPEN);
 		myModel.showModel();
 	  break;
+	  case STATE_CIRCLE_CENTER_DIAMETR:
+	  	ptrChar=strtok(ptrChar,",");
+		if (ptrChar!=NULL)
+			xc=atof(ptrChar);
+		ptrChar=NULL;
+	  	ptrChar=strtok(ptrChar,"\0");
+		if (ptrChar!=NULL)
+			yc=atof(ptrChar);
+		circleDR(xc,yc);
+	  break;
+	  case STATE_CIRCLE_DIAMETR:
+	  	ptrChar=strtok(ptrChar,",");
+		if (ptrChar!=NULL)
+			R=atof(ptrChar);
+		ptrChar=NULL;
+		circleDR(xc+R,yc);
+	    	modelWindow.setROP2(R2_COPYPEN);
+		myModel.showModel();
+	  break;
+
 	  case STATE_RECT_POINT1:
 	  	ptrChar=strtok(ptrChar,",");
 		if (ptrChar!=NULL)
@@ -471,6 +495,66 @@ bool CommandLine::circleCR(float x,float y){
 	return result;
 }
 
+bool CommandLine::circleDR(float x,float y){
+	bool result;
+	RECT aRect={0,40,180,80}; 	
+        char str[256];
+	switch (state){
+		case STATE_WAIT_COMMAND:
+           pStrCmd="координаты x,y: ";
+	   InvalidateRect(hWnd,&aRect,TRUE);
+	   addTextToHistory("Circle center diametr");
+	   modelWindow.setROP2(R2_NOTXORPEN);
+	   state=STATE_CIRCLE_CENTER_DIAMETR;
+	  break;
+
+		case STATE_CIRCLE_CENTER_DIAMETR:
+           pStrCmd="DIAMETR: ";
+	   InvalidateRect(hWnd,&aRect,TRUE);
+	    xc=x;
+	    yc=y;
+	    addCoordToHistory(x,y,1);
+	    state=STATE_CIRCLE_DIAMETR;
+	  break;
+
+		case STATE_CIRCLE_DIAMETR:
+	   x2=x;
+	   y2=y;
+	   addCoordToHistory(x,y,3);
+	   ArcDirection=AD_COUNTERCLOCKWISE;
+	   R=sqrt((x-xc)*(x-xc)+(y-yc)*(y-yc))/2;
+	    if (R!=0){
+		    x1=xc-R;
+		    x3=xc+R;
+		    y1=y3=yc;
+		    myModel.appendArc(x1,y1,x3,y3,xc,yc,R,ArcDirection);
+		    x1=xc+R;
+		    x3=xc-R;
+		    myModel.appendArc(x1,y1,x3,y3,xc,yc,R,ArcDirection);
+	    }
+
+            sprintf(str,"R=%4.2f, Xc=%4.2f, Yc=%4.2f",R,xc,yc);
+	    
+	    if (ArcDirection==AD_COUNTERCLOCKWISE)
+		    strcat(str," rotation: CCW");
+	    else
+		    strcat(str," rotation: CW");
+
+	    addTextToHistory(str);
+	    //modelWindow.setROP2(R2_COPYPEN);
+            pStrCmd="команда: ";
+	    InvalidateRect(hWnd,&aRect,TRUE);	
+	    state=STATE_WAIT_COMMAND;
+	  break;
+		default:
+            pStrCmd="Do not known STATE: ";
+	    InvalidateRect(hWnd,&aRect,TRUE);	
+	    state=STATE_WAIT_COMMAND;
+
+	}
+	result = true; 
+	return result;
+}
 
 bool CommandLine::contur(float x, float y)
 {

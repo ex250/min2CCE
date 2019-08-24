@@ -1929,6 +1929,10 @@ bool Model::stateOsnap()
 bool Model::switchOsnap()
 {
 	flagOsnap=flagOsnap?false:true;
+	if (flagOsnap)
+		comStr.addTextToHistory("Osnap ON");
+	else
+		comStr.addTextToHistory("Osnap OFF");
 	return flagOsnap;
 }
 

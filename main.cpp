@@ -608,6 +608,54 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 			flagRegen=true;
 			break;
 
+			   case STATE_CIRCLE_CENTER_DIAMETR:
+		        prevCursPos=*lpPoint;
+			break;
+
+			   case STATE_CIRCLE_DIAMETR:
+		   	if (flagRegen==true)
+			{
+				modelWindow.line(comStr.getXc(),comStr.getYc(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+			float x=((float)(prevCursPos.x))/100;
+			float y=((float)(prevCursPos.y))/100;
+			float xc=comStr.getXc();
+			float yc=comStr.getYc();
+			float radius=sqrt((xc-x)*(xc-x)+(yc-y)*(yc-y))/2;
+			float x1=xc-radius;
+			float x3=xc+radius;
+			float y1,y3;
+			y1=y3=yc;
+			modelWindow._arc(x1,y1,x3,y3,xc,yc,
+					radius,AD_COUNTERCLOCKWISE
+			);
+			modelWindow._arc(x3,y3,x1,y1,xc,yc,
+					radius,AD_COUNTERCLOCKWISE
+			);
+			}
+
+			{
+			float x=((float)(lpPoint->x))/100;
+			float y=((float)(lpPoint->y))/100;
+			float xc=comStr.getXc();
+			float yc=comStr.getYc();
+			float radius=sqrt((xc-x)*(xc-x)+(yc-y)*(yc-y))/2;
+			float x1=xc-radius;
+			float x3=xc+radius;
+			float y1,y3;
+			y1=y3=yc;
+			modelWindow._arc(x1,y1,x3,y3,xc,yc,
+					radius,AD_COUNTERCLOCKWISE
+			);
+			modelWindow._arc(x3,y3,x1,y1,xc,yc,
+					radius,AD_COUNTERCLOCKWISE
+			);
+			}
+
+			modelWindow.line(comStr.getXc(),comStr.getYc(),static_cast<float>(lpPoint->x)/100,static_cast<float>(lpPoint->y)/100);
+		        prevCursPos=*lpPoint;
+			flagRegen=true;
+			break;
+
 			   case STATE_ARC_POINT1:
 		        prevCursPos=*lpPoint;
 			break;
@@ -830,6 +878,18 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 				break;
 			case STATE_CIRCLE_RADIUS:
 				comStr.circleCR(xCoord,yCoord);
+			modelWindow.line(comStr.getXc(),comStr.getYc(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
+				flagRegen=false;
+				modelWindow.setROP2(R2_COPYPEN);
+				myModel.showModel();
+				break;
+
+			case STATE_CIRCLE_CENTER_DIAMETR:
+			        prevCursPos=*lpPoint;
+				comStr.circleDR(xCoord,yCoord);
+				break;
+			case STATE_CIRCLE_DIAMETR:
+				comStr.circleDR(xCoord,yCoord);
 			modelWindow.line(comStr.getXc(),comStr.getYc(),static_cast<float>(prevCursPos.x)/100,static_cast<float>(prevCursPos.y)/100);
 				flagRegen=false;
 				modelWindow.setROP2(R2_COPYPEN);
@@ -1215,10 +1275,9 @@ long WINAPI WindowProc(HWND hWnd, UINT message, WPARAM wParam,
 
 		case IDM_CIRCCENTRRAD:
 			comStr.circleCR(0,0);
-			//MessageBox(hWnd, "Выбран пункт 'ОКРУЖНОСТЬ ЦЕНТР РАДИУС'", "Меню Примитив", MB_OK);
 			break;
 		case IDM_CIRCCENTRDIAM:
-			MessageBox(hWnd, "Выбран пункт 'ОКРУЖНОСТЬ ЦЕНТР ДИАМЕТР'", "Меню Примитив", MB_OK);
+			comStr.circleDR(0,0);
 			break;
 
 		case IDM_CIRC3POINTS:
